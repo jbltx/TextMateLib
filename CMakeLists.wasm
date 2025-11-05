@@ -145,7 +145,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/wasm)
 
 # Print configuration summary
 message(STATUS "")
-message(STATUS "============ VSCode TextMate WASM 2023 Build ============")
+message(STATUS "============ TextMateLib WASM 2023 Build ============")
 message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "WASM Variant: ${WASM_VARIANT}")

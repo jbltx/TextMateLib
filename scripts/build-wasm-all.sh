@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# VSCode TextMate WASM 2023 - Multi-Variant Build Script
+# TextMateLib WASM 2023 - Multi-Variant Build Script
 # Builds minimal, standard, full, and debug variants with WASM 2023 features
 
 set -e
@@ -18,7 +18,7 @@ VARIANTS=("minimal" "standard" "full" "debug")
 BUILD_TYPE="${BUILD_TYPE:-Release}"
 
 echo -e "${BLUE}============================================${NC}"
-echo -e "${BLUE}VSCode TextMate WASM 2023 Builder${NC}"
+echo -e "${BLUE}TextMateLib WASM 2023 Builder${NC}"
 echo -e "${BLUE}============================================${NC}"
 echo ""
 
