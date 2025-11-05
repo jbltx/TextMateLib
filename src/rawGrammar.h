@@ -22,11 +22,11 @@ struct ILocation {
 
 // ILocatable interface
 struct ILocatable {
-    ILocation* vscodeTextmateLocation;
+    ILocation* tmlLocation;
 
-    ILocatable() : vscodeTextmateLocation(nullptr) {}
+    ILocatable() : tmlLocation(nullptr) {}
     ~ILocatable() {
-        delete vscodeTextmateLocation;
+        delete tmlLocation;
     }
 };
 

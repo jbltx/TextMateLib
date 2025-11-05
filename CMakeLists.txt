@@ -90,8 +90,8 @@ endif()
 # Include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/oniguruma/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/rapidjson/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/rapidjson/include
 )
 
 # Source files
@@ -152,8 +152,7 @@ if(NOT USE_WASM_BUILD)
     find_library(ONIGURUMA_LIB
         NAMES onig
         PATHS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/oniguruma/build
-            ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/oniguruma/.libs
+            ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build
         NO_DEFAULT_PATH
     )
 
@@ -171,8 +170,8 @@ else()
 
     ExternalProject_Add(
         oniguruma_wasm
-        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/oniguruma
-        BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/oniguruma-build
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma
+        BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/thirdparty/oniguruma/build_wasm
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=Release
             -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}

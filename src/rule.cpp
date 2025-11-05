@@ -540,7 +540,7 @@ RuleId RuleFactory::getCompiledRuleId(IRawRule* desc, IRuleFactoryHelper* helper
 
     if (desc->match) {
         rule = new MatchRule(
-            desc->vscodeTextmateLocation,
+            desc->tmlLocation,
             ruleId,
             desc->name,
             *desc->match,
@@ -559,7 +559,7 @@ RuleId RuleFactory::getCompiledRuleId(IRawRule* desc, IRuleFactoryHelper* helper
         }
 
         rule = new IncludeOnlyRule(
-            desc->vscodeTextmateLocation,
+            desc->tmlLocation,
             ruleId,
             desc->name,
             desc->contentName,
@@ -567,7 +567,7 @@ RuleId RuleFactory::getCompiledRuleId(IRawRule* desc, IRuleFactoryHelper* helper
         );
     } else if (desc->whilePattern) {
         rule = new BeginWhileRule(
-            desc->vscodeTextmateLocation,
+            desc->tmlLocation,
             ruleId,
             desc->name,
             desc->contentName,
@@ -579,7 +579,7 @@ RuleId RuleFactory::getCompiledRuleId(IRawRule* desc, IRuleFactoryHelper* helper
         );
     } else {
         rule = new BeginEndRule(
-            desc->vscodeTextmateLocation,
+            desc->tmlLocation,
             ruleId,
             desc->name,
             desc->contentName,
@@ -633,7 +633,7 @@ std::vector<CaptureRule*> RuleFactory::_compileCaptures(IRawCaptures* captures,
         // Use createCaptureRule to properly register the capture rule
         Rule* captureRule = createCaptureRule(
             helper,
-            pair.second->vscodeTextmateLocation,
+            pair.second->tmlLocation,
             pair.second->name,
             pair.second->contentName,
             retokenizeCapturedWithRuleId
