@@ -5,7 +5,7 @@
 #include <vector>
 #include <stdint.h>
 
-namespace vscode_textmate {
+namespace tml {
 
 // ============================================================================
 // SessionLine Implementation
@@ -453,7 +453,7 @@ size_t SessionManager::getSessionCount() {
     return sessions.size();
 }
 
-} // namespace vscode_textmate
+} // namespace tml
 
 // ============================================================================
 // C API Wrapper Layer (extern "C")
@@ -520,7 +520,7 @@ typedef struct {
 
 extern "C" {
 
-using namespace vscode_textmate;
+using namespace tml;
 
 // ============================================================================
 // Session Lifecycle (from session_c_api.h)

@@ -1,12 +1,12 @@
-#ifndef VSCODE_TEXTMATE_TOKENIZE_STRING_H
-#define VSCODE_TEXTMATE_TOKENIZE_STRING_H
+#ifndef TEXTMATELIB_TOKENIZE_STRING_H
+#define TEXTMATELIB_TOKENIZE_STRING_H
 
 #include "types.h"
 #include "onigLib.h"
 #include "rule.h"
 #include <vector>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Forward declarations
 class Grammar;
@@ -127,6 +127,6 @@ void handleCaptures(
     const std::vector<IOnigCaptureIndex>& captureIndices
 );
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_TOKENIZE_STRING_H
+#endif // TEXTMATELIB_TOKENIZE_STRING_H

@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_REGISTRY_H
-#define VSCODE_TEXTMATE_REGISTRY_H
+#ifndef TEXTMATELIB_REGISTRY_H
+#define TEXTMATELIB_REGISTRY_H
 
 #include "types.h"
 #include "theme.h"
@@ -10,7 +10,7 @@
 #include <memory>
 #include <functional>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Forward declarations
 class Grammar;
@@ -159,6 +159,6 @@ private:
     );
 };
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_REGISTRY_H
+#endif // TEXTMATELIB_REGISTRY_H

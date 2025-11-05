@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_UTILS_H
-#define VSCODE_TEXTMATE_UTILS_H
+#ifndef TEXTMATELIB_UTILS_H
+#define TEXTMATELIB_UTILS_H
 
 #include "types.h"
 #include <string>
@@ -8,7 +8,7 @@
 #include <regex>
 #include <functional>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Forward declaration
 struct IOnigCaptureIndex;
@@ -87,6 +87,6 @@ public:
     }
 };
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_UTILS_H
+#endif // TEXTMATELIB_UTILS_H

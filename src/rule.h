@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_RULE_H
-#define VSCODE_TEXTMATE_RULE_H
+#ifndef TEXTMATELIB_RULE_H
+#define TEXTMATELIB_RULE_H
 
 #include "types.h"
 #include "utils.h"
@@ -9,7 +9,7 @@
 #include <vector>
 #include <memory>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Forward declarations
 class Rule;
@@ -296,6 +296,6 @@ private:
                                                    IRawRepository* repository);
 };
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_RULE_H
+#endif // TEXTMATELIB_RULE_H

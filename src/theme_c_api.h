@@ -1,11 +1,11 @@
-#ifndef VSCODE_TEXTMATE_THEME_C_API_H
-#define VSCODE_TEXTMATE_THEME_C_API_H
+#ifndef TEXTMATELIB_THEME_C_API_H
+#define TEXTMATELIB_THEME_C_API_H
 
 #include "theme.h"
 #include <cstdint>
 #include <string>
 
-namespace vscode_textmate {
+namespace tml {
 
 /**
  * Helper class to manage theme resources and provide C API implementation
@@ -41,6 +41,6 @@ public:
 // Note: hexColorToUint32 and parseJsonTheme are defined as static in c_api.cpp
 
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_THEME_C_API_H
+#endif // TEXTMATELIB_THEME_C_API_H

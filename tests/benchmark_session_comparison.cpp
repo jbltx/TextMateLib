@@ -8,7 +8,7 @@
 #include <iomanip>
 #include <algorithm>
 
-using namespace vscode_textmate;
+using namespace tml;
 
 // ============================================================================
 // Timing Utilities

@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_SYNTAX_HIGHLIGHTER_C_API_H
-#define VSCODE_TEXTMATE_SYNTAX_HIGHLIGHTER_C_API_H
+#ifndef TEXTMATELIB_SYNTAX_HIGHLIGHTER_C_API_H
+#define TEXTMATELIB_SYNTAX_HIGHLIGHTER_C_API_H
 
 #include "c_api.h"
 #include <stdint.h>
@@ -348,4 +348,4 @@ void textmate_highlighted_token_dispose(textmate_highlighted_token_t token);
 }
 #endif
 
-#endif // VSCODE_TEXTMATE_SYNTAX_HIGHLIGHTER_C_API_H
+#endif // TEXTMATELIB_SYNTAX_HIGHLIGHTER_C_API_H

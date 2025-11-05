@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_ONIGLIB_H
-#define VSCODE_TEXTMATE_ONIGLIB_H
+#ifndef TEXTMATELIB_ONIGLIB_H
+#define TEXTMATELIB_ONIGLIB_H
 
 #include "types.h"
 #include <string>
@@ -11,7 +11,7 @@ extern "C" {
 #include "oniguruma.h"
 }
 
-namespace vscode_textmate {
+namespace tml {
 
 // IOnigCaptureIndex interface
 struct IOnigCaptureIndex {
@@ -105,6 +105,6 @@ public:
 // Helper function to dispose OnigString
 void disposeOnigString(OnigString* str);
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_ONIGLIB_H
+#endif // TEXTMATELIB_ONIGLIB_H

@@ -1,7 +1,7 @@
 #include "matcher.h"
 #include <regex>
 
-namespace vscode_textmate {
+namespace tml {
 
 bool isIdentifier(const std::string& token) {
     if (token.empty()) {
@@ -38,4 +38,4 @@ std::string* SelectorTokenizer::next() {
 // Template instantiation would go in the cpp file
 // But since this is a template, we need to keep implementation in header or explicitly instantiate
 
-} // namespace vscode_textmate
+} // namespace tml

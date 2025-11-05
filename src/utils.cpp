@@ -4,7 +4,7 @@
 #include <cctype>
 #include <chrono>
 
-namespace vscode_textmate {
+namespace tml {
 
 std::string basename(const std::string& path) {
     size_t idx = path.find_last_of("/\\");
@@ -294,4 +294,4 @@ RegexSource* RegexSource::clone() const {
     return new RegexSource(source, ruleId);
 }
 
-} // namespace vscode_textmate
+} // namespace tml

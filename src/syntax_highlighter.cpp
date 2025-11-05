@@ -2,7 +2,7 @@
 #include <chrono>
 #include <algorithm>
 
-namespace vscode_textmate {
+namespace tml {
 
 // ============================================================================
 // Utility Functions
@@ -411,4 +411,4 @@ size_t HighlighterCache::getCachedLineCount() const {
     return lineCache.size();
 }
 
-} // namespace vscode_textmate
+} // namespace tml

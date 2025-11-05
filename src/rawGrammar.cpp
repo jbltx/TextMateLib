@@ -1,7 +1,7 @@
 #include "rawGrammar.h"
 #include <iostream>
 
-namespace vscode_textmate {
+namespace tml {
 
 // IRawCapturesMap destructor
 IRawCapturesMap::~IRawCapturesMap() {
@@ -100,4 +100,4 @@ IRawGrammar::~IRawGrammar() {
     deleteIfNotNull(firstLineMatch);
 }
 
-} // namespace vscode_textmate
+} // namespace tml

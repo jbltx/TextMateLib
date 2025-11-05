@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(vscode-textmate-cpp VERSION 2.0.0 LANGUAGES CXX)
+project(tml VERSION 2.0.0 LANGUAGES CXX)
 
 # Set C++17 standard for modern features
 set(CMAKE_CXX_STANDARD 17)
@@ -90,8 +90,8 @@ endif()
 # Include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/oniguruma/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/rapidjson/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/oniguruma/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/rapidjson/include
 )
 
 # Source files
@@ -152,8 +152,8 @@ if(NOT USE_WASM_BUILD)
     find_library(ONIGURUMA_LIB
         NAMES onig
         PATHS
-            ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/oniguruma/build
-            ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/oniguruma/.libs
+            ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/oniguruma/build
+            ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/oniguruma/.libs
         NO_DEFAULT_PATH
     )
 
@@ -171,7 +171,7 @@ else()
 
     ExternalProject_Add(
         oniguruma_wasm
-        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/oniguruma
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/oniguruma
         BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/oniguruma-build
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=Release
@@ -187,17 +187,17 @@ endif()
 # Create output target (library for native, executable for WASM)
 if(USE_WASM_BUILD)
     # WASM builds as executable (produces .js + .wasm files)
-    add_executable(vscode-textmate-cpp
+    add_executable(tml
         ${TEXTMATE_SOURCES}
     )
-    set_target_properties(vscode-textmate-cpp PROPERTIES
+    set_target_properties(tml PROPERTIES
         OUTPUT_NAME "textmate-${WASM_VARIANT}"
         SUFFIX ".js"
     )
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/wasm)
 else()
     # Native builds as shared library
-    add_library(vscode-textmate-cpp SHARED
+    add_library(tml SHARED
         ${TEXTMATE_SOURCES}
         ${TEXTMATE_HEADERS}
     )
@@ -206,18 +206,18 @@ endif()
 # Link libraries
 if(USE_WASM_BUILD)
     # Add dependency on oniguruma WASM build
-    add_dependencies(vscode-textmate-cpp oniguruma_wasm)
-    target_link_libraries(vscode-textmate-cpp ${ONIGURUMA_LIB})
-    target_include_directories(vscode-textmate-cpp PRIVATE ${ONIG_INSTALL_DIR}/include)
+    add_dependencies(tml oniguruma_wasm)
+    target_link_libraries(tml ${ONIGURUMA_LIB})
+    target_include_directories(tml PRIVATE ${ONIG_INSTALL_DIR}/include)
 elseif(ONIGURUMA_LIB)
-    target_link_libraries(vscode-textmate-cpp ${ONIGURUMA_LIB})
+    target_link_libraries(tml ${ONIGURUMA_LIB})
 else()
-    target_link_libraries(vscode-textmate-cpp onig)
+    target_link_libraries(tml onig)
 endif()
 
 # Set output directory and define TEXTMATE_EXPORTS for Windows DLL export
 if(NOT USE_WASM_BUILD)
-    set_target_properties(vscode-textmate-cpp PROPERTIES
+    set_target_properties(tml PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
         ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
@@ -227,17 +227,17 @@ if(NOT USE_WASM_BUILD)
 endif()
 
 # Define TEXTMATE_EXPORTS when building the library
-target_compile_definitions(vscode-textmate-cpp PRIVATE TEXTMATE_EXPORTS)
+target_compile_definitions(tml PRIVATE TEXTMATE_EXPORTS)
 
 # Install targets
-install(TARGETS vscode-textmate-cpp
+install(TARGETS tml
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
 )
 
 install(FILES ${TEXTMATE_HEADERS}
-    DESTINATION include/vscode-textmate
+    DESTINATION include/tml
 )
 
 # Enable testing (skip for WASM builds)
@@ -251,7 +251,7 @@ if(NOT USE_WASM_BUILD)
 endif()
 
 # Print configuration
-message(STATUS "vscode-textmate-cpp configuration:")
+message(STATUS "tml configuration:")
 message(STATUS "  C++ Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "  Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Source files: ${TEXTMATE_SOURCES}")

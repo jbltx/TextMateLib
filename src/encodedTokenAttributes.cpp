@@ -3,7 +3,7 @@
 #include <bitset>
 #include <sstream>
 
-namespace vscode_textmate {
+namespace tml {
 
 namespace EncodedTokenAttributesHelper {
 
@@ -99,4 +99,4 @@ EncodedTokenAttributes set(
 
 } // namespace EncodedTokenAttributesHelper
 
-} // namespace vscode_textmate
+} // namespace tml

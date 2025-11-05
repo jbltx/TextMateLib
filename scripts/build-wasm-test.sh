@@ -4,7 +4,7 @@ set -e
 
 source ~/dev/emsdk/emsdk_env.sh >/dev/null 2>&1
 
-cd /Users/mickaelbonfill/dev/vscode-textmate/textmate-cpp
+cd /Users/mickaelbonfill/dev/tml/textmate-cpp
 
 echo "Building WASM standard variant with WASM 2023 features..."
 rm -rf build-wasm-test

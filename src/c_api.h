@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_C_API_H
-#define VSCODE_TEXTMATE_C_API_H
+#ifndef TEXTMATELIB_C_API_H
+#define TEXTMATELIB_C_API_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -198,4 +198,4 @@ TEXTMATE_API void textmate_oniglib_dispose(TextMateOnigLib onigLib);
 }
 #endif
 
-#endif // VSCODE_TEXTMATE_C_API_H
+#endif // TEXTMATELIB_C_API_H

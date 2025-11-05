@@ -2,7 +2,7 @@
 #include <cstring>
 #include <iostream>
 
-namespace vscode_textmate {
+namespace tml {
 
 // OnigString implementation
 
@@ -215,4 +215,4 @@ void disposeOnigString(OnigString* str) {
     }
 }
 
-} // namespace vscode_textmate
+} // namespace tml

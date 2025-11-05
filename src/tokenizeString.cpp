@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <iostream>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Forward declarations of helper functions
 static int getFindOptions(bool allowA, bool allowG);
@@ -770,4 +770,4 @@ StackElement tokenizeString(
     return result;
 }
 
-} // namespace vscode_textmate
+} // namespace tml

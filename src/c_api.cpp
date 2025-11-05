@@ -10,7 +10,7 @@
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 
-using namespace vscode_textmate;
+using namespace tml;
 using namespace rapidjson;
 
 // Helper function to read file contents

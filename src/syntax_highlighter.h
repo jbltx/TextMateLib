@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_SYNTAX_HIGHLIGHTER_H
-#define VSCODE_TEXTMATE_SYNTAX_HIGHLIGHTER_H
+#ifndef TEXTMATELIB_SYNTAX_HIGHLIGHTER_H
+#define TEXTMATELIB_SYNTAX_HIGHLIGHTER_H
 
 #include "types.h"
 #include "session.h"
@@ -11,7 +11,7 @@
 #include <cstdint>
 #include <map>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Forward declarations
 class SyntaxHighlighter;
@@ -265,6 +265,6 @@ public:
     size_t getCachedLineCount() const;
 };
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_SYNTAX_HIGHLIGHTER_H
+#endif // TEXTMATELIB_SYNTAX_HIGHLIGHTER_H

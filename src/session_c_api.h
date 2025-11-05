@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_SESSION_C_API_H
-#define VSCODE_TEXTMATE_SESSION_C_API_H
+#ifndef TEXTMATELIB_SESSION_C_API_H
+#define TEXTMATELIB_SESSION_C_API_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -332,4 +332,4 @@ TEXTMATE_API TextMateSessionMetadata textmate_session_get_metadata(
 }
 #endif
 
-#endif // VSCODE_TEXTMATE_SESSION_C_API_H
+#endif // TEXTMATELIB_SESSION_C_API_H

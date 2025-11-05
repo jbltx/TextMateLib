@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(vscode-textmate-wasm VERSION 2.0.0 LANGUAGES CXX)
+project(tml-wasm VERSION 2.0.0 LANGUAGES CXX)
 
 # Set C++17 standard for modern features
 set(CMAKE_CXX_STANDARD 17)
@@ -132,10 +132,10 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s USE_ONIGURUMA=1")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_ONIGURUMA=1")
 
 # Create WASM executable
-add_executable(vscode-textmate-wasm ${TEXTMATE_WASM_SOURCES})
+add_executable(tml-wasm ${TEXTMATE_WASM_SOURCES})
 
 # Set output name with variant suffix
-set_target_properties(vscode-textmate-wasm PROPERTIES
+set_target_properties(tml-wasm PROPERTIES
     OUTPUT_NAME "textmate-${WASM_VARIANT}"
     SUFFIX ".js"
 )

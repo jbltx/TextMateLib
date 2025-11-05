@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_BASIC_SCOPES_ATTRIBUTE_PROVIDER_H
-#define VSCODE_TEXTMATE_BASIC_SCOPES_ATTRIBUTE_PROVIDER_H
+#ifndef TEXTMATELIB_BASIC_SCOPES_ATTRIBUTE_PROVIDER_H
+#define TEXTMATELIB_BASIC_SCOPES_ATTRIBUTE_PROVIDER_H
 
 #include "types.h"
 #include "utils.h"
@@ -8,7 +8,7 @@
 #include <vector>
 #include <regex>
 
-namespace vscode_textmate {
+namespace tml {
 
 // BasicScopeAttributes class
 class BasicScopeAttributes {
@@ -57,6 +57,6 @@ private:
     OptionalStandardTokenType _toStandardTokenType(const ScopeName& scopeName);
 };
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_BASIC_SCOPES_ATTRIBUTE_PROVIDER_H
+#endif // TEXTMATELIB_BASIC_SCOPES_ATTRIBUTE_PROVIDER_H

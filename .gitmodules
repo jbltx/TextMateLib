@@ -1,0 +1,6 @@
+[submodule "thirdparty/oniguruma"]
+	path = thirdparty/oniguruma
+	url = git@github.com:kkos/oniguruma.git
+[submodule "thirdparty/rapdijson"]
+	path = thirdparty/rapdijson
+	url = git@github.com:Tencent/rapidjson.git

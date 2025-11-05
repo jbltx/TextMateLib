@@ -1,11 +1,11 @@
-#ifndef VSCODE_TEXTMATE_ENCODED_TOKEN_ATTRIBUTES_H
-#define VSCODE_TEXTMATE_ENCODED_TOKEN_ATTRIBUTES_H
+#ifndef TEXTMATELIB_ENCODED_TOKEN_ATTRIBUTES_H
+#define TEXTMATELIB_ENCODED_TOKEN_ATTRIBUTES_H
 
 #include "types.h"
 #include <string>
 #include <cstdint>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Encoded token data constants
 namespace EncodedTokenDataConsts {
@@ -62,6 +62,6 @@ namespace EncodedTokenAttributesHelper {
     );
 }
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_ENCODED_TOKEN_ATTRIBUTES_H
+#endif // TEXTMATELIB_ENCODED_TOKEN_ATTRIBUTES_H

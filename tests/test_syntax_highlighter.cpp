@@ -3,7 +3,7 @@
 #include "../src/main.h"
 #include <memory>
 
-namespace vscode_textmate {
+namespace tml {
 
 class SyntaxHighlighterTest : public ::testing::Test {
 protected:
@@ -196,4 +196,4 @@ TEST(HighlightedLineTest, BasicStructure) {
     EXPECT_EQ(line.version, 1);
 }
 
-} // namespace vscode_textmate
+} // namespace tml

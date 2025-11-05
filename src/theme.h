@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_THEME_H
-#define VSCODE_TEXTMATE_THEME_H
+#ifndef TEXTMATELIB_THEME_H
+#define TEXTMATELIB_THEME_H
 
 #include "types.h"
 #include "utils.h"
@@ -8,7 +8,7 @@
 #include <map>
 #include <memory>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Forward declarations
 class Theme;
@@ -194,6 +194,6 @@ bool _scopePathMatchesParentScopes(ScopeStack* scopePath, const std::vector<Scop
 Theme* resolveParsedThemeRules(std::vector<ParsedThemeRule*>& parsedThemeRules,
                                const std::vector<std::string>* colorMap);
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_THEME_H
+#endif // TEXTMATELIB_THEME_H

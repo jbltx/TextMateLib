@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_RAW_GRAMMAR_H
-#define VSCODE_TEXTMATE_RAW_GRAMMAR_H
+#ifndef TEXTMATELIB_RAW_GRAMMAR_H
+#define TEXTMATELIB_RAW_GRAMMAR_H
 
 #include "types.h"
 #include <string>
@@ -7,7 +7,7 @@
 #include <map>
 #include <memory>
 
-namespace vscode_textmate {
+namespace tml {
 
 // ILocation interface
 struct ILocation {
@@ -128,6 +128,6 @@ void deleteIfNotNull(T*& ptr) {
     }
 }
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_RAW_GRAMMAR_H
+#endif // TEXTMATELIB_RAW_GRAMMAR_H

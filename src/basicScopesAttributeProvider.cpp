@@ -1,7 +1,7 @@
 #include "basicScopesAttributeProvider.h"
 #include <algorithm>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Static members initialization
 std::regex BasicScopeAttributesProvider::STANDARD_TOKEN_TYPE_REGEXP("\\b(comment|string|regex|meta\\.embedded)\\b");
@@ -141,4 +141,4 @@ OptionalStandardTokenType BasicScopeAttributesProvider::_toStandardTokenType(con
     return OptionalStandardTokenType::NotSet;
 }
 
-} // namespace vscode_textmate
+} // namespace tml

@@ -5,7 +5,7 @@
 
 using namespace rapidjson;
 
-namespace vscode_textmate {
+namespace tml {
 
 // Helper function to get string from JSON value
 static std::string* getStringPtr(const Value& val) {
@@ -290,4 +290,4 @@ IRawGrammar* parseRawGrammar(const std::string& content, const std::string* file
     }
 }
 
-} // namespace vscode_textmate
+} // namespace tml

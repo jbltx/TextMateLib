@@ -1,12 +1,12 @@
-#ifndef VSCODE_TEXTMATE_MATCHER_H
-#define VSCODE_TEXTMATE_MATCHER_H
+#ifndef TEXTMATELIB_MATCHER_H
+#define TEXTMATELIB_MATCHER_H
 
 #include "types.h"
 #include <string>
 #include <vector>
 #include <functional>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Matcher function type
 template<typename T>
@@ -160,6 +160,6 @@ std::vector<MatcherWithPriority<T>> createMatchers(
     return results;
 }
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_MATCHER_H
+#endif // TEXTMATELIB_MATCHER_H

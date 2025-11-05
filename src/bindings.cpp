@@ -10,7 +10,7 @@
 #include <memory>
 
 using namespace emscripten;
-using namespace vscode_textmate;
+using namespace tml;
 
 // Wrapper classes to expose to JavaScript
 class RegistryWrapper {
@@ -131,7 +131,7 @@ public:
 };
 
 // Embind declarations
-EMSCRIPTEN_BINDINGS(vscode_textmate) {
+EMSCRIPTEN_BINDINGS(tml) {
     class_<RegistryWrapper>("Registry")
         .constructor<>()
         .function("loadGrammarFromContent", &RegistryWrapper::loadGrammarFromContent);

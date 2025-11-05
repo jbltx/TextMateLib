@@ -3,7 +3,7 @@
 #include "grammarDependencies.h"
 #include <iostream>
 
-namespace vscode_textmate {
+namespace tml {
 
 // SyncRegistry implementation
 
@@ -262,4 +262,4 @@ Grammar* Registry::_grammarForScopeName(
     );
 }
 
-} // namespace vscode_textmate
+} // namespace tml

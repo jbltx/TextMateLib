@@ -1,27 +1,27 @@
 cmake_minimum_required(VERSION 3.10)
 
 # RapidJSON include directory
-set(RAPIDJSON_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../ThirdParty/rapidjson/include")
+set(RAPIDJSON_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/include")
 
 # Google Test include directory
-set(GTEST_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../ThirdParty/rapidjson/thirdparty/gtest/googletest/include")
+set(GTEST_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest/include")
 
 # Google Test sources
 set(GTEST_SOURCES
-    "${CMAKE_SOURCE_DIR}/../ThirdParty/rapidjson/thirdparty/gtest/googletest/src/gtest-all.cc"
-    "${CMAKE_SOURCE_DIR}/../ThirdParty/rapidjson/thirdparty/gtest/googletest/src/gtest_main.cc"
+    "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest-all.cc"
+    "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest_main.cc"
 )
 
 # First-Mate test suite executable (now with GTest)
 add_executable(test_first_mate
     test_first_mate.cpp
-    "${CMAKE_SOURCE_DIR}/../ThirdParty/rapidjson/thirdparty/gtest/googletest/src/gtest-all.cc"
-    "${CMAKE_SOURCE_DIR}/../ThirdParty/rapidjson/thirdparty/gtest/googletest/src/gtest_main.cc"
+    "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest-all.cc"
+    "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest_main.cc"
 )
 
 # Link against the library
 target_link_libraries(test_first_mate
-    vscode-textmate-cpp
+    tml
 )
 
 # Include RapidJSON
@@ -36,7 +36,7 @@ endif()
 if(EXISTS ${GTEST_INCLUDE_DIR})
     target_include_directories(test_first_mate PRIVATE
         ${GTEST_INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/../ThirdParty/rapidjson/thirdparty/gtest/googletest"
+        "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest"
     )
     # Disable gtest's regex to avoid conflict with Oniguruma's regex_t
     target_compile_definitions(test_first_mate PRIVATE GTEST_HAS_POSIX_RE=0)
@@ -59,7 +59,7 @@ add_executable(benchmark_large
 
 # Link against the library
 target_link_libraries(benchmark_large
-    vscode-textmate-cpp
+    tml
 )
 
 # Include RapidJSON
@@ -81,7 +81,7 @@ add_executable(test_theme_simple
 
 # Link against the library
 target_link_libraries(test_theme_simple
-    vscode-textmate-cpp
+    tml
 )
 
 # Include directories for test_theme_simple
@@ -92,7 +92,7 @@ endif()
 if(EXISTS ${GTEST_INCLUDE_DIR})
     target_include_directories(test_theme_simple PRIVATE
         ${GTEST_INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/../ThirdParty/rapidjson/thirdparty/gtest/googletest"
+        "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest"
     )
 endif()
 
@@ -112,7 +112,7 @@ add_executable(test_theme
 
 # Link against the library
 target_link_libraries(test_theme
-    vscode-textmate-cpp
+    tml
 )
 
 # Include directories for test_theme
@@ -125,7 +125,7 @@ endif()
 if(EXISTS ${GTEST_INCLUDE_DIR})
     target_include_directories(test_theme PRIVATE
         ${GTEST_INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/../ThirdParty/rapidjson/thirdparty/gtest/googletest"
+        "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest"
     )
 else()
     message(WARNING "Google Test not found at ${GTEST_INCLUDE_DIR}. test_theme may not compile.")
@@ -147,7 +147,7 @@ add_executable(test_theme_debug
 
 # Link against the library
 target_link_libraries(test_theme_debug
-    vscode-textmate-cpp
+    tml
 )
 
 # Include directories for test_theme_debug
@@ -158,7 +158,7 @@ endif()
 if(EXISTS ${GTEST_INCLUDE_DIR})
     target_include_directories(test_theme_debug PRIVATE
         ${GTEST_INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/../ThirdParty/rapidjson/thirdparty/gtest/googletest"
+        "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest"
     )
 endif()
 
@@ -178,7 +178,7 @@ add_executable(test_theme_file
 
 # Link against the library
 target_link_libraries(test_theme_file
-    vscode-textmate-cpp
+    tml
 )
 
 # Include directories for test_theme_file
@@ -189,7 +189,7 @@ endif()
 if(EXISTS ${GTEST_INCLUDE_DIR})
     target_include_directories(test_theme_file PRIVATE
         ${GTEST_INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/../ThirdParty/rapidjson/thirdparty/gtest/googletest"
+        "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest"
     )
 endif()
 
@@ -209,7 +209,7 @@ add_executable(test_session
 
 # Link against the library
 target_link_libraries(test_session
-    vscode-textmate-cpp
+    tml
 )
 
 # Include directories for test_session
@@ -220,7 +220,7 @@ endif()
 if(EXISTS ${GTEST_INCLUDE_DIR})
     target_include_directories(test_session PRIVATE
         ${GTEST_INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/../ThirdParty/rapidjson/thirdparty/gtest/googletest"
+        "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest"
     )
     # Disable gtest's regex to avoid conflict with Oniguruma's regex_t
     target_compile_definitions(test_session PRIVATE GTEST_HAS_POSIX_RE=0)
@@ -241,7 +241,7 @@ add_executable(benchmark_session
 
 # Link against the library
 target_link_libraries(benchmark_session
-    vscode-textmate-cpp
+    tml
 )
 
 # Include directories for benchmark_session
@@ -261,7 +261,7 @@ add_executable(benchmark_session_comparison
 
 # Link against the library
 target_link_libraries(benchmark_session_comparison
-    vscode-textmate-cpp
+    tml
 )
 
 # Include directories for benchmark_session_comparison
@@ -282,7 +282,7 @@ add_executable(test_syntax_highlighter
 
 # Link against the library
 target_link_libraries(test_syntax_highlighter
-    vscode-textmate-cpp
+    tml
 )
 
 # Include directories for test_syntax_highlighter
@@ -293,7 +293,7 @@ endif()
 if(EXISTS ${GTEST_INCLUDE_DIR})
     target_include_directories(test_syntax_highlighter PRIVATE
         ${GTEST_INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/../ThirdParty/rapidjson/thirdparty/gtest/googletest"
+        "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest"
     )
     # Disable gtest's regex to avoid conflict with Oniguruma's regex_t
     target_compile_definitions(test_syntax_highlighter PRIVATE GTEST_HAS_POSIX_RE=0)

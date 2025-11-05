@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <sstream>
 
-namespace vscode_textmate {
+namespace tml {
 
 // ScopeStack implementation
 
@@ -600,4 +600,4 @@ StyleAttributes* Theme::match(ScopeStack* scopePath) {
     );
 }
 
-} // namespace vscode_textmate
+} // namespace tml

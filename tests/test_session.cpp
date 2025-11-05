@@ -8,7 +8,7 @@
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
 
-using namespace vscode_textmate;
+using namespace tml;
 using namespace rapidjson;
 
 // ============================================================================

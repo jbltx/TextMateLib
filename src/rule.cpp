@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <iostream>
 
-namespace vscode_textmate {
+namespace tml {
 
 // CompiledRule implementation
 
@@ -745,4 +745,4 @@ ICompilePatternsResult RuleFactory::_compilePatterns(std::vector<IRawRule*>* pat
     return result;
 }
 
-} // namespace vscode_textmate
+} // namespace tml

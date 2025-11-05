@@ -3,7 +3,7 @@
 #include <iostream>
 #include <set>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Helper to collect external references from rules
 static void collectExternalReferencesInRules(
@@ -163,4 +163,4 @@ void ScopeDependencyProcessor::processQueue() {
 
 }
 
-} // namespace vscode_textmate
+} // namespace tml

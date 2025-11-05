@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_TYPES_H
-#define VSCODE_TEXTMATE_TYPES_H
+#ifndef TEXTMATELIB_TYPES_H
+#define TEXTMATELIB_TYPES_H
 
 #include <string>
 #include <vector>
@@ -7,7 +7,7 @@
 #include <memory>
 #include <cstdint>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Type aliases matching TypeScript types
 using ScopeName = std::string;
@@ -101,6 +101,6 @@ using EmbeddedLanguagesMap = std::map<std::string, int>;
 // Token type map
 using TokenTypeMap = std::map<std::string, StandardTokenType>;
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_TYPES_H
+#endif // TEXTMATELIB_TYPES_H

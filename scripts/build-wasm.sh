@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Build script for vscode-textmate WASM module
+# Build script for tml WASM module
 # Requires Emscripten SDK to be installed and activated
 
 set -e
@@ -11,7 +11,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}Building vscode-textmate WASM module${NC}"
+echo -e "${GREEN}Building tml WASM module${NC}"
 echo ""
 
 # Check if emscripten is available

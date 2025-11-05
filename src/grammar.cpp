@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <iostream>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Static member initialization
 StateStackImpl* StateStackImpl::NULL_STATE = nullptr;
@@ -854,4 +854,4 @@ IRawGrammar* initGrammar(IRawGrammar* grammar, IRawRule* base) {
     return grammar;
 }
 
-} // namespace vscode_textmate
+} // namespace tml

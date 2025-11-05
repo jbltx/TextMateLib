@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_GRAMMAR_H
-#define VSCODE_TEXTMATE_GRAMMAR_H
+#ifndef TEXTMATELIB_GRAMMAR_H
+#define TEXTMATELIB_GRAMMAR_H
 
 #include "types.h"
 #include "rule.h"
@@ -14,7 +14,7 @@
 #include <memory>
 #include <cstdint>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Forward declarations
 class StateStackImpl;
@@ -354,6 +354,6 @@ Grammar* createGrammar(
 // Initialize grammar (merge with base if needed)
 IRawGrammar* initGrammar(IRawGrammar* grammar, IRawRule* base);
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_GRAMMAR_H
+#endif // TEXTMATELIB_GRAMMAR_H

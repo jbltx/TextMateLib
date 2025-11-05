@@ -9,7 +9,7 @@
 #include <cmath>
 #include <algorithm>
 
-using namespace vscode_textmate;
+using namespace tml;
 
 // ============================================================================
 // Benchmark Utilities

@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_GRAMMAR_DEPENDENCIES_H
-#define VSCODE_TEXTMATE_GRAMMAR_DEPENDENCIES_H
+#ifndef TEXTMATELIB_GRAMMAR_DEPENDENCIES_H
+#define TEXTMATELIB_GRAMMAR_DEPENDENCIES_H
 
 #include "types.h"
 #include <string>
@@ -7,7 +7,7 @@
 #include <queue>
 #include <set>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Forward declarations
 class SyncRegistry;
@@ -61,6 +61,6 @@ public:
     void processQueue();
 };
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_GRAMMAR_DEPENDENCIES_H
+#endif // TEXTMATELIB_GRAMMAR_DEPENDENCIES_H

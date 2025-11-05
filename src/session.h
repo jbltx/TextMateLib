@@ -1,5 +1,5 @@
-#ifndef VSCODE_TEXTMATE_SESSION_H
-#define VSCODE_TEXTMATE_SESSION_H
+#ifndef TEXTMATELIB_SESSION_H
+#define TEXTMATELIB_SESSION_H
 
 #include "grammar.h"
 #include "types.h"
@@ -9,7 +9,7 @@
 #include <string>
 #include <map>
 
-namespace vscode_textmate {
+namespace tml {
 
 // Forward declaration
 class SessionImpl;
@@ -145,6 +145,6 @@ public:
     static size_t getSessionCount();
 };
 
-} // namespace vscode_textmate
+} // namespace tml
 
-#endif // VSCODE_TEXTMATE_SESSION_H
+#endif // TEXTMATELIB_SESSION_H
