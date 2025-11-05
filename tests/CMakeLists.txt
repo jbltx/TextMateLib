@@ -1,22 +1,22 @@
 cmake_minimum_required(VERSION 3.10)
 
 # RapidJSON include directory
-set(RAPIDJSON_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/include")
+set(RAPIDJSON_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/include")
 
 # Google Test include directory
-set(GTEST_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest/include")
+set(GTEST_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest/include")
 
 # Google Test sources
 set(GTEST_SOURCES
-    "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest-all.cc"
-    "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest_main.cc"
+    "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest-all.cc"
+    "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest_main.cc"
 )
 
 # First-Mate test suite executable (now with GTest)
 add_executable(test_first_mate
     test_first_mate.cpp
-    "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest-all.cc"
-    "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest_main.cc"
+    "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest-all.cc"
+    "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest_main.cc"
 )
 
 # Link against the library
@@ -36,7 +36,7 @@ endif()
 if(EXISTS ${GTEST_INCLUDE_DIR})
     target_include_directories(test_first_mate PRIVATE
         ${GTEST_INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest"
+        "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest"
     )
     # Disable gtest's regex to avoid conflict with Oniguruma's regex_t
     target_compile_definitions(test_first_mate PRIVATE GTEST_HAS_POSIX_RE=0)
@@ -92,7 +92,7 @@ endif()
 if(EXISTS ${GTEST_INCLUDE_DIR})
     target_include_directories(test_theme_simple PRIVATE
         ${GTEST_INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest"
+        "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest"
     )
 endif()
 
@@ -125,7 +125,7 @@ endif()
 if(EXISTS ${GTEST_INCLUDE_DIR})
     target_include_directories(test_theme PRIVATE
         ${GTEST_INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest"
+        "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest"
     )
 else()
     message(WARNING "Google Test not found at ${GTEST_INCLUDE_DIR}. test_theme may not compile.")
@@ -158,7 +158,7 @@ endif()
 if(EXISTS ${GTEST_INCLUDE_DIR})
     target_include_directories(test_theme_debug PRIVATE
         ${GTEST_INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest"
+        "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest"
     )
 endif()
 
@@ -189,7 +189,7 @@ endif()
 if(EXISTS ${GTEST_INCLUDE_DIR})
     target_include_directories(test_theme_file PRIVATE
         ${GTEST_INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest"
+        "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest"
     )
 endif()
 
@@ -220,7 +220,7 @@ endif()
 if(EXISTS ${GTEST_INCLUDE_DIR})
     target_include_directories(test_session PRIVATE
         ${GTEST_INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest"
+        "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest"
     )
     # Disable gtest's regex to avoid conflict with Oniguruma's regex_t
     target_compile_definitions(test_session PRIVATE GTEST_HAS_POSIX_RE=0)
@@ -293,7 +293,7 @@ endif()
 if(EXISTS ${GTEST_INCLUDE_DIR})
     target_include_directories(test_syntax_highlighter PRIVATE
         ${GTEST_INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/../thirdparty/rapidjson/thirdparty/gtest/googletest"
+        "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest"
     )
     # Disable gtest's regex to avoid conflict with Oniguruma's regex_t
     target_compile_definitions(test_syntax_highlighter PRIVATE GTEST_HAS_POSIX_RE=0)
