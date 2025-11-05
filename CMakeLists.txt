@@ -190,7 +190,7 @@ if(USE_WASM_BUILD)
         ${TEXTMATE_SOURCES}
     )
     set_target_properties(tml PROPERTIES
-        OUTPUT_NAME "textmate-${WASM_VARIANT}"
+        OUTPUT_NAME "tml-${WASM_VARIANT}"
         SUFFIX ".js"
     )
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/wasm)

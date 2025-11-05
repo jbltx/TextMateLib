@@ -31,5 +31,5 @@ cmake -S .. -B . -DCMAKE_BUILD_TYPE=Release
 
 # Build
 echo -e "${GREEN}Building...${NC}"
-cmake --build . -- -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+cmake --build . -- -j4
 

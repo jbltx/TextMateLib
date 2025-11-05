@@ -30,7 +30,7 @@ echo -e "${GREEN}Found Emscripten${NC}"
 echo ""
 
 # Create build directory
-BUILD_DIR="build-wasm"
+BUILD_DIR="build/wasm"
 if [ -d "$BUILD_DIR" ]; then
     echo -e "${YELLOW}Cleaning existing build directory...${NC}"
     rm -rf "$BUILD_DIR"
@@ -42,26 +42,26 @@ cd "$BUILD_DIR"
 # Configure with emscripten
 echo -e "${GREEN}Configuring CMake with Emscripten...${NC}"
 # Use -S to specify source dir (parent), -B for build dir (current)
-emcmake cmake -S .. -B . -DCMAKE_BUILD_TYPE=Release -DUSE_WASM_BUILD=ON
+emcmake cmake -S ../.. -B . -DCMAKE_BUILD_TYPE=Release -DUSE_WASM_BUILD=ON
 
 # Build
 echo -e "${GREEN}Building...${NC}"
-cmake --build . -- -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+cmake --build . -- -j4
 
 # Check if build was successful
-if [ -f "textmate.js" ] && [ -f "textmate.wasm" ]; then
+if [ -f "tml.js" ] && [ -f "tml.wasm" ]; then
     echo ""
     echo -e "${GREEN}Build successful!${NC}"
     echo ""
     echo "Output files:"
-    echo "  - textmate.js"
-    echo "  - textmate.wasm"
+    echo "  - tml.js"
+    echo "  - tml.wasm"
     echo ""
     echo "File sizes:"
-    ls -lh textmate.js textmate.wasm
+    ls -lh tml.js tml.wasm
     echo ""
     echo -e "${GREEN}You can now use these files in your web application.${NC}"
-    echo "See textmate-cpp/examples/test.html for usage example."
+    echo "See examples/test.html for usage example."
 else
     echo -e "${RED}Build failed - output files not found${NC}"
     exit 1

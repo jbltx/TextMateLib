@@ -13,7 +13,7 @@ set_property(CACHE WASM_VARIANT PROPERTY STRINGS "minimal" "standard" "full" "de
 # Include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ThirdParty/rapidjson/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/rapidjson/include
 )
 
 # Source files (core components)
