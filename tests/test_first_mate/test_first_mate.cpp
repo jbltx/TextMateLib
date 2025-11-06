@@ -339,27 +339,20 @@ bool runTestCase(const Value& testCase, GrammarHolder& holder, IOnigLib* onigLib
     }
 }
 
-// Helper to get test cases path that works from both build and project root
-std::string getTestCasesPath() {
-    std::string path = "test-cases/first-mate";
-    std::ifstream testFile(path + "/tests.json");
-    if (!testFile.good()) {
-        path = "../../test-cases/first-mate";
-    }
-    return path;
+// Helper to get tests.json path
+std::string getTestsJsonPath() {
+    return "./tests.json";
 }
 
 // Global test data
 static Document* g_testsDoc = nullptr;
 static IOnigLib* g_onigLib = nullptr;
-static std::string g_testCasesPath;
 
 // Initialize test data
 void initializeTestData() {
     if (!g_testsDoc) {
         try {
-            g_testCasesPath = getTestCasesPath();
-            std::string testsJsonPath = g_testCasesPath + "/tests.json";
+            std::string testsJsonPath = getTestsJsonPath();
             g_testsDoc = new Document();
             *g_testsDoc = parseJSONFile(testsJsonPath);
             g_onigLib = new DefaultOnigLib();
@@ -400,7 +393,7 @@ TEST_P(FirstMateParameterizedTest, FirstMateTests) {
     ASSERT_LT(testIndex, static_cast<int>(g_testsDoc->Size()));
 
     const Value& testCase = (*g_testsDoc)[testIndex];
-    GrammarHolder holder(g_testCasesPath);
+    GrammarHolder holder(".");
 
     bool result = runTestCase(testCase, holder, g_onigLib, testIndex + 1);
     EXPECT_TRUE(result) << "Test case " << testIndex + 1 << " failed";

@@ -14,7 +14,7 @@ set(GTEST_SOURCES
 
 # First-Mate test suite executable (now with GTest)
 add_executable(test_first_mate
-    test_first_mate.cpp
+    test_first_mate/test_first_mate.cpp
     "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest-all.cc"
     "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest_main.cc"
 )
@@ -45,16 +45,32 @@ else()
 endif()
 
 # Add test
-add_test(NAME FirstMateTests COMMAND test_first_mate)
+add_test(NAME FirstMateTests COMMAND test_first_mate WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_first_mate)
 
 # Set output directory
 set_target_properties(test_first_mate PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_first_mate
+)
+
+# Copy fixtures folder next to executable
+add_custom_command(TARGET test_first_mate POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_first_mate/fixtures"
+    "${CMAKE_CURRENT_BINARY_DIR}/test_first_mate/fixtures"
+    COMMENT "Copying test_first_mate fixtures"
+)
+
+# Copy tests.json file next to executable
+add_custom_command(TARGET test_first_mate POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_first_mate/tests.json"
+    "${CMAKE_CURRENT_BINARY_DIR}/test_first_mate/tests.json"
+    COMMENT "Copying test_first_mate tests.json"
 )
 
 # Benchmark executable for large files (standalone, no GTest needed)
 add_executable(benchmark_large
-    benchmark_large.cpp
+    benchmark_large/benchmark_large.cpp
 )
 
 # Link against the library
@@ -69,13 +85,13 @@ endif()
 
 # Set output directory
 set_target_properties(benchmark_large PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/benchmark_large
 )
 
 
 # Simple theme test executable
 add_executable(test_theme_simple
-    test_theme_simple.cpp
+    test_theme_simple/test_theme_simple.cpp
     ${GTEST_SOURCES}
 )
 
@@ -97,16 +113,16 @@ if(EXISTS ${GTEST_INCLUDE_DIR})
 endif()
 
 # Add test
-add_test(NAME ThemeSimpleTests COMMAND test_theme_simple)
+add_test(NAME ThemeSimpleTests COMMAND test_theme_simple WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme_simple)
 
 # Set output directory
 set_target_properties(test_theme_simple PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme_simple
 )
 
 # Theme test executable
 add_executable(test_theme
-    test_theme.cpp
+    test_theme/test_theme.cpp
     ${GTEST_SOURCES}
 )
 
@@ -132,16 +148,16 @@ else()
 endif()
 
 # Add test
-add_test(NAME ThemeTests COMMAND test_theme)
+add_test(NAME ThemeTests COMMAND test_theme WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme)
 
 # Set output directory
 set_target_properties(test_theme PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme
 )
 
 # Debug theme test executable
 add_executable(test_theme_debug
-    test_theme_debug.cpp
+    test_theme_debug/test_theme_debug.cpp
     ${GTEST_SOURCES}
 )
 
@@ -163,16 +179,16 @@ if(EXISTS ${GTEST_INCLUDE_DIR})
 endif()
 
 # Add test
-add_test(NAME ThemeDebugTests COMMAND test_theme_debug)
+add_test(NAME ThemeDebugTests COMMAND test_theme_debug WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme_debug)
 
 # Set output directory
 set_target_properties(test_theme_debug PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme_debug
 )
 
 # File theme test executable
 add_executable(test_theme_file
-    test_theme_file.cpp
+    test_theme_file/test_theme_file.cpp
     ${GTEST_SOURCES}
 )
 
@@ -194,16 +210,16 @@ if(EXISTS ${GTEST_INCLUDE_DIR})
 endif()
 
 # Add test
-add_test(NAME ThemeFileTests COMMAND test_theme_file)
+add_test(NAME ThemeFileTests COMMAND test_theme_file WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme_file)
 
 # Set output directory
 set_target_properties(test_theme_file PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme_file
 )
 
 # Session test executable
 add_executable(test_session
-    test_session.cpp
+    test_session/test_session.cpp
     ${GTEST_SOURCES}
 )
 
@@ -227,16 +243,16 @@ if(EXISTS ${GTEST_INCLUDE_DIR})
 endif()
 
 # Add test
-add_test(NAME SessionTests COMMAND test_session)
+add_test(NAME SessionTests COMMAND test_session WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_session)
 
 # Set output directory
 set_target_properties(test_session PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_session
 )
 
 # Session benchmark executable (standalone, no GTest)
 add_executable(benchmark_session
-    benchmark_session.cpp
+    benchmark_session/benchmark_session.cpp
 )
 
 # Link against the library
@@ -251,12 +267,12 @@ endif()
 
 # Set output directory
 set_target_properties(benchmark_session PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/benchmark_session
 )
 
 # Session comparison benchmark executable
 add_executable(benchmark_session_comparison
-    benchmark_session_comparison.cpp
+    benchmark_session_comparison/benchmark_session_comparison.cpp
 )
 
 # Link against the library
@@ -271,12 +287,12 @@ endif()
 
 # Set output directory
 set_target_properties(benchmark_session_comparison PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/benchmark_session_comparison
 )
 
 # SyntaxHighlighter test executable
 add_executable(test_syntax_highlighter
-    test_syntax_highlighter.cpp
+    test_syntax_highlighter/test_syntax_highlighter.cpp
     ${GTEST_SOURCES}
 )
 
@@ -300,9 +316,9 @@ if(EXISTS ${GTEST_INCLUDE_DIR})
 endif()
 
 # Add test
-add_test(NAME SyntaxHighlighterTests COMMAND test_syntax_highlighter)
+add_test(NAME SyntaxHighlighterTests COMMAND test_syntax_highlighter WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_syntax_highlighter)
 
 # Set output directory
 set_target_properties(test_syntax_highlighter PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_syntax_highlighter
 )
