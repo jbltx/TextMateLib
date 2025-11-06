@@ -68,41 +68,32 @@ build_variant() {
         return 1
     fi
 
-    # Check output files
-    if [ -f "tml-${variant}.js" ] && [ -f "tml-${variant}.wasm" ]; then
-        JS_SIZE=$(stat -f%z "tml-${variant}.js" 2>/dev/null || stat -c%s "tml-${variant}.js")
-        WASM_SIZE=$(stat -f%z "tml-${variant}.wasm" 2>/dev/null || stat -c%s "tml-${variant}.wasm")
+    # Check output files - both archive and browser builds
+    ARCHIVE_PATH="${SCRIPT_DIR}/../${build_dir}/wasm/libtml-${variant}.a"
+    JS_PATH="${SCRIPT_DIR}/../${build_dir}/browser/tml-${variant}.js"
+    WASM_PATH="${SCRIPT_DIR}/../${build_dir}/browser/tml-${variant}.wasm"
 
-        JS_SIZE_KB=$((JS_SIZE / 1024))
-        WASM_SIZE_KB=$((WASM_SIZE / 1024))
-
-        echo "  [3/3] Output files generated"
-        echo -e "    ${GREEN}✓ tml-${variant}.js${NC} (${JS_SIZE_KB} KB)"
-        echo -e "    ${GREEN}✓ tml-${variant}.wasm${NC} (${WASM_SIZE_KB} KB)"
+    if [ -f "${ARCHIVE_PATH}" ]; then
+        ARCHIVE_SIZE=$(stat -f%z "${ARCHIVE_PATH}" 2>/dev/null || stat -c%s "${ARCHIVE_PATH}")
+        ARCHIVE_SIZE_KB=$((ARCHIVE_SIZE / 1024))
+        echo "  [3a/3] Archive generated"
+        echo -e "    ${GREEN}✓ libtml-${variant}.a${NC} (${ARCHIVE_SIZE_KB} KB, WebAssembly Object Files)"
     else
-        echo -e "${RED}✗ Output files not found${NC}"
+        echo -e "${RED}✗ Output archive file not found at ${ARCHIVE_PATH}${NC}"
         return 1
     fi
 
-    # Try to optimize with wasm-opt if available
-    if command -v wasm-opt &> /dev/null; then
-        echo "  [Bonus] Optimizing with wasm-opt..."
-        WASM_OPT_OUTPUT="${SCRIPT_DIR}/../${build_dir}/tml-${variant}-opt.wasm"
-        wasm-opt \
-            -O4 \
-            --enable-simd \
-            --enable-exceptions \
-            --enable-bulk-memory \
-            "tml-${variant}.wasm" \
-            -o "${WASM_OPT_OUTPUT}" 2>&1
-
-        if [ -f "${WASM_OPT_OUTPUT}" ]; then
-            OPT_SIZE=$(stat -f%z "${WASM_OPT_OUTPUT}" 2>/dev/null || stat -c%s "${WASM_OPT_OUTPUT}")
-            OPT_SIZE_KB=$((OPT_SIZE / 1024))
-            REDUCTION=$(( (WASM_SIZE - OPT_SIZE) * 100 / WASM_SIZE ))
-            echo -e "    ${GREEN}✓ Optimized output${NC} (${OPT_SIZE_KB} KB, ${REDUCTION}% reduction)"
-            mv "${WASM_OPT_OUTPUT}" "tml-${variant}.wasm"
-        fi
+    if [ -f "${JS_PATH}" ] && [ -f "${WASM_PATH}" ]; then
+        JS_SIZE=$(stat -f%z "${JS_PATH}" 2>/dev/null || stat -c%s "${JS_PATH}")
+        WASM_SIZE=$(stat -f%z "${WASM_PATH}" 2>/dev/null || stat -c%s "${WASM_PATH}")
+        JS_SIZE_KB=$((JS_SIZE / 1024))
+        WASM_SIZE_KB=$((WASM_SIZE / 1024))
+        echo "  [3b/3] Browser executables generated"
+        echo -e "    ${GREEN}✓ tml-${variant}.js${NC} (${JS_SIZE_KB} KB)"
+        echo -e "    ${GREEN}✓ tml-${variant}.wasm${NC} (${WASM_SIZE_KB} KB)"
+    else
+        echo -e "${RED}✗ Browser output files not found${NC}"
+        return 1
     fi
 
     cd "${SCRIPT_DIR}"
@@ -146,9 +137,16 @@ fi
 
 echo ""
 echo "Build outputs available at:"
+echo ""
 for variant in "${SUCCESSFUL_VARIANTS[@]}"; do
-    echo "  build-wasm-${variant}/wasm/"
+    echo "  ${variant}:"
+    echo "    Archive:  build/wasm-${variant}/wasm/libtml-${variant}.a"
+    echo "    Browser:  build/wasm-${variant}/browser/tml-${variant}.{js,wasm}"
 done
 
+echo ""
+echo "Dual Output Formats:"
+echo "  • GNU archive (.a) - WebAssembly Object Files for Unity 2021.2+"
+echo "  • JavaScript (.js/.wasm) - Browser testing and Node.js support"
 echo ""
 echo -e "${GREEN}All WASM 2023 variants built successfully!${NC}"

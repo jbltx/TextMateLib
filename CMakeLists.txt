@@ -50,7 +50,7 @@ if(USE_WASM_BUILD)
     # Exception handling (compiler flag)
     set(EXCEPTION_FLAGS -fwasm-exceptions)
 
-    # Linker exception flags (separate)
+    # Linker exception flags (separate) - not used for static library builds
     set(EXCEPTION_LINKER_FLAGS
         -s EXCEPTION_CATCHING_ALLOWED='["std::exception"]'
         -sLIKE_FETCH=1
@@ -61,18 +61,14 @@ if(USE_WASM_BUILD)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWASM_2023_FEATURES=1")
     endif()
 
-    # Combine all flags
+    # Combine all flags for compilation (excluding linker-only flags)
     string(REPLACE ";" " " WASM_2023_FLAGS_STR "${WASM_2023_FLAGS}")
-    string(REPLACE ";" " " EMSCRIPTEN_FLAGS_STR "${EMSCRIPTEN_FLAGS}")
-    string(REPLACE ";" " " WASM_MEMORY_STR "${WASM_MEMORY}")
     string(REPLACE ";" " " EXCEPTION_FLAGS_STR "${EXCEPTION_FLAGS}")
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WASM_2023_FLAGS_STR} ${EMSCRIPTEN_FLAGS_STR} ${WASM_MEMORY_STR} ${EXCEPTION_FLAGS_STR} --bind")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${EXCEPTION_LINKER_FLAGS}")
+    # Compiler flags for object file generation suitable for archiving
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WASM_2023_FLAGS_STR} ${EXCEPTION_FLAGS_STR}")
 
-
-    # Set output as JavaScript + WASM
-    set(CMAKE_EXECUTABLE_SUFFIX ".js")
+    # Set output format - for static archives, skip JavaScript/WASM runtime flags
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
     set(CMAKE_CXX_FLAGS_DEBUG "-g -O1 -s ASSERTIONS=1")
 endif()
@@ -187,17 +183,50 @@ else()
     set(ONIGURUMA_LIB ${ONIG_INSTALL_DIR}/lib/libonig.a)
 endif()
 
-# Create output target (library for native, executable for WASM)
+# Create output targets
 if(USE_WASM_BUILD)
-    # WASM builds as executable (produces .js + .wasm files)
-    add_executable(tml
+    # WASM builds dual targets:
+    # 1. Static archive library (.a) for Unity 2021.2+ compatibility
+    #    Contains WebAssembly Object Files (.o) - preferred over LLVM Bitcode
+    add_library(tml STATIC
         ${TEXTMATE_SOURCES}
     )
     set_target_properties(tml PROPERTIES
         OUTPUT_NAME "tml-${WASM_VARIANT}"
-        SUFFIX ".js"
+        SUFFIX ".a"
+        ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/wasm
     )
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/wasm)
+
+    # 2. Executable target for browser testing (.js + .wasm)
+    #    Includes JavaScript bindings and Emscripten runtime
+    add_executable(tml-browser
+        ${TEXTMATE_SOURCES}
+    )
+    set_target_properties(tml-browser PROPERTIES
+        OUTPUT_NAME "tml-${WASM_VARIANT}"
+        SUFFIX ".js"
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/browser
+    )
+
+    # Add Emscripten linker flags for executable target only
+    # These flags are needed for the JavaScript binding to work
+    set(EMSCRIPTEN_LINKER_FLAGS
+        -s WASM=1
+        -s MODULARIZE=1
+        -s EXPORT_NAME='createTextMateModule'
+        -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','getValue','setValue']
+        -s ALLOW_MEMORY_GROWTH=1
+        -s ABORTING_MALLOC=0
+        --bind
+    )
+    string(REPLACE ";" " " EMSCRIPTEN_LINKER_FLAGS_STR "${EMSCRIPTEN_LINKER_FLAGS}")
+    set_target_properties(tml-browser PROPERTIES
+        LINK_FLAGS "${EMSCRIPTEN_LINKER_FLAGS_STR}"
+    )
+
+    # Also add --bind flag to compiler flags for the executable target
+    target_compile_options(tml-browser PRIVATE --bind)
+
 else()
     # Native builds as shared library
     add_library(tml SHARED
@@ -208,10 +237,17 @@ endif()
 
 # Link libraries
 if(USE_WASM_BUILD)
-    # Add dependency on oniguruma WASM build
+    # Add dependency on oniguruma WASM build for both targets
     add_dependencies(tml oniguruma_wasm)
+    add_dependencies(tml-browser oniguruma_wasm)
+
+    # Link against oniguruma
     target_link_libraries(tml ${ONIGURUMA_LIB})
+    target_link_libraries(tml-browser ${ONIGURUMA_LIB})
+
+    # Include oniguruma headers
     target_include_directories(tml PRIVATE ${ONIG_INSTALL_DIR}/include)
+    target_include_directories(tml-browser PRIVATE ${ONIG_INSTALL_DIR}/include)
 elseif(ONIGURUMA_LIB)
     target_link_libraries(tml ${ONIGURUMA_LIB})
 else()
