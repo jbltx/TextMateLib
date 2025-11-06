@@ -1,6 +1,6 @@
 #ifdef WASM_2023_FEATURES
 
-#include "exception_bindings.h"
+#include "wasm/exception_bindings.h"
 #include <memory>
 #include <mutex>
 

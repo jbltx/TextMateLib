@@ -117,7 +117,7 @@ set(TEXTMATE_SOURCES
 
 # Add Emscripten bindings for WASM builds
 if(USE_WASM_BUILD)
-    list(APPEND TEXTMATE_SOURCES src/bindings.cpp)
+    list(APPEND TEXTMATE_SOURCES src/wasm/bindings.cpp)
 endif()
 
 # Header files (for IDE support)
@@ -143,6 +143,10 @@ set(TEXTMATE_HEADERS
     src/session_c_api.h
     src/syntax_highlighter.h
     src/syntax_highlighter_c_api.h
+    src/wasm/simd_bindings.h
+    src/wasm/bulk_memory_bindings.h
+    src/wasm/exception_bindings.h
+    src/wasm/bigint_bindings.h
 )
 
 include(ExternalProject)

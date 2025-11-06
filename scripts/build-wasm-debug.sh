@@ -3,6 +3,6 @@
 set -e
 mkdir -p build/wasm-debug
 cd build/wasm-debug
-emcmake cmake -DCMAKE_BUILD_TYPE=Debug -DWASM_VARIANT=debug ../..
+emcmake cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_WASM_BUILD=ON -DWASM_VARIANT=debug ../..
 cmake --build . -- -j4
 echo "✓ Debug WASM build complete: build/wasm-debug/tml-debug.{js,wasm}"

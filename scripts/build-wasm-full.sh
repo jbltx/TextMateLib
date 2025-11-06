@@ -3,6 +3,6 @@
 set -e
 mkdir -p build/wasm-full
 cd build/wasm-full
-emcmake cmake -DCMAKE_BUILD_TYPE=Release -DWASM_VARIANT=full ../..
+emcmake cmake -DCMAKE_BUILD_TYPE=Release -DUSE_WASM_BUILD=ON -DWASM_VARIANT=full ../..
 cmake --build . -- -j4
 echo "✓ Full WASM build complete: build/wasm-full/tml-full.{js,wasm}"

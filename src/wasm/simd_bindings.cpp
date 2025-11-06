@@ -1,6 +1,6 @@
 #ifdef WASM_2023_FEATURES
 
-#include "simd_bindings.h"
+#include "wasm/simd_bindings.h"
 #include <algorithm>
 #include <cstring>
 

@@ -1,6 +1,6 @@
 #ifdef WASM_2023_FEATURES
 
-#include "bulk_memory_bindings.h"
+#include "wasm/bulk_memory_bindings.h"
 #include <algorithm>
 #include <cstring>
 #include <memory>
