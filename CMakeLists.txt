@@ -282,8 +282,12 @@ if(NOT USE_WASM_BUILD)
     )
 endif()
 
-# Define TEXTMATE_EXPORTS when building the library
-target_compile_definitions(tml PRIVATE TEXTMATE_EXPORTS)
+# Define TEXTMATE_EXPORTS when building the library, or TEXTMATE_STATIC for static builds
+if(BUILD_SHARED_LIBS)
+    target_compile_definitions(tml PRIVATE TEXTMATE_EXPORTS)
+else()
+    target_compile_definitions(tml PRIVATE TEXTMATE_STATIC)
+endif()
 
 # Install targets
 install(TARGETS tml

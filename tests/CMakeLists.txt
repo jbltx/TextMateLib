@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
+# If linking against a static library, define TEXTMATE_STATIC for all tests
+if(NOT BUILD_SHARED_LIBS)
+    add_compile_definitions(TEXTMATE_STATIC)
+endif()
+
 # RapidJSON include directory
 set(RAPIDJSON_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/include")
 

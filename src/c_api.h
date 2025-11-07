@@ -11,6 +11,8 @@ extern "C" {
 #ifdef _WIN32
     #ifdef TEXTMATE_EXPORTS
         #define TEXTMATE_API __declspec(dllexport)
+    #elif defined(TEXTMATE_STATIC)
+        #define TEXTMATE_API
     #else
         #define TEXTMATE_API __declspec(dllimport)
     #endif
