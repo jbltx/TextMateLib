@@ -58,6 +58,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+          -DBUILD_SHARED_LIBS=OFF
 
       - name: Build [Oniguruma]
         run: cmake --build ${{ steps.strings.outputs.onig-build-dir }} --config ${{ matrix.build_type }}
@@ -70,6 +71,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+          -DBUILD_SHARED_LIBS=OFF
 
       - name: Build
         run: cmake --build ${{ steps.strings.outputs.build-dir }} --config ${{ matrix.build_type }}
