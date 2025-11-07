@@ -1,6 +1,8 @@
 #ifndef TEXTMATELIB_SESSION_C_API_H
 #define TEXTMATELIB_SESSION_C_API_H
 
+#include "tml_export.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,7 +58,7 @@ typedef struct {
 //   - Session starts with INITIAL state
 //   - Reference count is set to 1 (ownership transferred to caller)
 //   - Must call textmate_session_dispose() to release
-TEXTMATE_API TextMateSession textmate_session_create(TextMateGrammar grammar);
+TML_API TextMateSession textmate_session_create(TextMateGrammar grammar);
 
 // Increment reference count for a session
 //
@@ -66,7 +68,7 @@ TEXTMATE_API TextMateSession textmate_session_create(TextMateGrammar grammar);
 // Notes:
 //   - Used when storing session handles in multiple places
 //   - Must be paired with textmate_session_release()
-TEXTMATE_API void textmate_session_retain(TextMateSession session);
+TML_API void textmate_session_retain(TextMateSession session);
 
 // Decrement reference count for a session
 //
@@ -77,7 +79,7 @@ TEXTMATE_API void textmate_session_retain(TextMateSession session);
 //   - When reference count reaches 0, session is destroyed
 //   - Safe to call multiple times (decrements until 0)
 //   - Finalizer safety net: finalizer calls this if not explicitly called
-TEXTMATE_API void textmate_session_release(TextMateSession session);
+TML_API void textmate_session_release(TextMateSession session);
 
 // Dispose a session explicitly
 //
@@ -88,7 +90,7 @@ TEXTMATE_API void textmate_session_release(TextMateSession session);
 //   - Shorthand for textmate_session_release() (decrements refcount)
 //   - Recommended way to dispose for API clarity
 //   - Should be called from IDisposable.Dispose() in C#
-TEXTMATE_API void textmate_session_dispose(TextMateSession session);
+TML_API void textmate_session_dispose(TextMateSession session);
 
 // ============================================================================
 // Session State Management
@@ -108,14 +110,14 @@ TEXTMATE_API void textmate_session_dispose(TextMateSession session);
 //   - Clears existing cache and tokenizes all lines
 //   - Uses initial state for first line
 //   - Cascades state naturally between lines
-TEXTMATE_API int textmate_session_set_lines(
+TML_API int textmate_session_set_lines(
     TextMateSession session,
     const char** lines,
     int32_t lineCount
 );
 
 // Get current number of lines in session
-TEXTMATE_API int32_t textmate_session_get_line_count(TextMateSession session);
+TML_API int32_t textmate_session_get_line_count(TextMateSession session);
 
 // ============================================================================
 // Incremental Tokenization Operations
@@ -142,7 +144,7 @@ TEXTMATE_API int32_t textmate_session_get_line_count(TextMateSession session);
 // Example (user edits line 50):
 //   textmate_session_edit(session, newLines, 1, 50, 1);
 //   // Retokenizes line 50 and cascades forward until state stabilizes
-TEXTMATE_API int textmate_session_edit(
+TML_API int textmate_session_edit(
     TextMateSession session,
     const char** lines,
     int32_t lineCount,
@@ -169,7 +171,7 @@ TEXTMATE_API int textmate_session_edit(
 //
 // Example (user pastes 5 lines at line 100):
 //   textmate_session_add(session, pastedLines, 5, 100);
-TEXTMATE_API int textmate_session_add(
+TML_API int textmate_session_add(
     TextMateSession session,
     const char** lines,
     int32_t lineCount,
@@ -194,7 +196,7 @@ TEXTMATE_API int textmate_session_add(
 //
 // Example (user deletes 3 lines starting at line 50):
 //   textmate_session_remove(session, 50, 3);
-TEXTMATE_API int textmate_session_remove(
+TML_API int textmate_session_remove(
     TextMateSession session,
     int32_t startIndex,
     int32_t removeCount
@@ -217,7 +219,7 @@ TEXTMATE_API int textmate_session_remove(
 //   - Returns cached tokens without retokenization
 //   - Returns empty if line hasn't been tokenized yet
 //   - Token pointers are valid until next edit operation
-TEXTMATE_API TextMateTokenizeResult* textmate_session_get_line_tokens(
+TML_API TextMateTokenizeResult* textmate_session_get_line_tokens(
     TextMateSession session,
     int32_t lineIndex
 );
@@ -234,7 +236,7 @@ TEXTMATE_API TextMateTokenizeResult* textmate_session_get_line_tokens(
 // Notes:
 //   - Useful for external state analysis
 //   - State is valid until next edit operation
-TEXTMATE_API TextMateStateStack textmate_session_get_line_state(
+TML_API TextMateStateStack textmate_session_get_line_state(
     TextMateSession session,
     int32_t lineIndex
 );
@@ -253,19 +255,19 @@ TEXTMATE_API TextMateStateStack textmate_session_get_line_state(
 //   - More efficient than multiple get_line_tokens() calls
 //   - Useful for rendering screen buffers
 //   - Must be freed with textmate_session_free_lines_result()
-TEXTMATE_API TextMateSessionLinesResult* textmate_session_get_tokens_range(
+TML_API TextMateSessionLinesResult* textmate_session_get_tokens_range(
     TextMateSession session,
     int32_t startIndex,
     int32_t endIndex
 );
 
 // Free query result
-TEXTMATE_API void textmate_session_free_tokens_result(
+TML_API void textmate_session_free_tokens_result(
     TextMateTokenizeResult* result
 );
 
 // Free batch query result
-TEXTMATE_API void textmate_session_free_lines_result(
+TML_API void textmate_session_free_lines_result(
     TextMateSessionLinesResult* result
 );
 
@@ -284,7 +286,7 @@ TEXTMATE_API void textmate_session_free_lines_result(
 //   - Forces retokenization on next query
 //   - Useful if grammar changed or external state modified
 //   - Automatically called by edit/add/remove operations
-TEXTMATE_API void textmate_session_invalidate_range(
+TML_API void textmate_session_invalidate_range(
     TextMateSession session,
     int32_t startIndex,
     int32_t endIndex
@@ -299,7 +301,7 @@ TEXTMATE_API void textmate_session_invalidate_range(
 //   - Resets all cached tokens and states
 //   - Useful for grammar changes
 //   - Document structure preserved
-TEXTMATE_API void textmate_session_clear_cache(TextMateSession session);
+TML_API void textmate_session_clear_cache(TextMateSession session);
 
 // Cleanup expired sessions (automatic memory management)
 //
@@ -311,7 +313,7 @@ TEXTMATE_API void textmate_session_clear_cache(TextMateSession session);
 //   - Part of automatic cleanup defense layer
 //   - Safe to call frequently (low overhead)
 //   - Helps prevent leaks from abandoned sessions
-TEXTMATE_API void textmate_session_cleanup_expired(int32_t maxAgeMs);
+TML_API void textmate_session_cleanup_expired(int32_t maxAgeMs);
 
 // Get session metadata
 //
@@ -324,7 +326,7 @@ typedef struct {
     uint64_t memoryUsageBytes;       // Approximate memory usage
 } TextMateSessionMetadata;
 
-TEXTMATE_API TextMateSessionMetadata textmate_session_get_metadata(
+TML_API TextMateSessionMetadata textmate_session_get_metadata(
     TextMateSession session
 );
 

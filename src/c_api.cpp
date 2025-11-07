@@ -163,7 +163,7 @@ static Theme* parseJsonTheme(const std::string& jsonContent) {
 // Theme C API Implementation
 // ============================================================================
 
-TEXTMATE_API TextMateTheme textmate_theme_load_from_file(const char* themePath) {
+TML_API TextMateTheme textmate_theme_load_from_file(const char* themePath) {
     if (!themePath) {
         return nullptr;
     }
@@ -192,7 +192,7 @@ TEXTMATE_API TextMateTheme textmate_theme_load_from_file(const char* themePath) 
     }
 }
 
-TEXTMATE_API TextMateTheme textmate_theme_load_from_json(const char* jsonContent) {
+TML_API TextMateTheme textmate_theme_load_from_json(const char* jsonContent) {
     if (!jsonContent) {
         return nullptr;
     }
@@ -216,7 +216,7 @@ TEXTMATE_API TextMateTheme textmate_theme_load_from_json(const char* jsonContent
     }
 }
 
-TEXTMATE_API uint32_t textmate_theme_get_foreground(
+TML_API uint32_t textmate_theme_get_foreground(
     TextMateTheme theme,
     const char* scopePath,
     uint32_t defaultColor
@@ -245,7 +245,7 @@ TEXTMATE_API uint32_t textmate_theme_get_foreground(
     }
 }
 
-TEXTMATE_API uint32_t textmate_theme_get_background(
+TML_API uint32_t textmate_theme_get_background(
     TextMateTheme theme,
     const char* scopePath,
     uint32_t defaultColor
@@ -274,7 +274,7 @@ TEXTMATE_API uint32_t textmate_theme_get_background(
     }
 }
 
-TEXTMATE_API int32_t textmate_theme_get_font_style(
+TML_API int32_t textmate_theme_get_font_style(
     TextMateTheme theme,
     const char* scopePath,
     int32_t defaultStyle
@@ -298,7 +298,7 @@ TEXTMATE_API int32_t textmate_theme_get_font_style(
     }
 }
 
-TEXTMATE_API uint32_t textmate_theme_get_default_foreground(TextMateTheme theme) {
+TML_API uint32_t textmate_theme_get_default_foreground(TextMateTheme theme) {
     if (!theme) {
         return 0xFFFFFFFF;  // White
     }
@@ -319,7 +319,7 @@ TEXTMATE_API uint32_t textmate_theme_get_default_foreground(TextMateTheme theme)
     }
 }
 
-TEXTMATE_API uint32_t textmate_theme_get_default_background(TextMateTheme theme) {
+TML_API uint32_t textmate_theme_get_default_background(TextMateTheme theme) {
     if (!theme) {
         return 0x000000FF;  // Black
     }
@@ -340,7 +340,7 @@ TEXTMATE_API uint32_t textmate_theme_get_default_background(TextMateTheme theme)
     }
 }
 
-TEXTMATE_API void textmate_theme_dispose(TextMateTheme theme) {
+TML_API void textmate_theme_dispose(TextMateTheme theme) {
     if (theme) {
         auto managed = static_cast<ManagedTheme*>(theme);
         delete managed;
@@ -348,7 +348,7 @@ TEXTMATE_API void textmate_theme_dispose(TextMateTheme theme) {
 }
 
 // Initialize Oniguruma library
-TEXTMATE_API TextMateOnigLib textmate_oniglib_create() {
+TML_API TextMateOnigLib textmate_oniglib_create() {
     try {
         IOnigLib* onigLib = new DefaultOnigLib();
         return static_cast<TextMateOnigLib>(onigLib);
@@ -398,7 +398,7 @@ public:
 };
 
 // Create registry with Oniguruma library
-TEXTMATE_API TextMateRegistry textmate_registry_create(TextMateOnigLib onigLib) {
+TML_API TextMateRegistry textmate_registry_create(TextMateOnigLib onigLib) {
     try {
         ManagedRegistry* managed = new ManagedRegistry(static_cast<IOnigLib*>(onigLib));
         return static_cast<TextMateRegistry>(managed);
@@ -408,7 +408,7 @@ TEXTMATE_API TextMateRegistry textmate_registry_create(TextMateOnigLib onigLib) 
 }
 
 // Dispose registry
-TEXTMATE_API void textmate_registry_dispose(TextMateRegistry registry) {
+TML_API void textmate_registry_dispose(TextMateRegistry registry) {
     if (registry) {
         ManagedRegistry* managed = static_cast<ManagedRegistry*>(registry);
         delete managed;
@@ -416,7 +416,7 @@ TEXTMATE_API void textmate_registry_dispose(TextMateRegistry registry) {
 }
 
 // Add grammar to registry from JSON file (does not return Grammar, just registers it)
-TEXTMATE_API int textmate_registry_add_grammar_from_file(
+TML_API int textmate_registry_add_grammar_from_file(
     TextMateRegistry registry,
     const char* grammarPath
 ) {
@@ -446,7 +446,7 @@ TEXTMATE_API int textmate_registry_add_grammar_from_file(
 }
 
 // Add grammar to registry from JSON string (does not return Grammar, just registers it)
-TEXTMATE_API int textmate_registry_add_grammar_from_json(
+TML_API int textmate_registry_add_grammar_from_json(
     TextMateRegistry registry,
     const char* jsonContent
 ) {
@@ -470,7 +470,7 @@ TEXTMATE_API int textmate_registry_add_grammar_from_json(
 }
 
 // Set grammar injections for a scope (call before loading the grammar)
-TEXTMATE_API void textmate_registry_set_injections(
+TML_API void textmate_registry_set_injections(
     TextMateRegistry registry,
     const char* scopeName,
     const char** injections,
@@ -495,7 +495,7 @@ TEXTMATE_API void textmate_registry_set_injections(
 }
 
 // Load grammar by scope name (after grammars have been added to registry)
-TEXTMATE_API TextMateGrammar textmate_registry_load_grammar(
+TML_API TextMateGrammar textmate_registry_load_grammar(
     TextMateRegistry registry,
     const char* scopeName
 ) {
@@ -513,12 +513,12 @@ TEXTMATE_API TextMateGrammar textmate_registry_load_grammar(
 }
 
 // Get INITIAL state
-TEXTMATE_API TextMateStateStack textmate_get_initial_state() {
+TML_API TextMateStateStack textmate_get_initial_state() {
     return static_cast<TextMateStateStack>(const_cast<StateStack*>(INITIAL));
 }
 
 // Tokenize a line of text
-TEXTMATE_API TextMateTokenizeResult* textmate_tokenize_line(
+TML_API TextMateTokenizeResult* textmate_tokenize_line(
     TextMateGrammar grammar,
     const char* lineText,
     TextMateStateStack prevState
@@ -561,7 +561,7 @@ TEXTMATE_API TextMateTokenizeResult* textmate_tokenize_line(
 }
 
 // Tokenize a line of text with encoded tokens
-TEXTMATE_API TextMateTokenizeResult2* textmate_tokenize_line2(
+TML_API TextMateTokenizeResult2* textmate_tokenize_line2(
     TextMateGrammar grammar,
     const char* lineText,
     TextMateStateStack prevState
@@ -595,7 +595,7 @@ TEXTMATE_API TextMateTokenizeResult2* textmate_tokenize_line2(
 }
 
 // Free tokenize result
-TEXTMATE_API void textmate_free_tokenize_result(TextMateTokenizeResult* result) {
+TML_API void textmate_free_tokenize_result(TextMateTokenizeResult* result) {
     if (result) {
         if (result->tokens) {
             for (int i = 0; i < result->tokenCount; i++) {
@@ -613,7 +613,7 @@ TEXTMATE_API void textmate_free_tokenize_result(TextMateTokenizeResult* result) 
 }
 
 // Free tokenize result2
-TEXTMATE_API void textmate_free_tokenize_result2(TextMateTokenizeResult2* result) {
+TML_API void textmate_free_tokenize_result2(TextMateTokenizeResult2* result) {
     if (result) {
         if (result->tokens) {
             delete[] result->tokens;
@@ -623,7 +623,7 @@ TEXTMATE_API void textmate_free_tokenize_result2(TextMateTokenizeResult2* result
 }
 
 // Batch tokenize multiple lines (Phase 2 optimization)
-TEXTMATE_API TextMateTokenizeMultiLinesResult* textmate_tokenize_lines(
+TML_API TextMateTokenizeMultiLinesResult* textmate_tokenize_lines(
     TextMateGrammar grammar,
     const char** lines,
     int32_t lineCount,
@@ -681,7 +681,7 @@ TEXTMATE_API TextMateTokenizeMultiLinesResult* textmate_tokenize_lines(
 }
 
 // Free batch tokenize result
-TEXTMATE_API void textmate_free_tokenize_lines_result(TextMateTokenizeMultiLinesResult* result) {
+TML_API void textmate_free_tokenize_lines_result(TextMateTokenizeMultiLinesResult* result) {
     if (result) {
         // Free each line result
         for (int32_t i = 0; i < result->lineCount; i++) {
@@ -693,14 +693,14 @@ TEXTMATE_API void textmate_free_tokenize_lines_result(TextMateTokenizeMultiLines
 }
 
 // Get scope name from grammar
-TEXTMATE_API const char* textmate_grammar_get_scope_name(TextMateGrammar grammar) {
+TML_API const char* textmate_grammar_get_scope_name(TextMateGrammar grammar) {
     // Not implemented yet - would require adding a getter method to Grammar class
     // For now, return nullptr
     return nullptr;
 }
 
 // Dispose grammar (Note: Grammar lifecycle is managed by Registry in the C++ implementation)
-TEXTMATE_API void textmate_grammar_dispose(TextMateGrammar grammar) {
+TML_API void textmate_grammar_dispose(TextMateGrammar grammar) {
     // In the current C++ implementation, Grammar objects are owned by Registry
     // so we don't delete them here. This function is provided for API consistency
     // but doesn't do anything. If you want independent Grammar lifecycle,
@@ -708,7 +708,7 @@ TEXTMATE_API void textmate_grammar_dispose(TextMateGrammar grammar) {
 }
 
 // Dispose Oniguruma library
-TEXTMATE_API void textmate_oniglib_dispose(TextMateOnigLib onigLib) {
+TML_API void textmate_oniglib_dispose(TextMateOnigLib onigLib) {
     if (onigLib) {
         IOnigLib* lib = static_cast<IOnigLib*>(onigLib);
         delete lib;

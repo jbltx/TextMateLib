@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
-project(tml VERSION 2.0.0 LANGUAGES CXX)
+project(tml VERSION 1.0.0 LANGUAGES CXX)
+
+include(GenerateExportHeader)
 
 # Set C++17 standard for modern features
 set(CMAKE_CXX_STANDARD 17)
@@ -252,6 +254,20 @@ else()
     )
 endif()
 
+# Generate export header for library
+generate_export_header(tml
+    EXPORT_MACRO_NAME TML_API
+    EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/tml_export.h
+    STATIC_DEFINE TEXTMATE_STATIC
+)
+
+# Include generated export header
+target_include_directories(tml PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<INSTALL_INTERFACE:include>
+)
+
 # Link libraries
 if(USE_WASM_BUILD)
     # Add dependency on oniguruma WASM build for both targets
@@ -269,29 +285,6 @@ elseif(ONIGURUMA_LIB)
     target_link_libraries(tml ${ONIGURUMA_LIB})
 else()
     target_link_libraries(tml onig)
-endif()
-
-# Set output directory and define TEXTMATE_EXPORTS for Windows DLL export
-if(NOT USE_WASM_BUILD)
-    set_target_properties(tml PROPERTIES
-        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
-        ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin
-        CXX_VISIBILITY_PRESET default
-        VISIBILITY_INLINES_HIDDEN OFF
-    )
-endif()
-
-# Define TEXTMATE_EXPORTS when building a shared library
-# For static builds, don't define anything - TEXTMATE_API will default to empty on Windows
-if(BUILD_SHARED_LIBS)
-    target_compile_definitions(tml PRIVATE TEXTMATE_EXPORTS)
-else()
-    # For static libraries, we need to define TEXTMATE_STATIC so headers know it's static
-    target_compile_definitions(tml PUBLIC TEXTMATE_STATIC)
-    if(USE_WASM_BUILD)
-        target_compile_definitions(tml-browser PUBLIC TEXTMATE_STATIC)
-    endif()
 endif()
 
 # Install targets

@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 
-# If linking against a static library, define TEXTMATE_STATIC for all tests
-if(NOT BUILD_SHARED_LIBS)
-    add_compile_definitions(TEXTMATE_STATIC)
-endif()
-
 # RapidJSON include directory
 set(RAPIDJSON_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/include")
 
@@ -25,7 +20,7 @@ add_executable(test_first_mate
 )
 
 # Link against the library
-target_link_libraries(test_first_mate
+target_link_libraries(test_first_mate PRIVATE
     tml
 )
 
@@ -79,7 +74,7 @@ add_executable(benchmark_large
 )
 
 # Link against the library
-target_link_libraries(benchmark_large
+target_link_libraries(benchmark_large PRIVATE
     tml
 )
 
@@ -101,7 +96,7 @@ add_executable(test_theme_simple
 )
 
 # Link against the library
-target_link_libraries(test_theme_simple
+target_link_libraries(test_theme_simple PRIVATE
     tml
 )
 
@@ -132,7 +127,7 @@ add_executable(test_theme
 )
 
 # Link against the library
-target_link_libraries(test_theme
+target_link_libraries(test_theme PRIVATE
     tml
 )
 
@@ -167,7 +162,7 @@ add_executable(test_theme_debug
 )
 
 # Link against the library
-target_link_libraries(test_theme_debug
+target_link_libraries(test_theme_debug PRIVATE
     tml
 )
 
@@ -198,7 +193,7 @@ add_executable(test_theme_file
 )
 
 # Link against the library
-target_link_libraries(test_theme_file
+target_link_libraries(test_theme_file PRIVATE
     tml
 )
 
@@ -229,7 +224,7 @@ add_executable(test_session
 )
 
 # Link against the library
-target_link_libraries(test_session
+target_link_libraries(test_session PRIVATE
     tml
 )
 
@@ -261,7 +256,7 @@ add_executable(benchmark_session
 )
 
 # Link against the library
-target_link_libraries(benchmark_session
+target_link_libraries(benchmark_session PRIVATE
     tml
 )
 
@@ -281,7 +276,7 @@ add_executable(benchmark_session_comparison
 )
 
 # Link against the library
-target_link_libraries(benchmark_session_comparison
+target_link_libraries(benchmark_session_comparison PRIVATE
     tml
 )
 
@@ -302,7 +297,7 @@ add_executable(test_syntax_highlighter
 )
 
 # Link against the library
-target_link_libraries(test_syntax_highlighter
+target_link_libraries(test_syntax_highlighter PRIVATE
     tml
 )
 

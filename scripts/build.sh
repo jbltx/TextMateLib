@@ -27,7 +27,7 @@ cd "$BUILD_DIR"
 # Configure with emscripten
 echo -e "${GREEN}Configuring CMake...${NC}"
 # Use -S to specify source dir (parent), -B for build dir (current)
-cmake -S .. -B . -DCMAKE_BUILD_TYPE=Release
+cmake -S .. -B . -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
 
 # Build
 echo -e "${GREEN}Building...${NC}"
