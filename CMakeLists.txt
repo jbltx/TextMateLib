@@ -271,8 +271,8 @@ if(USE_WASM_BUILD)
     add_dependencies(tml-browser oniguruma_wasm)
 
     # Link against oniguruma
-    target_link_libraries(tml ${ONIGURUMA_LIB})
-    target_link_libraries(tml-browser ${ONIGURUMA_LIB})
+    target_link_libraries(tml PUBLIC ${ONIGURUMA_LIB})
+    target_link_libraries(tml-browser PUBLIC ${ONIGURUMA_LIB})
 
     # Include oniguruma headers
     target_include_directories(tml PUBLIC ${ONIGURUMA_INCLUDE_DIR})
@@ -281,10 +281,10 @@ else()
     # Add dependency on oniguruma build
     add_dependencies(tml oniguruma)
 
-    # Link against oniguruma
-    target_link_libraries(tml ${ONIGURUMA_LIB})
+    # Link against oniguruma - use PUBLIC to propagate to targets linking against tml
+    target_link_libraries(tml PUBLIC ${ONIGURUMA_LIB})
 
-    # Include oniguruma headers
+    # Include oniguruma headers - use PUBLIC to propagate to targets linking against tml
     target_include_directories(tml PUBLIC ${ONIGURUMA_INCLUDE_DIR})
 endif()
 
