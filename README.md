@@ -325,7 +325,6 @@ int main() {
 │   └── rapidjson/               # JSON parser & GTest
 │
 ├── CMakeLists.txt               # Main build configuration
-├── CLAUDE.md                    # Claude AI assistant guidelines
 └── README.md                    # This file
 ```
 
