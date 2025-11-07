@@ -61,6 +61,8 @@ jobs:
       - name: Build dependencies
         run: ./scripts/build-deps.sh
         shell: bash
+        env:
+          CMAKE_GENERATOR: Ninja
 
       - name: Create build directory
         run: mkdir -p build
