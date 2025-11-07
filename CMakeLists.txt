@@ -162,14 +162,31 @@ if(NOT USE_WASM_BUILD)
     # Build oniguruma
     set(ONIG_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/oniguruma)
 
+    # Build configuration for oniguruma - ensure static library, not shared
+    set(ONIG_CMAKE_ARGS
+        -DCMAKE_BUILD_TYPE=Release
+        -DBUILD_SHARED_LIBS=OFF
+        -DENABLE_POSIX_API=OFF
+        -DENABLE_BINARY_COMPATIBLE_POSIX_API=OFF
+        -DENABLE_STATISTICS=OFF
+        -DINSTALL_DOCUMENTATION=OFF
+        -DINSTALL_EXAMPLES=OFF
+        -DBUILD_TEST=OFF
+        -DCMAKE_INSTALL_PREFIX=${ONIG_INSTALL_DIR}
+    )
+
+    # On Windows/MSVC, add runtime configuration for static linking
+    if(MSVC)
+        list(APPEND ONIG_CMAKE_ARGS
+            -DMSVC_STATIC_RUNTIME=ON
+        )
+    endif()
+
     ExternalProject_Add(
         oniguruma
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma
         BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/thirdparty/oniguruma/build
-        CMAKE_ARGS
-            -DCMAKE_BUILD_TYPE=Release
-            -DBUILD_SHARED_LIBS=OFF
-            -DCMAKE_INSTALL_PREFIX=${ONIG_INSTALL_DIR}
+        CMAKE_ARGS ${ONIG_CMAKE_ARGS}
         INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install
     )
     set(ONIGURUMA_LIB ${ONIG_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}onig${CMAKE_STATIC_LIBRARY_SUFFIX})
@@ -271,21 +288,22 @@ if(USE_WASM_BUILD)
     add_dependencies(tml-browser oniguruma_wasm)
 
     # Link against oniguruma
-    target_link_libraries(tml PUBLIC ${ONIGURUMA_LIB})
-    target_link_libraries(tml-browser PUBLIC ${ONIGURUMA_LIB})
+    target_link_libraries(tml PUBLIC "${ONIGURUMA_LIB}")
+    target_link_libraries(tml-browser PUBLIC "${ONIGURUMA_LIB}")
 
     # Include oniguruma headers
-    target_include_directories(tml PUBLIC ${ONIGURUMA_INCLUDE_DIR})
-    target_include_directories(tml-browser PUBLIC ${ONIGURUMA_INCLUDE_DIR})
+    target_include_directories(tml PUBLIC "${ONIGURUMA_INCLUDE_DIR}")
+    target_include_directories(tml-browser PUBLIC "${ONIGURUMA_INCLUDE_DIR}")
 else()
     # Add dependency on oniguruma build
     add_dependencies(tml oniguruma)
 
-    # Link against oniguruma - use PUBLIC to propagate to targets linking against tml
-    target_link_libraries(tml PUBLIC ${ONIGURUMA_LIB})
+    # Link against oniguruma static library
+    # Use target_link_libraries with the absolute path and PUBLIC to propagate to consumers
+    target_link_libraries(tml PUBLIC "${ONIGURUMA_LIB}")
 
-    # Include oniguruma headers - use PUBLIC to propagate to targets linking against tml
-    target_include_directories(tml PUBLIC ${ONIGURUMA_INCLUDE_DIR})
+    # Include oniguruma headers
+    target_include_directories(tml PUBLIC "${ONIGURUMA_INCLUDE_DIR}")
 endif()
 
 # Install targets
