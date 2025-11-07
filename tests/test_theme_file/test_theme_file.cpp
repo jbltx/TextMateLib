@@ -2,34 +2,15 @@
 #include <iostream>
 #include <chrono>
 #include <fstream>
-#include "../src/c_api.h"
+#include "tml_c.h"
 
 class ThemeFileTest : public ::testing::Test {
-protected:
-    std::string getThemePath(const char* themeName) {
-        // Try multiple possible locations
-        std::vector<std::string> possiblePaths = {
-            std::string("test-cases/themes/") + themeName,
-            std::string("../test-cases/themes/") + themeName,
-            std::string("../../test-cases/themes/") + themeName,
-        };
-
-        for (const auto& path : possiblePaths) {
-            std::ifstream file(path);
-            if (file.good()) {
-                return path;
-            }
-        }
-
-        // If none found, return the first option (will fail with appropriate error)
-        return possiblePaths[0];
-    }
 };
 
 TEST_F(ThemeFileTest, LoadDarkPlusFile) {
     std::cout << "\n=== Test: LoadDarkPlusFile ===" << std::endl;
 
-    std::string themePath = getThemePath("dark_plus.json");
+    std::string themePath = "../test_theme/fixtures/dark_plus.json";
 
     std::cout << "Loading theme from: " << themePath << std::endl;
 

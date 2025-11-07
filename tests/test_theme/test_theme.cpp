@@ -2,7 +2,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-#include "../src/c_api.h"
+#include "tml_c.h"
 
 // Helper to read file contents
 static std::string readFile(const std::string& filepath) {
@@ -100,7 +100,7 @@ TEST_F(ThemeTest, DisposeNullTheme) {
 // ============================================================================
 
 TEST_F(ThemeTest, LoadDarkPlusFromFile) {
-    const char* themePath = "test-cases/themes/dark_plus.json";
+    const char* themePath = "fixtures/dark_plus.json";
     TextMateTheme theme = textmate_theme_load_from_file(themePath);
     ASSERT_NE(theme, nullptr) << "Failed to load dark_plus.json";
 
@@ -111,7 +111,7 @@ TEST_F(ThemeTest, LoadDarkPlusFromFile) {
 }
 
 TEST_F(ThemeTest, LoadDarkVSFromFile) {
-    const char* themePath = "test-cases/themes/dark_vs.json";
+    const char* themePath = "fixtures/dark_vs.json";
     TextMateTheme theme = textmate_theme_load_from_file(themePath);
     ASSERT_NE(theme, nullptr) << "Failed to load dark_vs.json";
 
@@ -122,7 +122,7 @@ TEST_F(ThemeTest, LoadDarkVSFromFile) {
 }
 
 TEST_F(ThemeTest, LoadLightPlusFromFile) {
-    const char* themePath = "test-cases/themes/light_plus.json";
+    const char* themePath = "fixtures/light_plus.json";
     TextMateTheme theme = textmate_theme_load_from_file(themePath);
     ASSERT_NE(theme, nullptr) << "Failed to load light_plus.json";
 

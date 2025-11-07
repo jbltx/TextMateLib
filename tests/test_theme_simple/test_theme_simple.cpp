@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../src/c_api.h"
+#include "tml_c.h"
 
 class ThemeSimpleTest : public ::testing::Test {
 };

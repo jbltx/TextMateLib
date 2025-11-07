@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <chrono>
-#include "../src/c_api.h"
+#include "tml_c.h"
 
 class ThemeDebugTest : public ::testing::Test {
 };

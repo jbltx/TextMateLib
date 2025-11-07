@@ -65,13 +65,13 @@ typedef struct {
 // ============================================================================
 
 /// Create a new syntax highlighter
-/// @param grammar Grammar for tokenization (textmate_grammar_t)
-/// @param theme Theme for styling (textmate_theme_t)
+/// @param grammar Grammar for tokenization (TextMateGrammar)
+/// @param theme Theme for styling (TextMateTheme)
 /// @return Opaque handle to highlighter, or NULL on error
 /// @note Caller must call textmate_syntax_highlighter_dispose() to free memory
 TML_API textmate_syntax_highlighter_t textmate_syntax_highlighter_create(
-    textmate_grammar_t grammar,
-    textmate_theme_t theme
+    TextMateGrammar grammar,
+    TextMateTheme theme
 );
 
 /// Create a syntax highlighter with optional cache
@@ -80,8 +80,8 @@ TML_API textmate_syntax_highlighter_t textmate_syntax_highlighter_create(
 /// @param enableCache 1 to enable caching, 0 to disable
 /// @return Opaque handle to highlighter, or NULL on error
 TML_API textmate_syntax_highlighter_t textmate_syntax_highlighter_create_with_cache(
-    textmate_grammar_t grammar,
-    textmate_theme_t theme,
+    TextMateGrammar grammar,
+    TextMateTheme theme,
     int32_t enableCache
 );
 
@@ -184,7 +184,7 @@ TML_API int32_t textmate_syntax_highlighter_get_highlighted_range(
 TML_API int32_t textmate_syntax_highlighter_get_line_tokens(
     textmate_syntax_highlighter_t highlighter,
     int32_t lineIndex,
-    textmate_token_t* outTokens,
+    TextMateToken* outTokens,
     int32_t* outTokenCount
 );
 
@@ -198,13 +198,13 @@ TML_API int32_t textmate_syntax_highlighter_get_line_tokens(
 /// @param theme New theme to apply
 TML_API void textmate_syntax_highlighter_set_theme(
     textmate_syntax_highlighter_t highlighter,
-    textmate_theme_t theme
+    TextMateTheme theme
 );
 
 /// Get the currently active theme
 /// @param highlighter Highlighter instance
 /// @return Theme handle (do not dispose, owned by highlighter)
-TML_API textmate_theme_t textmate_syntax_highlighter_get_theme(
+TML_API TextMateTheme textmate_syntax_highlighter_get_theme(
     textmate_syntax_highlighter_t highlighter
 );
 
