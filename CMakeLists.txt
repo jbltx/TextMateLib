@@ -173,6 +173,7 @@ if(NOT USE_WASM_BUILD)
         -DINSTALL_EXAMPLES=OFF
         -DBUILD_TEST=OFF
         -DCMAKE_INSTALL_PREFIX=${ONIG_INSTALL_DIR}
+        -DCMAKE_C_FLAGS=-DONIG_STATIC
     )
 
     # On Windows/MSVC, add runtime configuration for static linking
@@ -265,6 +266,9 @@ else()
         ${TEXTMATE_SOURCES}
         ${TEXTMATE_HEADERS}
     )
+
+    # Ensure static linking with oniguruma on native builds
+    target_compile_definitions(tml PRIVATE ONIG_STATIC)
 endif()
 
 # Generate export header for library
