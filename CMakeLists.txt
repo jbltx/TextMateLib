@@ -282,11 +282,16 @@ if(NOT USE_WASM_BUILD)
     )
 endif()
 
-# Define TEXTMATE_EXPORTS when building the library, or TEXTMATE_STATIC for static builds
+# Define TEXTMATE_EXPORTS when building a shared library
+# For static builds, don't define anything - TEXTMATE_API will default to empty on Windows
 if(BUILD_SHARED_LIBS)
     target_compile_definitions(tml PRIVATE TEXTMATE_EXPORTS)
 else()
-    target_compile_definitions(tml PRIVATE TEXTMATE_STATIC)
+    # For static libraries, we need to define TEXTMATE_STATIC so headers know it's static
+    target_compile_definitions(tml PUBLIC TEXTMATE_STATIC)
+    if(USE_WASM_BUILD)
+        target_compile_definitions(tml-browser PUBLIC TEXTMATE_STATIC)
+    endif()
 endif()
 
 # Install targets
