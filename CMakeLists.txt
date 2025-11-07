@@ -79,8 +79,15 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 if(NOT USE_WASM_BUILD)
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -march=native -ffast-math")
-    set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+    if(MSVC)
+        # MSVC-specific flags
+        set(CMAKE_CXX_FLAGS_RELEASE "/O2 /DNDEBUG /fp:fast")
+        set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi")
+    else()
+        # GCC/Clang flags
+        set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -march=native -ffast-math")
+        set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+    endif()
 endif()
 
 # Include directories
@@ -237,8 +244,9 @@ if(USE_WASM_BUILD)
     target_compile_options(tml-browser PRIVATE --bind)
 
 else()
-    # Native builds as shared library
-    add_library(tml SHARED
+    # Native builds - default to static library for easier testing and linking
+    # Can be overridden with: cmake -DBUILD_SHARED_LIBS=ON
+    add_library(tml
         ${TEXTMATE_SOURCES}
         ${TEXTMATE_HEADERS}
     )
