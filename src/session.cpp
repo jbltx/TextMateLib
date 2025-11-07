@@ -459,17 +459,6 @@ size_t SessionManager::getSessionCount() {
 // C API Wrapper Layer (extern "C")
 // ============================================================================
 
-// Forward declare the TML_API macro and opaque C types from c_api.h
-#ifdef _WIN32
-    #ifdef TEXTMATE_EXPORTS
-        #define TML_API __declspec(dllexport)
-    #else
-        #define TML_API __declspec(dllimport)
-    #endif
-#else
-    #define TML_API __attribute__((visibility("default")))
-#endif
-
 // Opaque types from c_api.h (not defining TextMateSession yet)
 typedef void* TextMateGrammar;
 typedef void* TextMateStateStack;
@@ -526,7 +515,7 @@ using namespace tml;
 // Session Lifecycle (from session_c_api.h)
 // ============================================================================
 
-TML_API TextMateSession textmate_session_create(TextMateGrammar grammar) {
+TextMateSession textmate_session_create(TextMateGrammar grammar) {
     if (!grammar) {
         return 0;
     }
@@ -540,17 +529,17 @@ TML_API TextMateSession textmate_session_create(TextMateGrammar grammar) {
     return SessionManager::createSession(grammarSharedPtr);
 }
 
-TML_API void textmate_session_retain(TextMateSession session) {
+void textmate_session_retain(TextMateSession session) {
     if (session == 0) return;
     SessionManager::retainSession(session);
 }
 
-TML_API void textmate_session_release(TextMateSession session) {
+void textmate_session_release(TextMateSession session) {
     if (session == 0) return;
     SessionManager::releaseSession(session);
 }
 
-TML_API void textmate_session_dispose(TextMateSession session) {
+void textmate_session_dispose(TextMateSession session) {
     if (session == 0) return;
     SessionManager::disposeSession(session);
 }
@@ -559,7 +548,7 @@ TML_API void textmate_session_dispose(TextMateSession session) {
 // Session State Management
 // ============================================================================
 
-TML_API int textmate_session_set_lines(
+int textmate_session_set_lines(
     TextMateSession session,
     const char** lines,
     int32_t lineCount
@@ -581,7 +570,7 @@ TML_API int textmate_session_set_lines(
     return sessionPtr->setLines(lineVec);
 }
 
-TML_API int32_t textmate_session_get_line_count(TextMateSession session) {
+int32_t textmate_session_get_line_count(TextMateSession session) {
     if (session == 0) {
         return 0;
     }
@@ -598,7 +587,7 @@ TML_API int32_t textmate_session_get_line_count(TextMateSession session) {
 // Incremental Tokenization Operations
 // ============================================================================
 
-TML_API int textmate_session_edit(
+int textmate_session_edit(
     TextMateSession session,
     const char** lines,
     int32_t lineCount,
@@ -622,7 +611,7 @@ TML_API int textmate_session_edit(
     return sessionPtr->edit(lineVec, startIndex, replaceCount);
 }
 
-TML_API int textmate_session_add(
+int textmate_session_add(
     TextMateSession session,
     const char** lines,
     int32_t lineCount,
@@ -645,7 +634,7 @@ TML_API int textmate_session_add(
     return sessionPtr->add(lineVec, insertIndex);
 }
 
-TML_API int textmate_session_remove(
+int textmate_session_remove(
     TextMateSession session,
     int32_t startIndex,
     int32_t removeCount
@@ -666,7 +655,7 @@ TML_API int textmate_session_remove(
 // Query Operations
 // ============================================================================
 
-TML_API TextMateTokenizeResult* textmate_session_get_line_tokens(
+TextMateTokenizeResult* textmate_session_get_line_tokens(
     TextMateSession session,
     int32_t lineIndex
 ) {
@@ -715,7 +704,7 @@ TML_API TextMateTokenizeResult* textmate_session_get_line_tokens(
     return result;
 }
 
-TML_API TextMateStateStack textmate_session_get_line_state(
+TextMateStateStack textmate_session_get_line_state(
     TextMateSession session,
     int32_t lineIndex
 ) {
@@ -731,7 +720,7 @@ TML_API TextMateStateStack textmate_session_get_line_state(
     return sessionPtr->getLineState(lineIndex);
 }
 
-TML_API TextMateSessionLinesResult* textmate_session_get_tokens_range(
+TextMateSessionLinesResult* textmate_session_get_tokens_range(
     TextMateSession session,
     int32_t startIndex,
     int32_t endIndex
@@ -787,7 +776,7 @@ TML_API TextMateSessionLinesResult* textmate_session_get_tokens_range(
     return result;
 }
 
-TML_API void textmate_session_free_tokens_result(
+void textmate_session_free_tokens_result(
     TextMateTokenizeResult* result
 ) {
     if (!result) {
@@ -809,7 +798,7 @@ TML_API void textmate_session_free_tokens_result(
     delete result;
 }
 
-TML_API void textmate_session_free_lines_result(
+void textmate_session_free_lines_result(
     TextMateSessionLinesResult* result
 ) {
     if (!result) {
@@ -840,7 +829,7 @@ TML_API void textmate_session_free_lines_result(
 // Maintenance Operations
 // ============================================================================
 
-TML_API void textmate_session_invalidate_range(
+void textmate_session_invalidate_range(
     TextMateSession session,
     int32_t startIndex,
     int32_t endIndex
@@ -857,7 +846,7 @@ TML_API void textmate_session_invalidate_range(
     sessionPtr->invalidateRange(startIndex, endIndex);
 }
 
-TML_API void textmate_session_clear_cache(TextMateSession session) {
+void textmate_session_clear_cache(TextMateSession session) {
     if (session == 0) {
         return;
     }
@@ -870,11 +859,11 @@ TML_API void textmate_session_clear_cache(TextMateSession session) {
     sessionPtr->clearCache();
 }
 
-TML_API void textmate_session_cleanup_expired(int32_t maxAgeMs) {
+void textmate_session_cleanup_expired(int32_t maxAgeMs) {
     SessionManager::cleanupExpired(maxAgeMs);
 }
 
-TML_API TextMateSessionMetadata textmate_session_get_metadata(
+TextMateSessionMetadata textmate_session_get_metadata(
     TextMateSession session
 ) {
     TextMateSessionMetadata metadata = {0, 0, 0, 0, 0};
