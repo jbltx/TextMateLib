@@ -1,6 +1,7 @@
 #ifndef TEXTMATELIB_SYNTAX_HIGHLIGHTER_C_API_H
 #define TEXTMATELIB_SYNTAX_HIGHLIGHTER_C_API_H
 
+#include "tml_export.h"
 #include "c_api.h"
 #include <stdint.h>
 #include <stddef.h>
@@ -68,7 +69,7 @@ typedef struct {
 /// @param theme Theme for styling (textmate_theme_t)
 /// @return Opaque handle to highlighter, or NULL on error
 /// @note Caller must call textmate_syntax_highlighter_dispose() to free memory
-textmate_syntax_highlighter_t textmate_syntax_highlighter_create(
+TML_API textmate_syntax_highlighter_t textmate_syntax_highlighter_create(
     textmate_grammar_t grammar,
     textmate_theme_t theme
 );
@@ -78,7 +79,7 @@ textmate_syntax_highlighter_t textmate_syntax_highlighter_create(
 /// @param theme Theme for styling
 /// @param enableCache 1 to enable caching, 0 to disable
 /// @return Opaque handle to highlighter, or NULL on error
-textmate_syntax_highlighter_t textmate_syntax_highlighter_create_with_cache(
+TML_API textmate_syntax_highlighter_t textmate_syntax_highlighter_create_with_cache(
     textmate_grammar_t grammar,
     textmate_theme_t theme,
     int32_t enableCache
@@ -86,7 +87,7 @@ textmate_syntax_highlighter_t textmate_syntax_highlighter_create_with_cache(
 
 /// Dispose of a syntax highlighter and free associated memory
 /// @param highlighter Highlighter to dispose
-void textmate_syntax_highlighter_dispose(textmate_syntax_highlighter_t highlighter);
+TML_API void textmate_syntax_highlighter_dispose(textmate_syntax_highlighter_t highlighter);
 
 // ============================================================================
 // Document Management API
@@ -96,7 +97,7 @@ void textmate_syntax_highlighter_dispose(textmate_syntax_highlighter_t highlight
 /// @param highlighter Highlighter instance
 /// @param lines Array of line strings
 /// @param lineCount Number of lines
-void textmate_syntax_highlighter_set_document(
+TML_API void textmate_syntax_highlighter_set_document(
     textmate_syntax_highlighter_t highlighter,
     const char** lines,
     int32_t lineCount
@@ -106,7 +107,7 @@ void textmate_syntax_highlighter_set_document(
 /// @param highlighter Highlighter instance
 /// @param lineIndex Line to edit (0-based)
 /// @param newContent New content for the line
-void textmate_syntax_highlighter_edit_line(
+TML_API void textmate_syntax_highlighter_edit_line(
     textmate_syntax_highlighter_t highlighter,
     int32_t lineIndex,
     const char* newContent
@@ -117,7 +118,7 @@ void textmate_syntax_highlighter_edit_line(
 /// @param startIndex Position to insert (0-based)
 /// @param lines Array of lines to insert
 /// @param lineCount Number of lines to insert
-void textmate_syntax_highlighter_insert_lines(
+TML_API void textmate_syntax_highlighter_insert_lines(
     textmate_syntax_highlighter_t highlighter,
     int32_t startIndex,
     const char** lines,
@@ -128,7 +129,7 @@ void textmate_syntax_highlighter_insert_lines(
 /// @param highlighter Highlighter instance
 /// @param startIndex Start of removal (0-based)
 /// @param count Number of lines to remove
-void textmate_syntax_highlighter_remove_lines(
+TML_API void textmate_syntax_highlighter_remove_lines(
     textmate_syntax_highlighter_t highlighter,
     int32_t startIndex,
     int32_t count
@@ -137,7 +138,7 @@ void textmate_syntax_highlighter_remove_lines(
 /// Get current line count
 /// @param highlighter Highlighter instance
 /// @return Number of lines in document
-int32_t textmate_syntax_highlighter_get_line_count(
+TML_API int32_t textmate_syntax_highlighter_get_line_count(
     textmate_syntax_highlighter_t highlighter
 );
 
@@ -151,7 +152,7 @@ int32_t textmate_syntax_highlighter_get_line_count(
 /// @param lineIndex Line to highlight (0-based)
 /// @return Opaque handle to HighlightedLine, or NULL on error
 /// @note Caller must call textmate_highlighted_line_dispose() to free memory
-textmate_highlighted_line_t textmate_syntax_highlighter_get_highlighted_line(
+TML_API textmate_highlighted_line_t textmate_syntax_highlighter_get_highlighted_line(
     textmate_syntax_highlighter_t highlighter,
     int32_t lineIndex
 );
@@ -164,7 +165,7 @@ textmate_highlighted_line_t textmate_syntax_highlighter_get_highlighted_line(
 /// @param outResults Array to store results (caller allocates)
 /// @param outResultCount Output: number of results returned
 /// @return Number of highlighted lines retrieved, or -1 on error
-int32_t textmate_syntax_highlighter_get_highlighted_range(
+TML_API int32_t textmate_syntax_highlighter_get_highlighted_range(
     textmate_syntax_highlighter_t highlighter,
     int32_t startIndex,
     int32_t endIndex,
@@ -180,7 +181,7 @@ int32_t textmate_syntax_highlighter_get_highlighted_range(
 /// @param outTokenCount Output: number of tokens
 /// @return Number of tokens, or -1 on error
 /// @note Token scopes are owned by the highlighter, do not free
-int32_t textmate_syntax_highlighter_get_line_tokens(
+TML_API int32_t textmate_syntax_highlighter_get_line_tokens(
     textmate_syntax_highlighter_t highlighter,
     int32_t lineIndex,
     textmate_token_t* outTokens,
@@ -195,7 +196,7 @@ int32_t textmate_syntax_highlighter_get_line_tokens(
 /// Invalidates all cached highlighting
 /// @param highlighter Highlighter instance
 /// @param theme New theme to apply
-void textmate_syntax_highlighter_set_theme(
+TML_API void textmate_syntax_highlighter_set_theme(
     textmate_syntax_highlighter_t highlighter,
     textmate_theme_t theme
 );
@@ -203,7 +204,7 @@ void textmate_syntax_highlighter_set_theme(
 /// Get the currently active theme
 /// @param highlighter Highlighter instance
 /// @return Theme handle (do not dispose, owned by highlighter)
-textmate_theme_t textmate_syntax_highlighter_get_theme(
+TML_API textmate_theme_t textmate_syntax_highlighter_get_theme(
     textmate_syntax_highlighter_t highlighter
 );
 
@@ -214,7 +215,7 @@ textmate_theme_t textmate_syntax_highlighter_get_theme(
 /// Clear all cached highlighted lines
 /// Forces recomputation on next query
 /// @param highlighter Highlighter instance
-void textmate_syntax_highlighter_clear_cache(
+TML_API void textmate_syntax_highlighter_clear_cache(
     textmate_syntax_highlighter_t highlighter
 );
 
@@ -222,7 +223,7 @@ void textmate_syntax_highlighter_clear_cache(
 /// @param highlighter Highlighter instance
 /// @param startIndex Start line (0-based)
 /// @param endIndex End line (0-based)
-void textmate_syntax_highlighter_invalidate_cache_range(
+TML_API void textmate_syntax_highlighter_invalidate_cache_range(
     textmate_syntax_highlighter_t highlighter,
     int32_t startIndex,
     int32_t endIndex
@@ -236,7 +237,7 @@ void textmate_syntax_highlighter_invalidate_cache_range(
 /// @param highlighter Highlighter instance
 /// @param outMetadata Output metadata structure (caller allocates)
 /// @return 0 on success, -1 on error
-int32_t textmate_syntax_highlighter_get_metadata(
+TML_API int32_t textmate_syntax_highlighter_get_metadata(
     textmate_syntax_highlighter_t highlighter,
     textmate_syntax_highlighting_metadata_c* outMetadata
 );
@@ -248,23 +249,23 @@ int32_t textmate_syntax_highlighter_get_metadata(
 /// Get line index from highlighted line
 /// @param line Highlighted line handle
 /// @return Line index (0-based)
-int32_t textmate_highlighted_line_get_index(textmate_highlighted_line_t line);
+TML_API int32_t textmate_highlighted_line_get_index(textmate_highlighted_line_t line);
 
 /// Get line content from highlighted line
 /// @param line Highlighted line handle
 /// @return Null-terminated string (owned by line, do not free)
-const char* textmate_highlighted_line_get_content(textmate_highlighted_line_t line);
+TML_API const char* textmate_highlighted_line_get_content(textmate_highlighted_line_t line);
 
 /// Get token count for highlighted line
 /// @param line Highlighted line handle
 /// @return Number of tokens
-int32_t textmate_highlighted_line_get_token_count(textmate_highlighted_line_t line);
+TML_API int32_t textmate_highlighted_line_get_token_count(textmate_highlighted_line_t line);
 
 /// Get token at index from highlighted line
 /// @param line Highlighted line handle
 /// @param tokenIndex Token index (0-based)
 /// @return Token data (owned by line, do not free)
-const textmate_highlighted_token_c* textmate_highlighted_line_get_token(
+TML_API const textmate_highlighted_token_c* textmate_highlighted_line_get_token(
     textmate_highlighted_line_t line,
     int32_t tokenIndex
 );
@@ -272,16 +273,16 @@ const textmate_highlighted_token_c* textmate_highlighted_line_get_token(
 /// Get completion status for highlighted line
 /// @param line Highlighted line handle
 /// @return 1 if tokenization completed, 0 if stopped early
-int32_t textmate_highlighted_line_is_complete(textmate_highlighted_line_t line);
+TML_API int32_t textmate_highlighted_line_is_complete(textmate_highlighted_line_t line);
 
 /// Get version of highlighted line
 /// @param line Highlighted line handle
 /// @return Version number for cache tracking
-uint64_t textmate_highlighted_line_get_version(textmate_highlighted_line_t line);
+TML_API uint64_t textmate_highlighted_line_get_version(textmate_highlighted_line_t line);
 
 /// Dispose of a highlighted line and free associated memory
 /// @param line Highlighted line to dispose
-void textmate_highlighted_line_dispose(textmate_highlighted_line_t line);
+TML_API void textmate_highlighted_line_dispose(textmate_highlighted_line_t line);
 
 // ============================================================================
 // Highlighted Token API (Accessors)
@@ -290,23 +291,23 @@ void textmate_highlighted_line_dispose(textmate_highlighted_line_t line);
 /// Get start index from token
 /// @param token Token handle
 /// @return Character position in line where token starts
-int32_t textmate_highlighted_token_get_start_index(textmate_highlighted_token_t token);
+TML_API int32_t textmate_highlighted_token_get_start_index(textmate_highlighted_token_t token);
 
 /// Get end index from token
 /// @param token Token handle
 /// @return Character position in line where token ends
-int32_t textmate_highlighted_token_get_end_index(textmate_highlighted_token_t token);
+TML_API int32_t textmate_highlighted_token_get_end_index(textmate_highlighted_token_t token);
 
 /// Get scope count for token
 /// @param token Token handle
 /// @return Number of scopes in the scope path
-int32_t textmate_highlighted_token_get_scope_count(textmate_highlighted_token_t token);
+TML_API int32_t textmate_highlighted_token_get_scope_count(textmate_highlighted_token_t token);
 
 /// Get scope at index from token
 /// @param token Token handle
 /// @param scopeIndex Scope index (0-based)
 /// @return Scope name (owned by token, do not free)
-const char* textmate_highlighted_token_get_scope(
+TML_API const char* textmate_highlighted_token_get_scope(
     textmate_highlighted_token_t token,
     int32_t scopeIndex
 );
@@ -314,35 +315,35 @@ const char* textmate_highlighted_token_get_scope(
 /// Get foreground color from token
 /// @param token Token handle
 /// @return Hex color string like "#FF0000" or NULL if not set (owned by token, do not free)
-const char* textmate_highlighted_token_get_foreground_color(
+TML_API const char* textmate_highlighted_token_get_foreground_color(
     textmate_highlighted_token_t token
 );
 
 /// Get background color from token
 /// @param token Token handle
 /// @return Hex color string or NULL if not set (owned by token, do not free)
-const char* textmate_highlighted_token_get_background_color(
+TML_API const char* textmate_highlighted_token_get_background_color(
     textmate_highlighted_token_t token
 );
 
 /// Get font style from token
 /// @param token Token handle
 /// @return Bit flags: 1=italic, 2=bold, 4=underline, 8=strikethrough
-int32_t textmate_highlighted_token_get_font_style(textmate_highlighted_token_t token);
+TML_API int32_t textmate_highlighted_token_get_font_style(textmate_highlighted_token_t token);
 
 /// Get token type from token
 /// @param token Token handle
 /// @return StandardTokenType: 0=Other, 1=Comment, 2=String, 3=RegEx
-int32_t textmate_highlighted_token_get_type(textmate_highlighted_token_t token);
+TML_API int32_t textmate_highlighted_token_get_type(textmate_highlighted_token_t token);
 
 /// Get debug info from token
 /// @param token Token handle
 /// @return Debug string (owned by token, do not free)
-const char* textmate_highlighted_token_get_debug_info(textmate_highlighted_token_t token);
+TML_API const char* textmate_highlighted_token_get_debug_info(textmate_highlighted_token_t token);
 
 /// Dispose of a highlighted token and free associated memory
 /// @param token Token to dispose
-void textmate_highlighted_token_dispose(textmate_highlighted_token_t token);
+TML_API void textmate_highlighted_token_dispose(textmate_highlighted_token_t token);
 
 #ifdef __cplusplus
 }

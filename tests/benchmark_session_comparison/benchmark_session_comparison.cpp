@@ -1,5 +1,4 @@
-#include "../src/session.h"
-#include "../src/main.h"
+#include "tml.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>

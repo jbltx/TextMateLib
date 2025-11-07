@@ -132,7 +132,6 @@ set(TEXTMATE_HEADERS
     src/rawGrammar.h
     src/parseRawGrammar.h
     src/theme.h
-    src/theme_c_api.h
     src/encodedTokenAttributes.h
     src/rule.h
     src/matcher.h

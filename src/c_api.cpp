@@ -1,7 +1,7 @@
 #include "c_api.h"
 #include "main.h"
 #include "parseRawGrammar.h"
-#include "theme_c_api.h"
+#include "theme.h"
 #include <string>
 #include <cstring>
 #include <fstream>

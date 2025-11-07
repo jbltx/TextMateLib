@@ -5,8 +5,7 @@
 #include <string>
 #include <chrono>
 #include <map>
-#include "../src/main.h"
-#include "../src/parseRawGrammar.h"
+#include "tml.h"
 
 using namespace tml;
 

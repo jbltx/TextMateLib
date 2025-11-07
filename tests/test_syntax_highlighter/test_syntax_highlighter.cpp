@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
-#include "../src/syntax_highlighter.h"
-#include "../src/main.h"
+#include "tml.h"
 #include <memory>
 
 namespace tml {
