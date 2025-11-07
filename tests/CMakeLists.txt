@@ -19,9 +19,10 @@ add_executable(test_first_mate
     "${CMAKE_SOURCE_DIR}/thirdparty/rapidjson/thirdparty/gtest/googletest/src/gtest_main.cc"
 )
 
-# Link against the library
+# Link against the library and its dependencies
 target_link_libraries(test_first_mate PRIVATE
     tml
+    ${ONIGURUMA_LIB}
 )
 
 # Include RapidJSON
@@ -73,9 +74,10 @@ add_executable(benchmark_large
     benchmark_large/benchmark_large.cpp
 )
 
-# Link against the library
+# Link against the library and its dependencies
 target_link_libraries(benchmark_large PRIVATE
     tml
+    ${ONIGURUMA_LIB}
 )
 
 # Include RapidJSON
@@ -95,9 +97,10 @@ add_executable(test_theme_simple
     ${GTEST_SOURCES}
 )
 
-# Link against the library
+# Link against the library and its dependencies
 target_link_libraries(test_theme_simple PRIVATE
     tml
+    ${ONIGURUMA_LIB}
 )
 
 # Include directories for test_theme_simple
@@ -126,9 +129,10 @@ add_executable(test_theme
     ${GTEST_SOURCES}
 )
 
-# Link against the library
+# Link against the library and its dependencies
 target_link_libraries(test_theme PRIVATE
     tml
+    ${ONIGURUMA_LIB}
 )
 
 # Include directories for test_theme
@@ -161,9 +165,10 @@ add_executable(test_theme_debug
     ${GTEST_SOURCES}
 )
 
-# Link against the library
+# Link against the library and its dependencies
 target_link_libraries(test_theme_debug PRIVATE
     tml
+    ${ONIGURUMA_LIB}
 )
 
 # Include directories for test_theme_debug
@@ -192,9 +197,10 @@ add_executable(test_theme_file
     ${GTEST_SOURCES}
 )
 
-# Link against the library
+# Link against the library and its dependencies
 target_link_libraries(test_theme_file PRIVATE
     tml
+    ${ONIGURUMA_LIB}
 )
 
 # Include directories for test_theme_file
@@ -223,9 +229,10 @@ add_executable(test_session
     ${GTEST_SOURCES}
 )
 
-# Link against the library
+# Link against the library and its dependencies
 target_link_libraries(test_session PRIVATE
     tml
+    ${ONIGURUMA_LIB}
 )
 
 # Include directories for test_session
@@ -255,9 +262,10 @@ add_executable(benchmark_session
     benchmark_session/benchmark_session.cpp
 )
 
-# Link against the library
+# Link against the library and its dependencies
 target_link_libraries(benchmark_session PRIVATE
     tml
+    ${ONIGURUMA_LIB}
 )
 
 # Include directories for benchmark_session
@@ -275,9 +283,10 @@ add_executable(benchmark_session_comparison
     benchmark_session_comparison/benchmark_session_comparison.cpp
 )
 
-# Link against the library
+# Link against the library and its dependencies
 target_link_libraries(benchmark_session_comparison PRIVATE
     tml
+    ${ONIGURUMA_LIB}
 )
 
 # Include directories for benchmark_session_comparison
@@ -296,9 +305,10 @@ add_executable(test_syntax_highlighter
     ${GTEST_SOURCES}
 )
 
-# Link against the library
+# Link against the library and its dependencies
 target_link_libraries(test_syntax_highlighter PRIVATE
     tml
+    ${ONIGURUMA_LIB}
 )
 
 # Include directories for test_syntax_highlighter
