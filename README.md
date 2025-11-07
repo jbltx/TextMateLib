@@ -30,10 +30,8 @@ A modern C++ implementation of the TextMate syntax highlighting engine. TextMate
 git clone https://github.com/your-org/TextMateLib.git
 cd TextMateLib
 
-# Build all dependencies (Oniguruma)
-./scripts/build-deps.sh
-
 # Build the library (Release)
+# Dependencies are built automatically by CMake
 ./scripts/build.sh
 ```
 
@@ -316,7 +314,6 @@ int main() {
 │
 ├── scripts/                      # Build scripts
 │   ├── build.sh                 # Native Release build
-│   ├── build-deps.sh            # Build dependencies
 │   ├── build-wasm-standard.sh   # Standard WASM variant
 │   ├── build-wasm-minimal.sh    # Minimal WASM variant
 │   ├── build-wasm-full.sh       # Full-featured WASM variant
@@ -517,17 +514,14 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 ## Dependencies
 
-All dependencies are included as Git submodules and built locally:
+All dependencies are included as Git submodules and built automatically by CMake:
 
 | Library | Purpose | Location |
 |---------|---------|----------|
 | Oniguruma | Regex engine for pattern matching | `thirdparty/oniguruma/` |
 | RapidJSON | JSON parsing and GTest | `thirdparty/rapidjson/` |
 
-Build dependencies with:
-```bash
-./scripts/build-deps.sh
-```
+Dependencies are built as part of the standard build process and linked statically into the library.
 
 ## Common Development Tasks
 
