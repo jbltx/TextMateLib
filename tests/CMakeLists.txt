@@ -44,28 +44,28 @@ else()
     message(WARNING "Google Test not found at ${GTEST_INCLUDE_DIR}. test_first_mate may not compile.")
 endif()
 
-# Add test
-add_test(NAME FirstMateTests COMMAND test_first_mate WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_first_mate)
-
-# Set output directory
+# Set output directory to build root (same as library) to avoid DLL issues on Windows
 set_target_properties(test_first_mate PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_first_mate
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-# Copy fixtures folder next to executable
+# Add test - run from source directory so fixture paths work
+add_test(NAME FirstMateTests COMMAND test_first_mate WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test_first_mate)
+
+# Copy fixtures folder to source test directory (for relative path access)
 add_custom_command(TARGET test_first_mate POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     "${CMAKE_CURRENT_SOURCE_DIR}/test_first_mate/fixtures"
-    "${CMAKE_CURRENT_BINARY_DIR}/test_first_mate/fixtures"
-    COMMENT "Copying test_first_mate fixtures"
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_first_mate/fixtures"
+    COMMENT "Ensuring test_first_mate fixtures exist"
 )
 
-# Copy tests.json file next to executable
+# Copy tests.json file to source test directory
 add_custom_command(TARGET test_first_mate POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
     "${CMAKE_CURRENT_SOURCE_DIR}/test_first_mate/tests.json"
-    "${CMAKE_CURRENT_BINARY_DIR}/test_first_mate/tests.json"
-    COMMENT "Copying test_first_mate tests.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/test_first_mate/tests.json"
+    COMMENT "Ensuring test_first_mate tests.json exists"
 )
 
 # Benchmark executable for large files (standalone, no GTest needed)
@@ -83,9 +83,9 @@ if(EXISTS ${RAPIDJSON_INCLUDE_DIR})
     target_include_directories(benchmark_large PRIVATE ${RAPIDJSON_INCLUDE_DIR})
 endif()
 
-# Set output directory
+# Set output directory to build root (same as library) to avoid DLL issues on Windows
 set_target_properties(benchmark_large PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/benchmark_large
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 
@@ -112,13 +112,13 @@ if(EXISTS ${GTEST_INCLUDE_DIR})
     )
 endif()
 
-# Add test
-add_test(NAME ThemeSimpleTests COMMAND test_theme_simple WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme_simple)
-
-# Set output directory
+# Set output directory to build root
 set_target_properties(test_theme_simple PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme_simple
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
+
+# Add test - run from source directory so fixture paths work
+add_test(NAME ThemeSimpleTests COMMAND test_theme_simple WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test_theme_simple)
 
 # Theme test executable
 add_executable(test_theme
@@ -147,13 +147,13 @@ else()
     message(WARNING "Google Test not found at ${GTEST_INCLUDE_DIR}. test_theme may not compile.")
 endif()
 
-# Add test
-add_test(NAME ThemeTests COMMAND test_theme WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme)
-
-# Set output directory
+# Set output directory to build root
 set_target_properties(test_theme PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
+
+# Add test - run from source directory so fixture paths work
+add_test(NAME ThemeTests COMMAND test_theme WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test_theme)
 
 # Debug theme test executable
 add_executable(test_theme_debug
@@ -178,13 +178,13 @@ if(EXISTS ${GTEST_INCLUDE_DIR})
     )
 endif()
 
-# Add test
-add_test(NAME ThemeDebugTests COMMAND test_theme_debug WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme_debug)
-
-# Set output directory
+# Set output directory to build root
 set_target_properties(test_theme_debug PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme_debug
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
+
+# Add test - run from source directory so fixture paths work
+add_test(NAME ThemeDebugTests COMMAND test_theme_debug WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test_theme_debug)
 
 # File theme test executable
 add_executable(test_theme_file
@@ -209,13 +209,13 @@ if(EXISTS ${GTEST_INCLUDE_DIR})
     )
 endif()
 
-# Add test
-add_test(NAME ThemeFileTests COMMAND test_theme_file WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme_file)
-
-# Set output directory
+# Set output directory to build root
 set_target_properties(test_theme_file PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_theme_file
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
+
+# Add test - run from source directory so fixture paths work
+add_test(NAME ThemeFileTests COMMAND test_theme_file WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test_theme_file)
 
 # Session test executable
 add_executable(test_session
@@ -242,13 +242,13 @@ if(EXISTS ${GTEST_INCLUDE_DIR})
     target_compile_definitions(test_session PRIVATE GTEST_HAS_POSIX_RE=0)
 endif()
 
-# Add test
-add_test(NAME SessionTests COMMAND test_session WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_session)
-
-# Set output directory
+# Set output directory to build root
 set_target_properties(test_session PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_session
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
+
+# Add test - run from source directory so fixture paths work
+add_test(NAME SessionTests COMMAND test_session WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test_session)
 
 # Session benchmark executable (standalone, no GTest)
 add_executable(benchmark_session
@@ -265,9 +265,9 @@ if(EXISTS ${RAPIDJSON_INCLUDE_DIR})
     target_include_directories(benchmark_session PRIVATE ${RAPIDJSON_INCLUDE_DIR})
 endif()
 
-# Set output directory
+# Set output directory to build root
 set_target_properties(benchmark_session PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/benchmark_session
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 # Session comparison benchmark executable
@@ -285,9 +285,9 @@ if(EXISTS ${RAPIDJSON_INCLUDE_DIR})
     target_include_directories(benchmark_session_comparison PRIVATE ${RAPIDJSON_INCLUDE_DIR})
 endif()
 
-# Set output directory
+# Set output directory to build root
 set_target_properties(benchmark_session_comparison PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/benchmark_session_comparison
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 # SyntaxHighlighter test executable
@@ -315,10 +315,10 @@ if(EXISTS ${GTEST_INCLUDE_DIR})
     target_compile_definitions(test_syntax_highlighter PRIVATE GTEST_HAS_POSIX_RE=0)
 endif()
 
-# Add test
-add_test(NAME SyntaxHighlighterTests COMMAND test_syntax_highlighter WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_syntax_highlighter)
-
-# Set output directory
+# Set output directory to build root
 set_target_properties(test_syntax_highlighter PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_syntax_highlighter
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
+
+# Add test - run from source directory so fixture paths work
+add_test(NAME SyntaxHighlighterTests COMMAND test_syntax_highlighter WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test_syntax_highlighter)

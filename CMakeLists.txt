@@ -95,7 +95,6 @@ endif()
 # Include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/src
     ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/rapidjson/include
 )
 
@@ -158,28 +157,24 @@ include(ExternalProject)
 
 # Find Oniguruma library (skip for WASM builds, will build for WASM)
 if(NOT USE_WASM_BUILD)
-    # Search for static library first (built by build-deps.sh with BUILD_SHARED_LIBS=OFF)
-    find_library(ONIGURUMA_LIB
-        NAMES onig_s onig
-        PATHS
-            ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build
-            ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build/${CMAKE_BUILD_TYPE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build/lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build/lib/${CMAKE_BUILD_TYPE}
-        NO_DEFAULT_PATH
-    )
+    message(STATUS "Building native oniguruma from source")
 
-    if(NOT ONIGURUMA_LIB)
-        message(WARNING "Oniguruma library not found in expected paths")
-        message(STATUS "  Searched in:")
-        message(STATUS "    - ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build")
-        message(STATUS "    - ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build/${CMAKE_BUILD_TYPE}")
-        message(STATUS "    - ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build/lib")
-        message(STATUS "    - ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build/lib/${CMAKE_BUILD_TYPE}")
-        message(STATUS "  BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-    else()
-        message(STATUS "Found Oniguruma library: ${ONIGURUMA_LIB}")
-    endif()
+    # Build oniguruma
+    set(ONIG_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/oniguruma)
+
+    ExternalProject_Add(
+        oniguruma
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma
+        BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/thirdparty/oniguruma/build
+        CMAKE_ARGS
+            -DCMAKE_BUILD_TYPE=Release
+            -DBUILD_SHARED_LIBS=OFF
+            -DCMAKE_INSTALL_PREFIX=${ONIG_INSTALL_DIR}
+        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install
+    )
+    set(ONIGURUMA_LIB ${ONIG_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}onig${CMAKE_STATIC_LIBRARY_SUFFIX})
+    set(ONIGURUMA_INCLUDE_DIR ${ONIG_INSTALL_DIR}/include)
+
 else()
     message(STATUS "Building for WASM - oniguruma will be built from source")
 
@@ -198,7 +193,8 @@ else()
         INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install
     )
 
-    set(ONIGURUMA_LIB ${ONIG_INSTALL_DIR}/lib/libonig.a)
+    set(ONIGURUMA_LIB ${ONIG_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}onig${CMAKE_STATIC_LIBRARY_SUFFIX})
+    set(ONIGURUMA_INCLUDE_DIR ${ONIG_INSTALL_DIR}/include)
 endif()
 
 # Create output targets
@@ -279,12 +275,17 @@ if(USE_WASM_BUILD)
     target_link_libraries(tml-browser ${ONIGURUMA_LIB})
 
     # Include oniguruma headers
-    target_include_directories(tml PRIVATE ${ONIG_INSTALL_DIR}/include)
-    target_include_directories(tml-browser PRIVATE ${ONIG_INSTALL_DIR}/include)
-elseif(ONIGURUMA_LIB)
-    target_link_libraries(tml ${ONIGURUMA_LIB})
+    target_include_directories(tml PUBLIC ${ONIGURUMA_INCLUDE_DIR})
+    target_include_directories(tml-browser PUBLIC ${ONIGURUMA_INCLUDE_DIR})
 else()
-    target_link_libraries(tml onig)
+    # Add dependency on oniguruma build
+    add_dependencies(tml oniguruma)
+
+    # Link against oniguruma
+    target_link_libraries(tml ${ONIGURUMA_LIB})
+
+    # Include oniguruma headers
+    target_include_directories(tml PUBLIC ${ONIGURUMA_INCLUDE_DIR})
 endif()
 
 # Install targets
