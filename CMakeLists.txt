@@ -164,7 +164,7 @@ if(NOT USE_WASM_BUILD)
 
     # Build configuration for oniguruma - ensure static library, not shared
     set(ONIG_CMAKE_ARGS
-        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DBUILD_SHARED_LIBS=OFF
         -DENABLE_POSIX_API=OFF
         -DENABLE_BINARY_COMPATIBLE_POSIX_API=OFF
@@ -176,11 +176,9 @@ if(NOT USE_WASM_BUILD)
         -DCMAKE_C_FLAGS=-DONIG_STATIC
     )
 
-    # On Windows/MSVC, add runtime configuration for static linking
+    # On Windows/MSVC, ensure matching runtime library
     if(MSVC)
-        list(APPEND ONIG_CMAKE_ARGS
-            -DMSVC_STATIC_RUNTIME=ON
-        )
+        list(APPEND ONIG_CMAKE_ARGS -DMSVC_STATIC_RUNTIME=ON)
     endif()
 
     ExternalProject_Add(
@@ -188,7 +186,8 @@ if(NOT USE_WASM_BUILD)
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma
         BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/thirdparty/oniguruma/build
         CMAKE_ARGS ${ONIG_CMAKE_ARGS}
-        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install
+        BUILD_COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}
+        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE} --target install
     )
     set(ONIGURUMA_LIB ${ONIG_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}onig${CMAKE_STATIC_LIBRARY_SUFFIX})
     set(ONIGURUMA_INCLUDE_DIR ${ONIG_INSTALL_DIR}/include)
