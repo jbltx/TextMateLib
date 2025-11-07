@@ -149,16 +149,25 @@ include(ExternalProject)
 
 # Find Oniguruma library (skip for WASM builds, will build for WASM)
 if(NOT USE_WASM_BUILD)
+    # Search for static library first (built by build-deps.sh with BUILD_SHARED_LIBS=OFF)
     find_library(ONIGURUMA_LIB
-        NAMES onig
+        NAMES onig_s onig
         PATHS
             ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build
+            ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build/${CMAKE_BUILD_TYPE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build/lib
+            ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build/lib/${CMAKE_BUILD_TYPE}
         NO_DEFAULT_PATH
     )
 
     if(NOT ONIGURUMA_LIB)
-        message(STATUS "Oniguruma library not found, will need to build it first")
-        # You can add custom commands to build oniguruma here if needed
+        message(WARNING "Oniguruma library not found in expected paths")
+        message(STATUS "  Searched in:")
+        message(STATUS "    - ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build")
+        message(STATUS "    - ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build/${CMAKE_BUILD_TYPE}")
+        message(STATUS "    - ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build/lib")
+        message(STATUS "    - ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/oniguruma/build/lib/${CMAKE_BUILD_TYPE}")
+        message(STATUS "  BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
     else()
         message(STATUS "Found Oniguruma library: ${ONIGURUMA_LIB}")
     endif()

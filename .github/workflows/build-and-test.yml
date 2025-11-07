@@ -64,6 +64,10 @@ jobs:
         env:
           CMAKE_GENERATOR: Ninja
 
+      - name: Debug - List dependency build output
+        run: find thirdparty/oniguruma/build -type f \( -name "*.a" -o -name "*.lib" \) 2>/dev/null || echo "No library files found"
+        shell: bash
+
       - name: Create build directory
         run: mkdir -p build
 
