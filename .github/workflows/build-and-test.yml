@@ -75,10 +75,8 @@ jobs:
         working-directory: ${{ steps.strings.outputs.build-dir }}
         run: ctest --build-config ${{ matrix.build_type }} -V
 
-      - name: Copy native library for C# bindings
-        run: |
-          mkdir -p src/csharp/TextMateLib.Bindings/native
-          cp ${{ steps.strings.outputs.build-dir }}/lib/${{ matrix.lib_name }} src/csharp/TextMateLib.Bindings/native/
+      - name: Install native library to system
+        run: cmake --install ${{ steps.strings.outputs.build-dir }} --config ${{ matrix.build_type }}
 
       - name: Build C# Bindings
         run: dotnet build src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj --configuration Release
@@ -87,6 +85,4 @@ jobs:
         run: dotnet build tests/csharp/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release
 
       - name: Run C# Tests
-        env:
-          LD_LIBRARY_PATH: ${{ github.workspace }}/tests/csharp/TextMateLib.Tests/bin/Release/net9.0:${{ env.LD_LIBRARY_PATH }}
         run: dotnet test tests/csharp/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release --verbosity normal
