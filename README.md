@@ -344,13 +344,6 @@ int main() {
 │   ├── oniguruma/               # Regex engine
 │   ├── rapidjson/               # JSON parser & GTest
 │   └── textmate-grammars-themes/ # Grammar & theme collection
-│   ├── build-wasm-debug.sh      # Debug WASM variant
-│   └── build-wasm-all.sh        # Build all variants
-│
-├── thirdparty/                   # External dependencies
-│   ├── oniguruma/               # Regex engine
-│   ├── rapidjson/               # JSON parser & GTest
-│   └── textmate-grammars-themes/ # Grammar & theme collection
 │
 ├── CMakeLists.txt               # Main build configuration
 └── README.md                    # This file

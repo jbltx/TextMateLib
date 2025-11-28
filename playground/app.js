@@ -5,6 +5,7 @@ import { getAvailableThemes } from './themes.js';
 // Application state
 let textMateModule = null;
 let currentGrammar = null;
+let currentGrammarHandle = null;
 let currentTheme = null;
 let registry = null;
 let grammars = [];
@@ -252,9 +253,9 @@ async function onGrammarChange() {
         try {
             const response = await fetch(grammar.path);
             const grammarJson = await response.text();
-            const grammarHandle = registry.loadGrammarFromContent(grammarJson, grammar.scopeName);
+            currentGrammarHandle = registry.loadGrammarFromContent(grammarJson, grammar.scopeName);
             
-            if (grammarHandle) {
+            if (currentGrammarHandle) {
                 console.log('Grammar loaded:', grammar.name);
             }
         } catch (error) {
@@ -360,7 +361,7 @@ function highlightWithWasm(code, output, debugOutput) {
         let ruleStack = null;
         
         lines.forEach((line, lineNum) => {
-            const grammarWrapper = new textMateModule.Grammar(currentGrammar.handle);
+            const grammarWrapper = new textMateModule.Grammar(currentGrammarHandle);
             const result = grammarWrapper.tokenizeLine(line, ruleStack);
             
             ruleStack = result.ruleStack;
