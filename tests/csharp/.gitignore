@@ -7,6 +7,7 @@ obj/
 *.user
 *.suo
 *.sln.docstates
+.idea/
 
 # Build results
 [Dd]ebug/
