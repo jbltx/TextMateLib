@@ -38,8 +38,6 @@ For real TextMate syntax highlighting:
    ```bash
    # The build script copies files automatically
    ./serve.sh
-   # The build script copies files automatically
-   ./serve.sh
    ```
 
 3. **Open in browser**: Navigate to `http://localhost:8000`
