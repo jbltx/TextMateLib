@@ -1,4 +1,5 @@
 // Grammar and theme list modules
+import './styles.css';
 import { getAvailableGrammars } from './grammars.js';
 import { getAvailableThemes } from './themes.js';
 
@@ -7,6 +8,7 @@ let textMateModule = null;
 let currentGrammar = null;
 let currentGrammarHandle = null;
 let currentTheme = null;
+let currentThemeData = null; // Store parsed theme data for scope matching
 let registry = null;
 let grammars = [];
 let themes = [];
@@ -47,7 +49,7 @@ public:
     void push(const T& elem) {
         elements.push_back(elem);
     }
-    
+
     T pop() {
         if (elements.empty()) {
             throw std::out_of_range("Stack is empty");
@@ -76,7 +78,7 @@ class Employee implements Person {
         public age: number,
         private salary: number
     ) {}
-    
+
     getDetails(): string {
         return \`\${this.name} (age \${this.age})\`;
     }
@@ -88,12 +90,12 @@ console.log(emp.getDetails());
     rust: `// Rust Example
 fn main() {
     let numbers = vec![1, 2, 3, 4, 5];
-    
+
     let sum: i32 = numbers.iter().sum();
     let doubled: Vec<i32> = numbers.iter()
         .map(|x| x * 2)
         .collect();
-    
+
     println!("Sum: {}", sum);
     println!("Doubled: {:?}", doubled);
 }
@@ -125,23 +127,26 @@ async function init() {
         // Load grammar and theme lists
         grammars = await getAvailableGrammars();
         themes = await getAvailableThemes();
-        
+
         // Populate dropdowns
         populateGrammarSelect();
         populateThemeSelect();
-        
+
         // Set up event listeners
         document.getElementById('grammarSelect').addEventListener('change', onGrammarChange);
         document.getElementById('themeSelect').addEventListener('change', onThemeChange);
         document.getElementById('toggleDebug').addEventListener('click', toggleDebugView);
         document.getElementById('codeEditor').addEventListener('input', onCodeChange);
-        
+
         // Try to load WASM module if available
         await loadWasmModule();
-        
+
         // Set initial code
         setInitialCode();
-        
+
+        // Load default grammar and theme after WASM is ready
+        await loadDefaults();
+
     } catch (error) {
         console.error('Initialization error:', error);
         showError('Failed to initialize playground: ' + error.message);
@@ -151,25 +156,25 @@ async function init() {
 // Load WASM module
 async function loadWasmModule() {
     const loadingStatus = document.getElementById('loadingStatus');
-    
+
     try {
         // Check if WASM files exist
         const response = await fetch('wasm/tml-standard.js');
         if (!response.ok) {
             throw new Error('WASM module not found. Please build it using: ./build-wasm.sh (from playground directory)');
         }
-        
+
         // Load the WASM module
         const script = document.createElement('script');
         script.src = 'wasm/tml-standard.js';
         document.head.appendChild(script);
-        
+
         // Wait for module to load
         await new Promise((resolve, reject) => {
             script.onload = resolve;
             script.onerror = () => reject(new Error('Failed to load WASM module'));
         });
-        
+
         // Initialize the module
         if (typeof createTextMateModule === 'function') {
             textMateModule = await createTextMateModule();
@@ -179,7 +184,7 @@ async function loadWasmModule() {
         } else {
             throw new Error('WASM module did not export expected function');
         }
-        
+
     } catch (error) {
         console.warn('WASM module not available:', error.message);
         loadingStatus.innerHTML = `
@@ -202,18 +207,17 @@ async function loadWasmModule() {
 function populateGrammarSelect() {
     const select = document.getElementById('grammarSelect');
     select.innerHTML = '<option value="">Select a language...</option>';
-    
+
     grammars.forEach(grammar => {
         const option = document.createElement('option');
         option.value = grammar.name;
         option.textContent = grammar.displayName || grammar.name;
         select.appendChild(option);
     });
-    
-    // Select JavaScript by default if available
+
+    // Select JavaScript by default if available (but don't load yet)
     if (grammars.some(g => g.name === 'javascript')) {
         select.value = 'javascript';
-        onGrammarChange();
     }
 }
 
@@ -221,40 +225,47 @@ function populateGrammarSelect() {
 function populateThemeSelect() {
     const select = document.getElementById('themeSelect');
     select.innerHTML = '<option value="">Select a theme...</option>';
-    
+
     themes.forEach(theme => {
         const option = document.createElement('option');
         option.value = theme.name;
         option.textContent = theme.displayName || theme.name;
         select.appendChild(option);
     });
-    
-    // Select dark-plus by default if available
+
+    // Select dark-plus by default if available (but don't load yet)
     if (themes.some(t => t.name === 'dark-plus')) {
         select.value = 'dark-plus';
-        onThemeChange();
     }
+}
+
+// Load default grammar and theme (called after WASM is ready)
+async function loadDefaults() {
+    // Load default theme first
+    await onThemeChange();
+    // Then load default grammar
+    await onGrammarChange();
 }
 
 // Handle grammar change
 async function onGrammarChange() {
     const select = document.getElementById('grammarSelect');
     const grammarName = select.value;
-    
+
     if (!grammarName) return;
-    
+
     const grammar = grammars.find(g => g.name === grammarName);
     if (!grammar) return;
-    
+
     currentGrammar = grammar;
-    
+
     // Load grammar if WASM is available
     if (registry && grammar.path) {
         try {
             const response = await fetch(grammar.path);
             const grammarJson = await response.text();
             currentGrammarHandle = registry.loadGrammarFromContent(grammarJson, grammar.scopeName);
-            
+
             if (currentGrammarHandle) {
                 console.log('Grammar loaded:', grammar.name);
             }
@@ -262,10 +273,10 @@ async function onGrammarChange() {
             console.error('Failed to load grammar:', error);
         }
     }
-    
+
     // Update sample code
     updateSampleCode();
-    
+
     // Re-highlight
     highlightCode();
 }
@@ -274,25 +285,41 @@ async function onGrammarChange() {
 async function onThemeChange() {
     const select = document.getElementById('themeSelect');
     const themeName = select.value;
-    
+
     if (!themeName) return;
-    
+
     const theme = themes.find(t => t.name === themeName);
     if (!theme) return;
-    
+
     currentTheme = theme;
-    
+
     // Load theme if available
     if (theme.path) {
         try {
             const response = await fetch(theme.path);
-            const themeData = await response.json();
+            const themeText = await response.text();
+            const themeData = JSON.parse(themeText);
+
+            // Store theme data for client-side color matching
+            currentThemeData = themeData;
+
+            // Apply theme to UI
             applyTheme(themeData);
+
+            // Apply theme to WASM registry if available
+            if (registry) {
+                const success = registry.setTheme(themeText);
+                if (success) {
+                    console.log('Theme applied to WASM registry:', theme.name);
+                } else {
+                    console.warn('Failed to apply theme to WASM registry');
+                }
+            }
         } catch (error) {
             console.error('Failed to load theme:', error);
         }
     }
-    
+
     // Re-highlight
     highlightCode();
 }
@@ -300,11 +327,11 @@ async function onThemeChange() {
 // Apply theme colors
 function applyTheme(themeData) {
     const output = document.getElementById('highlightedOutput');
-    
+
     if (themeData.colors && themeData.colors['editor.background']) {
         output.style.background = themeData.colors['editor.background'];
     }
-    
+
     if (themeData.colors && themeData.colors['editor.foreground']) {
         output.style.color = themeData.colors['editor.foreground'];
     }
@@ -314,7 +341,7 @@ function applyTheme(themeData) {
 function updateSampleCode() {
     const editor = document.getElementById('codeEditor');
     const grammarName = currentGrammar?.name;
-    
+
     if (editor.value.trim() === '' && grammarName && sampleCode[grammarName]) {
         editor.value = sampleCode[grammarName];
     }
@@ -336,13 +363,13 @@ function highlightCode() {
     const code = document.getElementById('codeEditor').value;
     const output = document.getElementById('highlightedOutput');
     const debugOutput = document.getElementById('debugOutput');
-    
+
     if (!currentGrammar) {
         output.innerHTML = '<pre>' + escapeHtml(code) + '</pre>';
         debugOutput.innerHTML = '<p>Please select a grammar first.</p>';
         return;
     }
-    
+
     if (textMateModule && registry) {
         // Real highlighting with WASM
         highlightWithWasm(code, output, debugOutput);
@@ -352,50 +379,117 @@ function highlightCode() {
     }
 }
 
+// Get color for scopes from theme
+function getColorForScopes(scopes) {
+    if (!currentThemeData || !currentThemeData.tokenColors) {
+        return null;
+    }
+
+    // Try to match scopes against theme rules (most specific first)
+    let bestMatch = null;
+    let bestMatchLength = 0;
+
+    for (const rule of currentThemeData.tokenColors) {
+        if (!rule.scope) continue;
+
+        const ruleScopes = Array.isArray(rule.scope) ? rule.scope : [rule.scope];
+
+        for (const ruleScope of ruleScopes) {
+            // Check if any of the token scopes matches this rule scope
+            for (let i = scopes.length - 1; i >= 0; i--) {
+                const tokenScope = scopes[i];
+                if (tokenScope.startsWith(ruleScope) || ruleScope === tokenScope) {
+                    // More specific matches are better
+                    if (ruleScope.length > bestMatchLength) {
+                        bestMatchLength = ruleScope.length;
+                        bestMatch = rule.settings;
+                    }
+                }
+            }
+        }
+    }
+
+    return bestMatch;
+}
+
 // Highlight with WASM module
 function highlightWithWasm(code, output, debugOutput) {
     try {
+        // Validate that we have a valid grammar handle
+        if (!currentGrammarHandle) {
+            output.innerHTML = '<pre>' + escapeHtml(code) + '</pre>';
+            debugOutput.innerHTML = '<p>No grammar loaded. Please select a language first.</p>';
+            return;
+        }
+
         const lines = code.split('\n');
         let htmlOutput = '<pre>';
         let debugInfo = '';
         let ruleStack = null;
-        
+
+        // Create grammar wrapper once, reuse for all lines
+        const grammarWrapper = new textMateModule.Grammar(currentGrammarHandle);
+
         lines.forEach((line, lineNum) => {
-            const grammarWrapper = new textMateModule.Grammar(currentGrammarHandle);
             const result = grammarWrapper.tokenizeLine(line, ruleStack);
-            
+
             ruleStack = result.ruleStack;
-            
+
             // Build HTML output
             let lineHtml = '';
             result.tokens.forEach(token => {
                 const text = line.substring(token.startIndex, token.endIndex);
-                const scopes = token.scopes.join(' ');
-                lineHtml += `<span class="${scopes}">${escapeHtml(text)}</span>`;
+                const scopes = token.scopes;
+
+                // Get color from theme
+                const style = getColorForScopes(scopes);
+                let styleAttr = '';
+                if (style) {
+                    const styles = [];
+                    if (style.foreground) styles.push(`color: ${style.foreground}`);
+                    if (style.fontStyle) {
+                        if (style.fontStyle.includes('italic')) styles.push('font-style: italic');
+                        if (style.fontStyle.includes('bold')) styles.push('font-weight: bold');
+                        if (style.fontStyle.includes('underline')) styles.push('text-decoration: underline');
+                    }
+                    if (styles.length > 0) {
+                        styleAttr = ` style="${styles.join('; ')}"`;
+                    }
+                }
+
+                // Add data attributes for hover tooltip
+                const scopesStr = scopes.join(' › ');
+                const colorValue = style?.foreground || 'inherit';
+                lineHtml += `<span${styleAttr} class="token" data-scopes="${escapeHtml(scopesStr)}" data-color="${colorValue}">${escapeHtml(text)}</span>`;
             });
-            
+
             htmlOutput += lineHtml + '\n';
-            
+
             // Build debug info
             debugInfo += `<div class="token-debug">
                 <div class="token-debug-line">Line ${lineNum + 1}</div>`;
-            
+
             result.tokens.forEach(token => {
                 const text = line.substring(token.startIndex, token.endIndex);
+                const style = getColorForScopes(token.scopes);
+                const color = style?.foreground || '#cccccc';
                 debugInfo += `<div class="token-info">
                     <span class="token-text">${escapeHtml(text)}</span>
                     <span class="token-scopes">${token.scopes.join(' › ')}</span>
-                    <div class="token-color" style="background: #667eea;"></div>
+                    <div class="token-color" style="background: ${color};"></div>
                 </div>`;
             });
-            
+
             debugInfo += '</div>';
         });
-        
+
         htmlOutput += '</pre>';
         output.innerHTML = htmlOutput;
         debugOutput.innerHTML = debugInfo;
-        
+
+        // Attach hover event listeners to tokens
+        attachTokenHoverListeners(output);
+
     } catch (error) {
         console.error('Highlighting error:', error);
         output.innerHTML = '<pre>' + escapeHtml(code) + '</pre>';
@@ -403,29 +497,91 @@ function highlightWithWasm(code, output, debugOutput) {
     }
 }
 
+// Attach hover event listeners to tokens
+function attachTokenHoverListeners(outputElement) {
+    const tokens = outputElement.querySelectorAll('.token');
+    let tooltip = document.getElementById('token-tooltip');
+
+    // Create tooltip element if it doesn't exist
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.id = 'token-tooltip';
+        tooltip.className = 'token-tooltip';
+        document.body.appendChild(tooltip);
+    }
+
+    tokens.forEach(token => {
+        token.addEventListener('mouseenter', () => {
+            const scopes = token.getAttribute('data-scopes');
+            const color = token.getAttribute('data-color');
+
+            // Build tooltip content
+            tooltip.innerHTML = `
+                <div class="tooltip-section">
+                    <strong>Scopes:</strong>
+                    <div class="tooltip-scopes">${scopes}</div>
+                </div>
+                <div class="tooltip-section">
+                    <strong>Resolved Color:</strong>
+                    <div class="tooltip-color-info">
+                        <span class="tooltip-color-box" style="background: ${color};"></span>
+                        <code>${color}</code>
+                    </div>
+                </div>
+            `;
+
+            // Position tooltip
+            const rect = token.getBoundingClientRect();
+            tooltip.style.display = 'block';
+            tooltip.style.left = rect.left + 'px';
+            tooltip.style.top = (rect.bottom + 5) + 'px';
+
+            // Adjust if tooltip goes off screen
+            setTimeout(() => {
+                const tooltipRect = tooltip.getBoundingClientRect();
+                if (tooltipRect.right > window.innerWidth) {
+                    tooltip.style.left = (window.innerWidth - tooltipRect.width - 10) + 'px';
+                }
+                if (tooltipRect.bottom > window.innerHeight) {
+                    tooltip.style.top = (rect.top - tooltipRect.height - 5) + 'px';
+                }
+            }, 0);
+        });
+
+        token.addEventListener('mouseleave', () => {
+            tooltip.style.display = 'none';
+        });
+    });
+}
+
 // Mock highlighting for demo mode
 function mockHighlight(code, output, debugOutput) {
     const lines = code.split('\n');
     let htmlOutput = '<pre>';
     let debugInfo = '';
-    
+
     // Simple regex-based highlighting for demo
     const keywords = /\b(function|const|let|var|if|else|return|class|import|export|from|async|await|for|while|def|print|include|namespace|public|private|protected)\b/g;
     const strings = /(["'`])(?:(?=(\\?))\2.)*?\1/g;
-    const comments = /(\/\/.*$|\/\*[\s\S]*?\*\/|#.*$)/gm;
     const numbers = /\b\d+\.?\d*\b/g;
-    
+
     lines.forEach((line, lineNum) => {
+        // Check for comments first (they take precedence)
+        const commentMatch = line.match(/\/\/.*$|\/\*[\s\S]*?\*\/|#.*$/);
+        if (commentMatch) {
+            htmlOutput += `<span style="color: #6a9955;">${escapeHtml(line)}</span>\n`;
+            return;
+        }
+
         let highlighted = escapeHtml(line);
-        
-        // Apply simple highlighting
-        highlighted = highlighted.replace(comments, '<span style="color: #6a9955;">$&</span>');
+
+        // Apply simple highlighting (no comment highlighting here since we handled it above)
         highlighted = highlighted.replace(strings, '<span style="color: #ce9178;">$&</span>');
         highlighted = highlighted.replace(keywords, '<span style="color: #569cd6;">$&</span>');
         highlighted = highlighted.replace(numbers, '<span style="color: #b5cea8;">$&</span>');
-        
+
         htmlOutput += highlighted + '\n';
-        
+
         // Build simple debug info
         debugInfo += `<div class="token-debug">
             <div class="token-debug-line">Line ${lineNum + 1} (Mock Mode)</div>
@@ -436,7 +592,7 @@ function mockHighlight(code, output, debugOutput) {
             </div>
         </div>`;
     });
-    
+
     htmlOutput += '</pre>';
     output.innerHTML = htmlOutput;
     debugOutput.innerHTML = debugInfo;

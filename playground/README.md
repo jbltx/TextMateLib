@@ -31,27 +31,28 @@ For real TextMate syntax highlighting:
 1. **Build the WASM module** (requires Emscripten):
    ```bash
    # From the playground directory
-   ./build-wasm.sh
+   npm install
    ```
 
 2. **Serve the playground** (required for WASM to work):
    ```bash
    # The build script copies files automatically
-   ./serve.sh
+   npm run dev
    ```
 
-3. **Open in browser**: Navigate to `http://localhost:8000`
+3. **Open in browser**: Navigate to `http://localhost:PORT` (check console for actual port)
 
 ## Directory Structure
 
 ```
 playground/
 ├── index.html          # Main HTML file
-├── styles.css          # Styling and layout
-├── app.js              # Main application logic
-├── grammars.js         # Grammar definitions and paths
-├── themes.js           # Theme definitions and paths
-├── wasm/               # WASM module files (after build)
+├── src/                # Source files
+│   ├── styles.css      # Styling and layout
+│   ├── app.js          # Main application logic
+│   ├── grammars.js     # Grammar definitions and paths
+│   ├── themes.js       # Theme definitions and paths
+├── public/wasm/        # WASM module files (after build)
 │   ├── tml-standard.js
 │   └── tml-standard.wasm
 └── README.md           # This file
@@ -144,6 +145,40 @@ When WASM is not available:
 1. Type or paste code in the left editor panel
 2. The highlighted output updates automatically
 3. Syntax errors won't break the highlighting (graceful degradation)
+
+## GitHub Pages Deployment
+
+The playground is automatically deployed to GitHub Pages when a new release is created.
+
+### Deployment Process
+
+1. **Automatic Deployment**: When you create a GitHub release, the workflow automatically:
+   - Builds the WASM module using Emscripten
+   - Installs npm dependencies
+   - Builds the Vite app
+   - Deploys to GitHub Pages
+
+2. **Manual Deployment**: You can also trigger deployment manually from the GitHub Actions tab.
+
+3. **Access**: After deployment, the playground will be available at:
+   - `https://<username>.github.io/TextMateLib/`
+
+### First-Time Setup
+
+To enable GitHub Pages deployment, you need to configure the repository:
+
+1. Go to your repository **Settings** → **Pages**
+2. Under "Source", select **GitHub Actions**
+3. The deployment workflow will run automatically on the next release
+
+### Local Preview
+
+To preview the production build locally:
+
+```bash
+npm run build
+npm run preview
+```
 
 ## Development
 

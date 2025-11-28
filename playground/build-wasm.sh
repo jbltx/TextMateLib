@@ -26,19 +26,16 @@ echo "Building WASM standard variant..."
 ./scripts/build-wasm-standard.sh
 
 # Create playground wasm directory if it doesn't exist
-mkdir -p playground/wasm
+mkdir -p playground/public/wasm
 
 # Copy WASM files to playground
 echo "Copying WASM files to playground..."
-cp build/wasm-standard/browser/tml-standard.js playground/wasm/
-cp build/wasm-standard/browser/tml-standard.wasm playground/wasm/
+cp build/wasm-standard/browser/tml-standard.js playground/public/wasm/
+cp build/wasm-standard/browser/tml-standard.wasm playground/public/wasm/
 
 echo ""
 echo "✅ WASM module built and copied successfully!"
 echo ""
 echo "To run the playground:"
-echo "  cd playground"
-echo "  python3 -m http.server 8000"
-echo ""
-echo "Then open: http://localhost:8000"
-echo ""
+echo "  npm run dev"
+

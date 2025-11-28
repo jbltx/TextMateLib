@@ -1,0 +1,6 @@
+node_modules/
+dist/
+
+# Playground WASM artifacts
+public/wasm/*.js
+public/wasm/*.wasm

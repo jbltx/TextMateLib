@@ -1,6 +1,7 @@
 #include "c_api.h"
 #include "main.h"
 #include "parseRawGrammar.h"
+#include "parseRawTheme.h"
 #include "theme.h"
 #include <string>
 #include <cstring>
@@ -79,85 +80,8 @@ static int32_t fontStyleStringToFlags(const std::string& fontStyle) {
 }
 
 // Parse JSON theme and create Theme object
-static Theme* parseJsonTheme(const std::string& jsonContent) {
-    try {
-        Document doc;
-        doc.Parse(jsonContent.c_str());
-
-        if (doc.HasParseError()) {
-            return nullptr;
-        }
-
-        // Create IRawTheme from JSON
-        auto rawTheme = new IRawTheme();
-
-        // Get theme name
-        if (doc.HasMember("name") && doc["name"].IsString()) {
-            rawTheme->name = new std::string(doc["name"].GetString());
-        }
-
-        // Parse settings array
-        if (doc.HasMember("settings") && doc["settings"].IsArray()) {
-            const auto& settingsArray = doc["settings"];
-
-            for (const auto& settingObj : settingsArray.GetArray()) {
-                if (!settingObj.IsObject()) {
-                    continue;
-                }
-
-                auto setting = new IRawThemeSetting();
-
-                // Get name
-                if (settingObj.HasMember("name") && settingObj["name"].IsString()) {
-                    setting->name = new std::string(settingObj["name"].GetString());
-                }
-
-                // Get scope(s)
-                if (settingObj.HasMember("scope")) {
-                    const auto& scopeVal = settingObj["scope"];
-                    if (scopeVal.IsString()) {
-                        setting->scopeString = scopeVal.GetString();
-                        auto scopeVec = new std::vector<std::string>();
-                        scopeVec->push_back(setting->scopeString);
-                        setting->scope = scopeVec;
-                    } else if (scopeVal.IsArray()) {
-                        setting->scope = new std::vector<std::string>();
-                        for (const auto& scopeStr : scopeVal.GetArray()) {
-                            if (scopeStr.IsString()) {
-                                setting->scope->push_back(scopeStr.GetString());
-                            }
-                        }
-                    }
-                }
-
-                // Get settings object
-                if (settingObj.HasMember("settings") && settingObj["settings"].IsObject()) {
-                    const auto& settingsObj = settingObj["settings"];
-
-                    if (settingsObj.HasMember("fontStyle") && settingsObj["fontStyle"].IsString()) {
-                        setting->settings.fontStyle = new std::string(settingsObj["fontStyle"].GetString());
-                    }
-                    if (settingsObj.HasMember("foreground") && settingsObj["foreground"].IsString()) {
-                        setting->settings.foreground = new std::string(settingsObj["foreground"].GetString());
-                    }
-                    if (settingsObj.HasMember("background") && settingsObj["background"].IsString()) {
-                        setting->settings.background = new std::string(settingsObj["background"].GetString());
-                    }
-                }
-
-                rawTheme->settings.push_back(setting);
-            }
-        }
-
-        // Create Theme from raw theme
-        Theme* theme = Theme::createFromRawTheme(rawTheme);
-        delete rawTheme;
-
-        return theme;
-    } catch (...) {
-        return nullptr;
-    }
-}
+// Use the shared parseJSONTheme from parseRawTheme.h
+// (Implementation moved to parseRawTheme.cpp to avoid duplication)
 
 // ============================================================================
 // Theme C API Implementation
@@ -174,7 +98,7 @@ TextMateTheme textmate_theme_load_from_file(const char* themePath) {
             return nullptr;
         }
 
-        Theme* theme = parseJsonTheme(content);
+        Theme* theme = parseJSONTheme(content);
         if (!theme) {
             return nullptr;
         }
@@ -198,7 +122,7 @@ TextMateTheme textmate_theme_load_from_json(const char* jsonContent) {
     }
 
     try {
-        Theme* theme = parseJsonTheme(jsonContent);
+        Theme* theme = parseJSONTheme(jsonContent);
         if (!theme) {
             return nullptr;
         }

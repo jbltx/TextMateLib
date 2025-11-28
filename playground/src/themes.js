@@ -1,6 +1,6 @@
 // List of available themes from textmate-grammars-themes
 
-const BASE_PATH = '../thirdparty/textmate-grammars-themes/packages/tm-themes/themes';
+const BASE_PATH = '/tm-themes';
 
 export async function getAvailableThemes() {
     return [

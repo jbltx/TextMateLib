@@ -105,6 +105,7 @@ set(TEXTMATE_SOURCES
     src/onigLib.cpp
     src/rawGrammar.cpp
     src/parseRawGrammar.cpp
+    src/parseRawTheme.cpp
     src/theme.cpp
     src/encodedTokenAttributes.cpp
     src/rule.cpp
@@ -131,6 +132,7 @@ set(TEXTMATE_HEADERS
     src/onigLib.h
     src/rawGrammar.h
     src/parseRawGrammar.h
+    src/parseRawTheme.h
     src/theme.h
     src/encodedTokenAttributes.h
     src/rule.h
@@ -292,6 +294,13 @@ if(USE_WASM_BUILD)
     # Link against oniguruma
     target_link_libraries(tml PUBLIC "${ONIGURUMA_LIB}")
     target_link_libraries(tml-browser PUBLIC "${ONIGURUMA_LIB}")
+
+    # Include generated export header for browser target
+    target_include_directories(tml-browser PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<INSTALL_INTERFACE:include>
+    )
 
     # Include oniguruma headers
     target_include_directories(tml PUBLIC "${ONIGURUMA_INCLUDE_DIR}")
