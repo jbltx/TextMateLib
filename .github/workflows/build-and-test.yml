@@ -50,6 +50,11 @@ jobs:
           echo "onig-source-dir=${{ github.workspace }}/thirdparty/oniguruma" >> "$GITHUB_OUTPUT"
           echo "onig-build-dir=${{ github.workspace }}/thirdparty/oniguruma/build" >> "$GITHUB_OUTPUT"
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
       - name: Configure CMake
         run: >
           cmake
@@ -60,9 +65,21 @@ jobs:
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
           -DBUILD_SHARED_LIBS=OFF
 
-      - name: Build
+      - name: Build Native Library
         run: cmake --build ${{ steps.strings.outputs.build-dir }} --config ${{ matrix.build_type }}
 
-      - name: Test
+      - name: Test Native Library
         working-directory: ${{ steps.strings.outputs.build-dir }}
         run: ctest --build-config ${{ matrix.build_type }} -V
+
+      - name: Restore .NET dependencies
+        run: dotnet restore
+
+      - name: Build C# Bindings
+        run: dotnet build src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj --configuration Release --no-restore
+
+      - name: Build C# Tests
+        run: dotnet build tests/csharp/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release --no-restore
+
+      - name: Run C# Tests
+        run: dotnet test tests/csharp/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release --no-build --verbosity normal
