@@ -4,3 +4,6 @@
 [submodule "thirdparty/rapidjson"]
 	path = thirdparty/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
+[submodule "thirdparty/textmate-grammars-themes"]
+	path = thirdparty/textmate-grammars-themes
+	url = https://github.com/shikijs/textmate-grammars-themes.git

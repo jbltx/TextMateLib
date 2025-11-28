@@ -58,3 +58,7 @@ CMakeUserPresets.json
 /release/
 /build/
 /build*/
+
+# Playground WASM artifacts
+playground/wasm/*.js
+playground/wasm/*.wasm
