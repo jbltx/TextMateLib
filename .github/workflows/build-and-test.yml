@@ -72,14 +72,11 @@ jobs:
         working-directory: ${{ steps.strings.outputs.build-dir }}
         run: ctest --build-config ${{ matrix.build_type }} -V
 
-      - name: Restore .NET dependencies
-        run: dotnet restore
-
       - name: Build C# Bindings
-        run: dotnet build src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj --configuration Release --no-restore
+        run: dotnet build src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj --configuration Release
 
       - name: Build C# Tests
-        run: dotnet build tests/csharp/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release --no-restore
+        run: dotnet build tests/csharp/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release
 
       - name: Run C# Tests
-        run: dotnet test tests/csharp/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release --no-build --verbosity normal
+        run: dotnet test tests/csharp/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release --verbosity normal
