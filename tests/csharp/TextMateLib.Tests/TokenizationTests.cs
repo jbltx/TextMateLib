@@ -1,7 +1,5 @@
 using System;
-using System.IO;
 using TextMateLib.Bindings;
-using Xunit;
 
 namespace TextMateLib.Tests
 {
@@ -10,31 +8,34 @@ namespace TextMateLib.Tests
     /// </summary>
     public class TokenizationTests : IDisposable
     {
-        private readonly string _fixturesPath;
-        private readonly Registry _registry;
-        private readonly Grammar _jsGrammar;
-        private readonly Grammar _pythonGrammar;
+        readonly string m_FixturesPath;
+
+        readonly Registry m_Registry;
+
+        readonly Grammar m_JsGrammar;
+
+        readonly Grammar m_PythonGrammar;
 
         public TokenizationTests()
         {
             // Set up library path for Linux
             var nativeLibPath = Path.Combine(AppContext.BaseDirectory, "native");
-            Environment.SetEnvironmentVariable("LD_LIBRARY_PATH", 
+            Environment.SetEnvironmentVariable("LD_LIBRARY_PATH",
                 nativeLibPath + ":" + Environment.GetEnvironmentVariable("LD_LIBRARY_PATH"));
 
-            _fixturesPath = Path.Combine(AppContext.BaseDirectory, "fixtures");
-            
-            _registry = new Registry();
-            
+            m_FixturesPath = Path.Combine(AppContext.BaseDirectory, "fixtures");
+
+            m_Registry = new Registry();
+
             // Load JavaScript grammar
-            var jsGrammarPath = Path.Combine(_fixturesPath, "grammars", "javascript-test.json");
-            _registry.AddGrammarFromFile(jsGrammarPath);
-            _jsGrammar = _registry.LoadGrammar("source.js");
-            
+            var jsGrammarPath = Path.Combine(m_FixturesPath, "grammars", "javascript-test.json");
+            m_Registry.AddGrammarFromFile(jsGrammarPath);
+            m_JsGrammar = m_Registry.LoadGrammar("source.js");
+
             // Load Python grammar
-            var pythonGrammarPath = Path.Combine(_fixturesPath, "grammars", "python-test.json");
-            _registry.AddGrammarFromFile(pythonGrammarPath);
-            _pythonGrammar = _registry.LoadGrammar("source.python");
+            var pythonGrammarPath = Path.Combine(m_FixturesPath, "grammars", "python-test.json");
+            m_Registry.AddGrammarFromFile(pythonGrammarPath);
+            m_PythonGrammar = m_Registry.LoadGrammar("source.python");
         }
 
         [Fact]
@@ -44,13 +45,13 @@ namespace TextMateLib.Tests
             var code = "const x = 42;";
 
             // Act
-            var result = _jsGrammar.TokenizeLine(code, IntPtr.Zero);
+            var result = m_JsGrammar.TokenizeLine(code, IntPtr.Zero);
 
             // Assert
             Assert.NotNull(result);
             Assert.NotEmpty(result.Tokens);
             Assert.False(result.StoppedEarly);
-            
+
             // Verify at least some tokens exist
             Assert.True(result.Tokens.Count > 0, "Expected at least one token");
         }
@@ -62,16 +63,16 @@ namespace TextMateLib.Tests
             var code = "function hello() { return 'world'; }";
 
             // Act
-            var result = _jsGrammar.TokenizeLine(code, IntPtr.Zero);
+            var result = m_JsGrammar.TokenizeLine(code, IntPtr.Zero);
 
             // Assert
             Assert.NotNull(result);
             Assert.NotEmpty(result.Tokens);
-            
+
             // Check that we have tokens with different scopes
-            bool foundKeyword = false;
-            bool foundString = false;
-            
+            var foundKeyword = false;
+            var foundString = false;
+
             foreach (var token in result.Tokens)
             {
                 var scopeStr = string.Join(" ", token.Scopes);
@@ -80,7 +81,7 @@ namespace TextMateLib.Tests
                 if (scopeStr.Contains("string"))
                     foundString = true;
             }
-            
+
             Assert.True(foundKeyword, "Expected to find keyword token");
             Assert.True(foundString, "Expected to find string token");
         }
@@ -98,12 +99,12 @@ namespace TextMateLib.Tests
             };
 
             // Act
-            var results = _jsGrammar.TokenizeLines(lines);
+            var results = m_JsGrammar.TokenizeLines(lines);
 
             // Assert
             Assert.NotNull(results);
             Assert.Equal(lines.Length, results.Length);
-            
+
             foreach (var result in results)
             {
                 Assert.NotNull(result);
@@ -119,14 +120,14 @@ namespace TextMateLib.Tests
             var lines = code.Split('\n');
 
             // Act
-            var results = _pythonGrammar.TokenizeLines(lines);
+            var results = m_PythonGrammar.TokenizeLines(lines);
 
             // Assert
             Assert.NotNull(results);
             Assert.Equal(lines.Length, results.Length);
-            
+
             // First line should have "def" keyword
-            bool foundDefKeyword = false;
+            var foundDefKeyword = false;
             foreach (var token in results[0].Tokens)
             {
                 var scopeStr = string.Join(" ", token.Scopes);
@@ -143,18 +144,18 @@ namespace TextMateLib.Tests
             var code = "let x = 5;";
 
             // Act
-            var result = _jsGrammar.TokenizeLine(code, IntPtr.Zero);
+            var result = m_JsGrammar.TokenizeLine(code, IntPtr.Zero);
 
             // Assert
             Assert.NotNull(result);
             Assert.NotEmpty(result.Tokens);
-            
+
             // Verify that tokens cover the entire line
             var firstToken = result.Tokens[0];
             Assert.Equal(0, firstToken.StartIndex);
-            
+
             // Verify tokens don't overlap and are in order
-            for (int i = 0; i < result.Tokens.Count - 1; i++)
+            for (var i = 0; i < result.Tokens.Count - 1; i++)
             {
                 Assert.True(result.Tokens[i].EndIndex <= result.Tokens[i + 1].StartIndex,
                     "Tokens should not overlap");
@@ -168,14 +169,14 @@ namespace TextMateLib.Tests
             var code = "const hello = 'world';";
 
             // Act
-            var result = _jsGrammar.TokenizeLine(code, IntPtr.Zero);
+            var result = m_JsGrammar.TokenizeLine(code, IntPtr.Zero);
 
             // Assert
             Assert.NotNull(result);
             Assert.NotEmpty(result.Tokens);
-            
+
             // Find the 'const' keyword token
-            bool foundConst = false;
+            var foundConst = false;
             foreach (var token in result.Tokens)
             {
                 var value = token.GetValue(code);
@@ -185,7 +186,7 @@ namespace TextMateLib.Tests
                     break;
                 }
             }
-            
+
             Assert.True(foundConst, "Expected to find 'const' token");
         }
 
@@ -193,8 +194,8 @@ namespace TextMateLib.Tests
         public void GrammarHasCorrectScopeName()
         {
             // Assert
-            Assert.Equal("source.js", _jsGrammar.ScopeName);
-            Assert.Equal("source.python", _pythonGrammar.ScopeName);
+            Assert.Equal("source.js", m_JsGrammar.ScopeName);
+            Assert.Equal("source.python", m_PythonGrammar.ScopeName);
         }
 
         [Fact]
@@ -210,14 +211,14 @@ namespace TextMateLib.Tests
             };
 
             // Act
-            var results = _jsGrammar.TokenizeLines(lines);
+            var results = m_JsGrammar.TokenizeLines(lines);
 
             // Assert
             Assert.NotNull(results);
             Assert.Equal(lines.Length, results.Length);
-            
+
             // Each line should have a state (except the first might use initial state)
-            for (int i = 0; i < results.Length; i++)
+            for (var i = 0; i < results.Length; i++)
             {
                 Assert.NotEqual(IntPtr.Zero, results[i].StateStack);
             }
@@ -225,9 +226,9 @@ namespace TextMateLib.Tests
 
         public void Dispose()
         {
-            _jsGrammar?.Dispose();
-            _pythonGrammar?.Dispose();
-            _registry?.Dispose();
+            m_JsGrammar?.Dispose();
+            m_PythonGrammar?.Dispose();
+            m_Registry?.Dispose();
         }
     }
 }

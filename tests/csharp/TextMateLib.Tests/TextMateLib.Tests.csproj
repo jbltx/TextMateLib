@@ -19,16 +19,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\csharp\TextMateLib.Bindings\TextMateLib.Bindings.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="native\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="fixtures\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\csharp\TextMateLib.Bindings\TextMateLib.Bindings.csproj" />
   </ItemGroup>
 
 </Project>

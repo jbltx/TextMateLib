@@ -1,7 +1,5 @@
 using System;
-using System.IO;
 using TextMateLib.Bindings;
-using Xunit;
 
 namespace TextMateLib.Tests
 {
@@ -10,18 +8,19 @@ namespace TextMateLib.Tests
     /// </summary>
     public class ThemeTests : IDisposable
     {
-        private readonly string _fixturesPath;
-        private readonly Theme _theme;
+        readonly string _fixturesPath;
+
+        readonly Theme _theme;
 
         public ThemeTests()
         {
             // Set up library path for Linux
             var nativeLibPath = Path.Combine(AppContext.BaseDirectory, "native");
-            Environment.SetEnvironmentVariable("LD_LIBRARY_PATH", 
+            Environment.SetEnvironmentVariable("LD_LIBRARY_PATH",
                 nativeLibPath + ":" + Environment.GetEnvironmentVariable("LD_LIBRARY_PATH"));
 
             _fixturesPath = Path.Combine(AppContext.BaseDirectory, "fixtures");
-            
+
             // Load theme
             var themePath = Path.Combine(_fixturesPath, "themes", "github-dark-high-contrast.json");
             _theme = Theme.LoadFromFile(themePath);
@@ -83,7 +82,7 @@ namespace TextMateLib.Tests
 
             // Assert
             // Comments are often italic in themes, but we just verify it returns something valid
-            Assert.True(Enum.IsDefined(typeof(FontStyle), style) || 
+            Assert.True(Enum.IsDefined(typeof(FontStyle), style) ||
                        ((int)style & ~0xF) == 0, // Check it's within valid flag range
                        "Font style should be a valid FontStyle value");
         }
@@ -92,11 +91,11 @@ namespace TextMateLib.Tests
         public void FontStyleFlagsWork()
         {
             // Test that font style flags can be combined
-            FontStyle combined = FontStyle.Bold | FontStyle.Italic;
-            
-            Assert.True((combined & FontStyle.Bold) == FontStyle.Bold);
-            Assert.True((combined & FontStyle.Italic) == FontStyle.Italic);
-            Assert.False((combined & FontStyle.Underline) == FontStyle.Underline);
+            var combined = FontStyle.Bold | FontStyle.Italic;
+
+            Assert.Equal(FontStyle.Bold, (combined & FontStyle.Bold));
+            Assert.Equal(FontStyle.Italic, (combined & FontStyle.Italic));
+            Assert.NotEqual(FontStyle.Underline, (combined & FontStyle.Underline));
         }
 
         [Fact]
@@ -152,7 +151,7 @@ namespace TextMateLib.Tests
             var jsGrammarPath = Path.Combine(_fixturesPath, "grammars", "javascript.json");
             registry.AddGrammarFromFile(jsGrammarPath);
             var grammar = registry.LoadGrammar("source.js");
-            
+
             var code = "const x = 'hello';";
 
             // Act
@@ -166,7 +165,7 @@ namespace TextMateLib.Tests
                 {
                     var scopePath = string.Join(" ", token.Scopes);
                     var color = _theme.GetForeground(scopePath, 0xFFFFFFFF);
-                    
+
                     // Should return a valid color (not 0, as we provided non-zero default)
                     Assert.NotEqual(0u, color);
                 }
