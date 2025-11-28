@@ -14,10 +14,15 @@ namespace TextMateLib.Bindings
         // Opaque handle types
         // ============================================================================
         
+        [StructLayout(LayoutKind.Sequential)]
         internal struct TextMateRegistry { public IntPtr Handle; }
+        [StructLayout(LayoutKind.Sequential)]
         internal struct TextMateGrammar { public IntPtr Handle; }
+        [StructLayout(LayoutKind.Sequential)]
         internal struct TextMateStateStack { public IntPtr Handle; }
+        [StructLayout(LayoutKind.Sequential)]
         internal struct TextMateOnigLib { public IntPtr Handle; }
+        [StructLayout(LayoutKind.Sequential)]
         internal struct TextMateTheme { public IntPtr Handle; }
 
         // ============================================================================
@@ -38,7 +43,7 @@ namespace TextMateLib.Bindings
         {
             public IntPtr Tokens; // TextMateToken*
             public int TokenCount;
-            public TextMateStateStack RuleStack;
+            public IntPtr RuleStack;
             public int StoppedEarly;
         }
 
@@ -47,7 +52,7 @@ namespace TextMateLib.Bindings
         {
             public IntPtr Tokens; // uint32_t*
             public int TokenCount;
-            public TextMateStateStack RuleStack;
+            public IntPtr RuleStack;
             public int StoppedEarly;
         }
 
@@ -56,82 +61,82 @@ namespace TextMateLib.Bindings
         // ============================================================================
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        internal static extern TextMateTheme textmate_theme_load_from_file(
+        internal static extern IntPtr textmate_theme_load_from_file(
             string themePath);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        internal static extern TextMateTheme textmate_theme_load_from_json(
+        internal static extern IntPtr textmate_theme_load_from_json(
             string jsonContent);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         internal static extern uint textmate_theme_get_foreground(
-            TextMateTheme theme,
+            IntPtr theme,
             string scopePath,
             uint defaultColor);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         internal static extern uint textmate_theme_get_background(
-            TextMateTheme theme,
+            IntPtr theme,
             string scopePath,
             uint defaultColor);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         internal static extern int textmate_theme_get_font_style(
-            TextMateTheme theme,
+            IntPtr theme,
             string scopePath,
             int defaultStyle);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern uint textmate_theme_get_default_foreground(TextMateTheme theme);
+        internal static extern uint textmate_theme_get_default_foreground(IntPtr theme);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern uint textmate_theme_get_default_background(TextMateTheme theme);
+        internal static extern uint textmate_theme_get_default_background(IntPtr theme);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void textmate_theme_dispose(TextMateTheme theme);
+        internal static extern void textmate_theme_dispose(IntPtr theme);
 
         // ============================================================================
         // Registry and Grammar API
         // ============================================================================
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern TextMateOnigLib textmate_oniglib_create();
+        internal static extern IntPtr textmate_oniglib_create();
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern TextMateRegistry textmate_registry_create(TextMateOnigLib onigLib);
+        internal static extern IntPtr textmate_registry_create(IntPtr onigLib);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void textmate_registry_dispose(TextMateRegistry registry);
+        internal static extern void textmate_registry_dispose(IntPtr registry);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         internal static extern int textmate_registry_add_grammar_from_file(
-            TextMateRegistry registry,
+            IntPtr registry,
             string grammarPath);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         internal static extern int textmate_registry_add_grammar_from_json(
-            TextMateRegistry registry,
+            IntPtr registry,
             string jsonContent);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        internal static extern TextMateGrammar textmate_registry_load_grammar(
-            TextMateRegistry registry,
+        internal static extern IntPtr textmate_registry_load_grammar(
+            IntPtr registry,
             string scopeName);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern TextMateStateStack textmate_get_initial_state();
+        internal static extern IntPtr textmate_get_initial_state();
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         internal static extern IntPtr textmate_tokenize_line(
-            TextMateGrammar grammar,
+            IntPtr grammar,
             string lineText,
-            TextMateStateStack prevState);
+            IntPtr prevState);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         internal static extern IntPtr textmate_tokenize_line2(
-            TextMateGrammar grammar,
+            IntPtr grammar,
             string lineText,
-            TextMateStateStack prevState);
+            IntPtr prevState);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void textmate_free_tokenize_result(IntPtr result);
@@ -140,12 +145,12 @@ namespace TextMateLib.Bindings
         internal static extern void textmate_free_tokenize_result2(IntPtr result);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        internal static extern IntPtr textmate_grammar_get_scope_name(TextMateGrammar grammar);
+        internal static extern IntPtr textmate_grammar_get_scope_name(IntPtr grammar);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void textmate_grammar_dispose(TextMateGrammar grammar);
+        internal static extern void textmate_grammar_dispose(IntPtr grammar);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void textmate_oniglib_dispose(TextMateOnigLib onigLib);
+        internal static extern void textmate_oniglib_dispose(IntPtr onigLib);
     }
 }

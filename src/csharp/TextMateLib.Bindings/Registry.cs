@@ -7,8 +7,8 @@ namespace TextMateLib.Bindings
     /// </summary>
     public class Registry : IDisposable
     {
-        private NativeMethods.TextMateRegistry _handle;
-        private NativeMethods.TextMateOnigLib _onigLib;
+        private IntPtr _handle;
+        private IntPtr _onigLib;
         private bool _disposed;
 
         /// <summary>
@@ -17,11 +17,11 @@ namespace TextMateLib.Bindings
         public Registry()
         {
             _onigLib = NativeMethods.textmate_oniglib_create();
-            if (_onigLib.Handle == IntPtr.Zero)
+            if (_onigLib == IntPtr.Zero)
                 throw new InvalidOperationException("Failed to initialize Oniguruma library");
 
             _handle = NativeMethods.textmate_registry_create(_onigLib);
-            if (_handle.Handle == IntPtr.Zero)
+            if (_handle == IntPtr.Zero)
             {
                 NativeMethods.textmate_oniglib_dispose(_onigLib);
                 throw new InvalidOperationException("Failed to create registry");
@@ -42,7 +42,7 @@ namespace TextMateLib.Bindings
                 throw new ArgumentNullException(nameof(grammarPath));
 
             int result = NativeMethods.textmate_registry_add_grammar_from_file(_handle, grammarPath);
-            if (result != 0)
+            if (result == 0)
                 throw new InvalidOperationException($"Failed to add grammar from file: {grammarPath}");
         }
 
@@ -60,7 +60,7 @@ namespace TextMateLib.Bindings
                 throw new ArgumentNullException(nameof(jsonContent));
 
             int result = NativeMethods.textmate_registry_add_grammar_from_json(_handle, jsonContent);
-            if (result != 0)
+            if (result == 0)
                 throw new InvalidOperationException("Failed to add grammar from JSON");
         }
 
@@ -79,7 +79,7 @@ namespace TextMateLib.Bindings
                 throw new ArgumentNullException(nameof(scopeName));
 
             var handle = NativeMethods.textmate_registry_load_grammar(_handle, scopeName);
-            if (handle.Handle == IntPtr.Zero)
+            if (handle == IntPtr.Zero)
                 throw new InvalidOperationException($"Failed to load grammar for scope: {scopeName}");
 
             return new Grammar(handle);
@@ -98,16 +98,16 @@ namespace TextMateLib.Bindings
         {
             if (!_disposed)
             {
-                if (_handle.Handle != IntPtr.Zero)
+                if (_handle != IntPtr.Zero)
                 {
                     NativeMethods.textmate_registry_dispose(_handle);
-                    _handle.Handle = IntPtr.Zero;
+                    _handle = IntPtr.Zero;
                 }
 
-                if (_onigLib.Handle != IntPtr.Zero)
+                if (_onigLib != IntPtr.Zero)
                 {
                     NativeMethods.textmate_oniglib_dispose(_onigLib);
-                    _onigLib.Handle = IntPtr.Zero;
+                    _onigLib = IntPtr.Zero;
                 }
                 
                 _disposed = true;

@@ -1,0 +1,53 @@
+## C# / .NET
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.user
+*.suo
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+# Visual Studio cache/options
+.vs/
+.vscode/
+
+# Test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# NuGet
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# xUnit test results
+*.trx
+*.coverage
+*.coveragexml
+
+# Native library (will be copied by build process)
+libtml.so
+libtml.dylib
+tml.dll

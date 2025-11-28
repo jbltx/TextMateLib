@@ -24,10 +24,10 @@ namespace TextMateLib.Bindings
     /// </summary>
     public class Theme : IDisposable
     {
-        private NativeMethods.TextMateTheme _handle;
+        private IntPtr _handle;
         private bool _disposed;
 
-        internal Theme(NativeMethods.TextMateTheme handle)
+        internal Theme(IntPtr handle)
         {
             _handle = handle;
         }
@@ -45,7 +45,7 @@ namespace TextMateLib.Bindings
                 throw new ArgumentNullException(nameof(themePath));
 
             var handle = NativeMethods.textmate_theme_load_from_file(themePath);
-            if (handle.Handle == IntPtr.Zero)
+            if (handle == IntPtr.Zero)
                 throw new InvalidOperationException($"Failed to load theme from file: {themePath}");
 
             return new Theme(handle);
@@ -64,7 +64,7 @@ namespace TextMateLib.Bindings
                 throw new ArgumentNullException(nameof(jsonContent));
 
             var handle = NativeMethods.textmate_theme_load_from_json(jsonContent);
-            if (handle.Handle == IntPtr.Zero)
+            if (handle == IntPtr.Zero)
                 throw new InvalidOperationException("Failed to load theme from JSON");
 
             return new Theme(handle);
@@ -127,7 +127,7 @@ namespace TextMateLib.Bindings
             return NativeMethods.textmate_theme_get_default_background(_handle);
         }
 
-        internal NativeMethods.TextMateTheme Handle
+        internal IntPtr Handle
         {
             get
             {
@@ -149,10 +149,10 @@ namespace TextMateLib.Bindings
         {
             if (!_disposed)
             {
-                if (_handle.Handle != IntPtr.Zero)
+                if (_handle != IntPtr.Zero)
                 {
                     NativeMethods.textmate_theme_dispose(_handle);
-                    _handle.Handle = IntPtr.Zero;
+                    _handle = IntPtr.Zero;
                 }
                 _disposed = true;
             }

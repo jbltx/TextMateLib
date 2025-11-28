@@ -9,10 +9,10 @@ namespace TextMateLib.Bindings
     /// </summary>
     public class Grammar : IDisposable
     {
-        private NativeMethods.TextMateGrammar _handle;
+        private IntPtr _handle;
         private bool _disposed;
 
-        internal Grammar(NativeMethods.TextMateGrammar handle)
+        internal Grammar(IntPtr handle)
         {
             _handle = handle;
         }
@@ -42,11 +42,10 @@ namespace TextMateLib.Bindings
             
             if (prevState == IntPtr.Zero)
             {
-                prevState = NativeMethods.textmate_get_initial_state().Handle;
+                prevState = NativeMethods.textmate_get_initial_state();
             }
 
-            var resultPtr = NativeMethods.textmate_tokenize_line(_handle, lineText ?? string.Empty, 
-                new NativeMethods.TextMateStateStack { Handle = prevState });
+            var resultPtr = NativeMethods.textmate_tokenize_line(_handle, lineText ?? string.Empty, prevState);
 
             if (resultPtr == IntPtr.Zero)
                 throw new InvalidOperationException("Failed to tokenize line");
@@ -78,7 +77,7 @@ namespace TextMateLib.Bindings
                     tokens.Add(new Token(nativeToken.StartIndex, nativeToken.EndIndex, scopes));
                 }
 
-                return new TokenizeResult(tokens, result.RuleStack.Handle, result.StoppedEarly != 0);
+                return new TokenizeResult(tokens, result.RuleStack, result.StoppedEarly != 0);
             }
             finally
             {
@@ -99,7 +98,7 @@ namespace TextMateLib.Bindings
                 return Array.Empty<TokenizeResult>();
 
             var results = new TokenizeResult[lines.Length];
-            IntPtr state = NativeMethods.textmate_get_initial_state().Handle;
+            IntPtr state = NativeMethods.textmate_get_initial_state();
 
             for (int i = 0; i < lines.Length; i++)
             {
@@ -110,7 +109,7 @@ namespace TextMateLib.Bindings
             return results;
         }
 
-        internal NativeMethods.TextMateGrammar Handle
+        internal IntPtr Handle
         {
             get
             {
@@ -132,10 +131,10 @@ namespace TextMateLib.Bindings
         {
             if (!_disposed)
             {
-                if (_handle.Handle != IntPtr.Zero)
+                if (_handle != IntPtr.Zero)
                 {
                     NativeMethods.textmate_grammar_dispose(_handle);
-                    _handle.Handle = IntPtr.Zero;
+                    _handle = IntPtr.Zero;
                 }
                 _disposed = true;
             }

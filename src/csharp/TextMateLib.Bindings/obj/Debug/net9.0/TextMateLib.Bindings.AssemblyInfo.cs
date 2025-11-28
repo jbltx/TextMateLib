@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TextMateLib.Bindings")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d1183f6f312f0c708eec97088f63c174bc11a340")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9d4d44562942d78d9009cd65e07bf6f77a5e0238")]
 [assembly: System.Reflection.AssemblyProductAttribute("TextMateLib.Bindings")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TextMateLib.Bindings")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
