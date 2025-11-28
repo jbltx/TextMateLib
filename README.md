@@ -332,13 +332,14 @@ int main() {
 │   └── build-wasm-all.sh        # Build all variants
 │
 ├── playground/                   # Interactive web playground
-│   ├── index.html               # Main playground UI
-│   ├── app.js                   # Application logic
-│   ├── grammars.js              # Available grammars list
-│   ├── themes.js                # Available themes list
-│   ├── styles.css               # Styling
-│   ├── wasm/                    # WASM module files (after build)
-│   └── README.md                # Playground documentation
+│   ├── index.html                # Main playground UI
+│   ├── src/                      # Playground source files
+│   │   ├── app.js                # Application logic
+│   │   ├── grammars.js           # Available grammars list
+│   │   ├── themes.js             # Available themes list
+│   │   └── styles.css            # Styling
+│   ├── public/wasm/              # WASM module files (after build)
+│   └── README.md                 # Playground documentation
 │
 ├── thirdparty/                   # External dependencies
 │   ├── oniguruma/               # Regex engine
@@ -374,9 +375,9 @@ open playground/index.html
 ```bash
 # Build and serve (from playground directory)
 cd playground
-./build-wasm.sh
-./serve.sh
-# Open http://localhost:8000
+npm install
+npm run dev
+# Open http://localhost:5173 in browser
 ```
 
 See [playground/README.md](playground/README.md) for detailed documentation.

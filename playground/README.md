@@ -40,7 +40,7 @@ For real TextMate syntax highlighting:
    npm run dev
    ```
 
-3. **Open in browser**: Navigate to `http://localhost:PORT` (check console for actual port)
+3. **Open in browser**: Navigate to `http://localhost:5173` (check console for actual port)
 
 ## Directory Structure
 
@@ -51,7 +51,7 @@ playground/
 │   ├── styles.css      # Styling and layout
 │   ├── app.js          # Main application logic
 │   ├── grammars.js     # Grammar definitions and paths
-│   ├── themes.js       # Theme definitions and paths
+│   └── themes.js       # Theme definitions and paths
 ├── public/wasm/        # WASM module files (after build)
 │   ├── tml-standard.js
 │   └── tml-standard.wasm
