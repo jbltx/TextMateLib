@@ -75,8 +75,8 @@ jobs:
         working-directory: ${{ steps.strings.outputs.build-dir }}
         run: ctest --build-config ${{ matrix.build_type }} -V
 
-      - name: Install native library to system
-        run: cmake --install ${{ steps.strings.outputs.build-dir }} --config ${{ matrix.build_type }}
+      - name: Install native library
+        run: cmake --install ${{ steps.strings.outputs.build-dir }} --config ${{ matrix.build_type }} --prefix ${{ steps.strings.outputs.build-dir }}/install
 
       - name: Build C# Bindings
         run: dotnet build src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj --configuration Release
@@ -85,4 +85,7 @@ jobs:
         run: dotnet build tests/csharp/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release
 
       - name: Run C# Tests
+        env:
+          LD_LIBRARY_PATH: ${{ steps.strings.outputs.build-dir }}/install/lib:${{ env.LD_LIBRARY_PATH }}
+          PATH: ${{ steps.strings.outputs.build-dir }}/install/bin:${{ env.PATH }}
         run: dotnet test tests/csharp/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release --verbosity normal
