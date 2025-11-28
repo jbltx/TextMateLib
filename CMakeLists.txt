@@ -175,6 +175,7 @@ if(NOT USE_WASM_BUILD)
         -DBUILD_TEST=OFF
         -DCMAKE_INSTALL_PREFIX=${ONIG_INSTALL_DIR}
         -DCMAKE_C_FLAGS=-DONIG_STATIC
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
     )
 
     # On Windows/MSVC, ensure matching runtime library
