@@ -156,7 +156,7 @@ async function loadWasmModule() {
         // Check if WASM files exist
         const response = await fetch('wasm/tml-standard.js');
         if (!response.ok) {
-            throw new Error('WASM module not found. Please build it first using: ./scripts/build-wasm-standard.sh');
+            throw new Error('WASM module not found. Please build it using: ./build-wasm.sh (from playground directory)');
         }
         
         // Load the WASM module
@@ -188,7 +188,7 @@ async function loadWasmModule() {
                 The playground is running in demo mode with mock highlighting.<br>
                 To enable real syntax highlighting, build the WASM module:<br>
                 <code style="background: #f8f9fa; padding: 5px 10px; border-radius: 4px; display: inline-block; margin-top: 10px;">
-                    ./scripts/build-wasm-standard.sh
+                    ./build-wasm.sh
                 </code>
             </p>
         `;

@@ -30,28 +30,19 @@ For real TextMate syntax highlighting:
 
 1. **Build the WASM module** (requires Emscripten):
    ```bash
-   # From the project root
-   ./scripts/build-wasm-standard.sh
+   # From the playground directory
+   ./build-wasm.sh
    ```
 
-2. **Copy WASM files to playground**:
+2. **Serve the playground** (required for WASM to work):
    ```bash
-   mkdir -p playground/wasm
-   cp build/wasm-standard/browser/tml-standard.js playground/wasm/
-   cp build/wasm-standard/browser/tml-standard.wasm playground/wasm/
+   # The build script copies files automatically
+   ./serve.sh
+   # The build script copies files automatically
+   ./serve.sh
    ```
 
-3. **Serve the playground** (required for WASM to work):
-   ```bash
-   # Using Python 3
-   cd playground
-   python3 -m http.server 8000
-   
-   # Or using Node.js with http-server
-   npx http-server playground -p 8000
-   ```
-
-4. **Open in browser**: Navigate to `http://localhost:8000`
+3. **Open in browser**: Navigate to `http://localhost:8000`
 
 ## Directory Structure
 
@@ -197,9 +188,9 @@ When WASM is not available:
 **Problem**: "WASM module not found" error
 
 **Solution**:
-1. Build the WASM module: `./scripts/build-wasm-standard.sh`
-2. Copy files to `playground/wasm/` directory
-3. Serve the playground with a local web server (file:// protocol won't work)
+1. Build the WASM module: `./build-wasm.sh` (from playground directory)
+2. Serve the playground with a local web server (file:// protocol won't work)
+3. WASM files are copied automatically by the build script
 
 ### Grammar Not Found
 

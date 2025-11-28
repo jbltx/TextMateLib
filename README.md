@@ -372,16 +372,10 @@ open playground/index.html
 
 **Full Mode** (with WASM):
 ```bash
-# Build WASM module
-./scripts/build-wasm-standard.sh
-
-# Copy to playground
-mkdir -p playground/wasm
-cp build/wasm-standard/browser/tml-standard.* playground/wasm/
-
-# Serve with local server
+# Build and serve (from playground directory)
 cd playground
-python3 -m http.server 8000
+./build-wasm.sh
+./serve.sh
 # Open http://localhost:8000
 ```
 
