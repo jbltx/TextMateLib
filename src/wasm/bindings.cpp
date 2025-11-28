@@ -4,6 +4,8 @@
 #include "registry.h"
 #include "grammar.h"
 #include "parseRawGrammar.h"
+#include "parseRawTheme.h"
+#include "theme.h"
 #include "onigLib.h"
 #include <string>
 #include <vector>
@@ -48,6 +50,36 @@ public:
             return val(reinterpret_cast<uintptr_t>(grammar));
         } catch (...) {
             return val::null();
+        }
+    }
+
+    // Set theme from JSON string
+    bool setTheme(const std::string& themeContent) {
+        try {
+            IRawTheme* rawTheme = parseRawTheme(themeContent);
+            if (!rawTheme) {
+                return false;
+            }
+
+            registry->setTheme(rawTheme, nullptr);
+            delete rawTheme;
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
+
+    // Get color map from the current theme
+    val getColorMap() {
+        try {
+            std::vector<std::string> colorMap = registry->getColorMap();
+            val jsColorMap = val::array();
+            for (size_t i = 0; i < colorMap.size(); i++) {
+                jsColorMap.set(i, colorMap[i]);
+            }
+            return jsColorMap;
+        } catch (...) {
+            return val::array();
         }
     }
 };
@@ -134,7 +166,9 @@ public:
 EMSCRIPTEN_BINDINGS(tml) {
     class_<RegistryWrapper>("Registry")
         .constructor<>()
-        .function("loadGrammarFromContent", &RegistryWrapper::loadGrammarFromContent);
+        .function("loadGrammarFromContent", &RegistryWrapper::loadGrammarFromContent)
+        .function("setTheme", &RegistryWrapper::setTheme)
+        .function("getColorMap", &RegistryWrapper::getColorMap);
 
     class_<GrammarWrapper>("Grammar")
         .constructor<uintptr_t>()

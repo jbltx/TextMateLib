@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TextMateLib Playground</title>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TextMateLib Playground</h1>
+            <p class="subtitle">Explore syntax highlighting with TextMate grammars and themes</p>
+        </header>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="grammarSelect">Language:</label>
+                <select id="grammarSelect">
+                    <option value="">Loading grammars...</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="themeSelect">Theme:</label>
+                <select id="themeSelect">
+                    <option value="">Loading themes...</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <button id="toggleDebug">Toggle Debug View</button>
+            </div>
+        </div>
+
+        <div class="editor-container">
+            <div class="editor-panel">
+                <h2>Code Editor</h2>
+                <textarea id="codeEditor" spellcheck="false"></textarea>
+            </div>
+
+            <div class="preview-panel">
+                <h2>Highlighted Output</h2>
+                <div id="highlightedOutput"></div>
+            </div>
+        </div>
+
+        <div class="debug-panel" id="debugPanel" style="display: none;">
+            <h2>Token Debug View</h2>
+            <div id="debugOutput"></div>
+        </div>
+
+        <div id="loadingStatus">
+            <p>Initializing TextMateLib WASM module...</p>
+        </div>
+    </div>
+
+    <script src="src/app.js" type="module"></script>
+</body>
+</html>

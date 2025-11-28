@@ -2,6 +2,16 @@
 
 A modern C++ implementation of the TextMate syntax highlighting engine. TextMateLib tokenizes source code using TextMate-format grammars, applies color schemes (themes), and provides native C/C++, C FFI, and WebAssembly APIs for high-performance syntax highlighting.
 
+## 🎮 Try the Playground!
+
+Want to see TextMateLib in action? Check out our **[interactive playground](playground/)** with:
+- 🎨 40+ themes (Dark+, Monokai, Dracula, Tokyo Night, and more)
+- 🔤 30+ language grammars (JavaScript, Python, Rust, C++, and more)
+- 🐛 Debug view showing detailed tokenization
+- ⚡ Real-time syntax highlighting
+
+[**→ Open the Playground**](playground/README.md)
+
 ## Features
 
 - **Grammar-based syntax highlighting** for multiple languages using TextMate format
@@ -13,6 +23,7 @@ A modern C++ implementation of the TextMate syntax highlighting engine. TextMate
 - **WebAssembly 2023 support**: SIMD, exceptions, bulk memory, BigInt
 - **Dual WASM output**: Static archives for Unity 2021.2+ and JavaScript executables for browser testing
 - **Cross-platform**: Linux, macOS, Windows, WebAssembly, and Unity WebGL
+- **Interactive playground**: Web-based demo with extensive grammars and themes
 
 ## Quick Start
 
@@ -320,13 +331,56 @@ int main() {
 │   ├── build-wasm-debug.sh      # Debug WASM variant
 │   └── build-wasm-all.sh        # Build all variants
 │
+├── playground/                   # Interactive web playground
+│   ├── index.html                # Main playground UI
+│   ├── src/                      # Playground source files
+│   │   ├── app.js                # Application logic
+│   │   ├── grammars.js           # Available grammars list
+│   │   ├── themes.js             # Available themes list
+│   │   └── styles.css            # Styling
+│   ├── public/wasm/              # WASM module files (after build)
+│   └── README.md                 # Playground documentation
+│
 ├── thirdparty/                   # External dependencies
 │   ├── oniguruma/               # Regex engine
-│   └── rapidjson/               # JSON parser & GTest
+│   ├── rapidjson/               # JSON parser & GTest
+│   └── textmate-grammars-themes/ # Grammar & theme collection
 │
 ├── CMakeLists.txt               # Main build configuration
 └── README.md                    # This file
 ```
+
+## Interactive Playground
+
+The `playground/` directory contains a web-based interactive demo that showcases TextMateLib's capabilities.
+
+### Features
+
+- **Real-time Syntax Highlighting**: See code highlighted as you type
+- **30+ Language Grammars**: JavaScript, Python, C++, Rust, and many more
+- **40+ Themes**: From classic (Monokai, Solarized) to modern (Tokyo Night, Catppuccin)
+- **Debug View**: Inspect tokenization details, scopes, and colors
+- **Responsive Design**: Works on desktop and mobile devices
+- **Demo Mode**: Works without WASM build using mock highlighting
+
+### Quick Start
+
+**Demo Mode** (no build required):
+```bash
+# Open in browser
+open playground/index.html
+```
+
+**Full Mode** (with WASM):
+```bash
+# Build and serve (from playground directory)
+cd playground
+npm install
+npm run dev
+# Open http://localhost:5173 in browser
+```
+
+See [playground/README.md](playground/README.md) for detailed documentation.
 
 ## Building for WebAssembly
 
