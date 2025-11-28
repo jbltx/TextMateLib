@@ -22,12 +22,15 @@ jobs:
           - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
+            lib_name: tml.dll
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
+            lib_name: libtml.so
           - os: ubuntu-latest
             c_compiler: clang
             cpp_compiler: clang++
+            lib_name: libtml.so
         exclude:
           - os: windows-latest
             c_compiler: gcc
@@ -63,7 +66,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-          -DBUILD_SHARED_LIBS=OFF
+          -DBUILD_SHARED_LIBS=ON
 
       - name: Build Native Library
         run: cmake --build ${{ steps.strings.outputs.build-dir }} --config ${{ matrix.build_type }}
@@ -75,8 +78,7 @@ jobs:
       - name: Copy native library for C# bindings
         run: |
           mkdir -p src/csharp/TextMateLib.Bindings/native
-          cp ${{ steps.strings.outputs.build-dir }}/lib/libtm.so src/csharp/TextMateLib.Bindings/native/ 2>/dev/null || true
-          cp ${{ steps.strings.outputs.build-dir }}/lib/tm.dll src/csharp/TextMateLib.Bindings/native/ 2>/dev/null || true
+          cp ${{ steps.strings.outputs.build-dir }}/lib/${{ matrix.lib_name }} src/csharp/TextMateLib.Bindings/native/
 
       - name: Build C# Bindings
         run: dotnet build src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj --configuration Release
