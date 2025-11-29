@@ -7,11 +7,8 @@ on:
   pull_request:
     branches:
       - develop
-    types:
-      - opened
-      - reopened
-      - synchronize
-      - closed
+
+concurrency: build-playground-${{ github.ref }}
 
 jobs:
   build:
@@ -48,9 +45,3 @@ jobs:
       - name: Build playground
         working-directory: playground
         run: npm run build
-
-      - name: Deploy PR Preview
-        if: github.event_name == 'pull_request'
-        uses: rossjrw/pr-preview-action@v1
-        with:
-          source-dir: ./playground/dist
