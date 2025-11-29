@@ -179,9 +179,6 @@ TML_API void textmate_free_tokenize_lines_result(TextMateTokenizeMultiLinesResul
 // Get scope name from grammar
 TML_API const char* textmate_grammar_get_scope_name(TextMateGrammar grammar);
 
-// Dispose grammar
-TML_API void textmate_grammar_dispose(TextMateGrammar grammar);
-
 // Dispose Oniguruma library
 TML_API void textmate_oniglib_dispose(TextMateOnigLib onigLib);
 

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace TextMateLib.Bindings
@@ -9,12 +8,13 @@ namespace TextMateLib.Bindings
     /// </summary>
     public class Grammar : IDisposable
     {
-        private IntPtr _handle;
-        private bool _disposed;
+        IntPtr m_Handle;
+
+        bool m_Disposed;
 
         internal Grammar(IntPtr handle)
         {
-            _handle = handle;
+            m_Handle = handle;
         }
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace TextMateLib.Bindings
             get
             {
                 ThrowIfDisposed();
-                IntPtr ptr = NativeMethods.textmate_grammar_get_scope_name(_handle);
+                IntPtr ptr = NativeMethods.textmate_grammar_get_scope_name(m_Handle);
                 return Marshal.PtrToStringAnsi(ptr) ?? string.Empty;
             }
         }
@@ -39,13 +39,13 @@ namespace TextMateLib.Bindings
         public TokenizeResult TokenizeLine(string lineText, IntPtr prevState)
         {
             ThrowIfDisposed();
-            
+
             if (prevState == IntPtr.Zero)
             {
                 prevState = NativeMethods.textmate_get_initial_state();
             }
 
-            var resultPtr = NativeMethods.textmate_tokenize_line(_handle, lineText ?? string.Empty, prevState);
+            var resultPtr = NativeMethods.textmate_tokenize_line(m_Handle, lineText ?? string.Empty, prevState);
 
             if (resultPtr == IntPtr.Zero)
                 throw new InvalidOperationException("Failed to tokenize line");
@@ -93,7 +93,7 @@ namespace TextMateLib.Bindings
         public TokenizeResult[] TokenizeLines(string[] lines)
         {
             ThrowIfDisposed();
-            
+
             if (lines == null || lines.Length == 0)
                 return Array.Empty<TokenizeResult>();
 
@@ -114,29 +114,28 @@ namespace TextMateLib.Bindings
             get
             {
                 ThrowIfDisposed();
-                return _handle;
+                return m_Handle;
             }
         }
 
-        private void ThrowIfDisposed()
+        void ThrowIfDisposed()
         {
-            if (_disposed)
+            if (m_Disposed)
                 throw new ObjectDisposedException(nameof(Grammar));
         }
 
         /// <summary>
-        /// Releases the native resources
+        /// Releases the managed handle reference. The underlying native Grammar is owned and disposed by the Registry.
         /// </summary>
         public void Dispose()
         {
-            if (!_disposed)
+            if (!m_Disposed)
             {
-                if (_handle != IntPtr.Zero)
+                if (m_Handle != IntPtr.Zero)
                 {
-                    NativeMethods.textmate_grammar_dispose(_handle);
-                    _handle = IntPtr.Zero;
+                    m_Handle = IntPtr.Zero;
                 }
-                _disposed = true;
+                m_Disposed = true;
             }
             GC.SuppressFinalize(this);
         }

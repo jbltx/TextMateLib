@@ -6,14 +6,14 @@ namespace TextMateLib.Bindings
     /// <summary>
     /// Native method declarations for TextMateLib C API
     /// </summary>
-    internal static class NativeMethods
+    static class NativeMethods
     {
-        private const string LibraryName = "tml";
+        const string LibraryName = "tml";
 
         // ============================================================================
         // Opaque handle types
         // ============================================================================
-        
+
         [StructLayout(LayoutKind.Sequential)]
         internal struct TextMateRegistry { public IntPtr Handle; }
         [StructLayout(LayoutKind.Sequential)]
@@ -146,9 +146,6 @@ namespace TextMateLib.Bindings
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         internal static extern IntPtr textmate_grammar_get_scope_name(IntPtr grammar);
-
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void textmate_grammar_dispose(IntPtr grammar);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void textmate_oniglib_dispose(IntPtr onigLib);

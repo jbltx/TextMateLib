@@ -7,23 +7,27 @@ namespace TextMateLib.Bindings
     /// </summary>
     public class Registry : IDisposable
     {
-        private IntPtr _handle;
-        private IntPtr _onigLib;
-        private bool _disposed;
+        IntPtr m_Handle;
+
+        IntPtr m_OnigLib;
+
+        bool m_Disposed;
+
+        readonly List<Grammar> m_LoadedGrammars = new ();
 
         /// <summary>
         /// Creates a new grammar registry
         /// </summary>
         public Registry()
         {
-            _onigLib = NativeMethods.textmate_oniglib_create();
-            if (_onigLib == IntPtr.Zero)
+            m_OnigLib = NativeMethods.textmate_oniglib_create();
+            if (m_OnigLib == IntPtr.Zero)
                 throw new InvalidOperationException("Failed to initialize Oniguruma library");
 
-            _handle = NativeMethods.textmate_registry_create(_onigLib);
-            if (_handle == IntPtr.Zero)
+            m_Handle = NativeMethods.textmate_registry_create(m_OnigLib);
+            if (m_Handle == IntPtr.Zero)
             {
-                NativeMethods.textmate_oniglib_dispose(_onigLib);
+                NativeMethods.textmate_oniglib_dispose(m_OnigLib);
                 throw new InvalidOperationException("Failed to create registry");
             }
         }
@@ -37,11 +41,11 @@ namespace TextMateLib.Bindings
         public void AddGrammarFromFile(string grammarPath)
         {
             ThrowIfDisposed();
-            
+
             if (string.IsNullOrEmpty(grammarPath))
                 throw new ArgumentNullException(nameof(grammarPath));
 
-            int result = NativeMethods.textmate_registry_add_grammar_from_file(_handle, grammarPath);
+            int result = NativeMethods.textmate_registry_add_grammar_from_file(m_Handle, grammarPath);
             if (result == 0)
                 throw new InvalidOperationException($"Failed to add grammar from file: {grammarPath}");
         }
@@ -55,11 +59,11 @@ namespace TextMateLib.Bindings
         public void AddGrammarFromJson(string jsonContent)
         {
             ThrowIfDisposed();
-            
+
             if (string.IsNullOrEmpty(jsonContent))
                 throw new ArgumentNullException(nameof(jsonContent));
 
-            int result = NativeMethods.textmate_registry_add_grammar_from_json(_handle, jsonContent);
+            int result = NativeMethods.textmate_registry_add_grammar_from_json(m_Handle, jsonContent);
             if (result == 0)
                 throw new InvalidOperationException("Failed to add grammar from JSON");
         }
@@ -74,20 +78,29 @@ namespace TextMateLib.Bindings
         public Grammar LoadGrammar(string scopeName)
         {
             ThrowIfDisposed();
-            
+
             if (string.IsNullOrEmpty(scopeName))
                 throw new ArgumentNullException(nameof(scopeName));
 
-            var handle = NativeMethods.textmate_registry_load_grammar(_handle, scopeName);
+            var handle = NativeMethods.textmate_registry_load_grammar(m_Handle, scopeName);
             if (handle == IntPtr.Zero)
                 throw new InvalidOperationException($"Failed to load grammar for scope: {scopeName}");
 
-            return new Grammar(handle);
+            var grammar = new Grammar(handle);
+            var grammarScope = grammar.ScopeName;
+            if (grammarScope != scopeName)
+            {
+                grammar.Dispose();
+                throw new InvalidOperationException($"Loaded grammar scope mismatch: expected {scopeName}, got {grammarScope}");
+            }
+
+            m_LoadedGrammars.Add(grammar);
+            return grammar;
         }
 
-        private void ThrowIfDisposed()
+        void ThrowIfDisposed()
         {
-            if (_disposed)
+            if (m_Disposed)
                 throw new ObjectDisposedException(nameof(Registry));
         }
 
@@ -96,21 +109,28 @@ namespace TextMateLib.Bindings
         /// </summary>
         public void Dispose()
         {
-            if (!_disposed)
+            if (!m_Disposed)
             {
-                if (_handle != IntPtr.Zero)
+                // Dispose all tracked grammars first
+                foreach (var grammar in m_LoadedGrammars)
                 {
-                    NativeMethods.textmate_registry_dispose(_handle);
-                    _handle = IntPtr.Zero;
+                    grammar.Dispose();
+                }
+                m_LoadedGrammars.Clear();
+
+                if (m_Handle != IntPtr.Zero)
+                {
+                    NativeMethods.textmate_registry_dispose(m_Handle);
+                    m_Handle = IntPtr.Zero;
                 }
 
-                if (_onigLib != IntPtr.Zero)
+                if (m_OnigLib != IntPtr.Zero)
                 {
-                    NativeMethods.textmate_oniglib_dispose(_onigLib);
-                    _onigLib = IntPtr.Zero;
+                    NativeMethods.textmate_oniglib_dispose(m_OnigLib);
+                    m_OnigLib = IntPtr.Zero;
                 }
-                
-                _disposed = true;
+
+                m_Disposed = true;
             }
             GC.SuppressFinalize(this);
         }

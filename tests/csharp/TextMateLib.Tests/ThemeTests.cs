@@ -8,9 +8,9 @@ namespace TextMateLib.Tests
     /// </summary>
     public class ThemeTests : IDisposable
     {
-        readonly string _fixturesPath;
+        readonly string m_FixturesPath;
 
-        readonly Theme _theme;
+        readonly Theme m_Theme;
 
         public ThemeTests()
         {
@@ -19,26 +19,26 @@ namespace TextMateLib.Tests
             Environment.SetEnvironmentVariable("LD_LIBRARY_PATH",
                 nativeLibPath + ":" + Environment.GetEnvironmentVariable("LD_LIBRARY_PATH"));
 
-            _fixturesPath = Path.Combine(AppContext.BaseDirectory, "fixtures");
+            m_FixturesPath = Path.Combine(AppContext.BaseDirectory, "fixtures");
 
             // Load theme
-            var themePath = Path.Combine(_fixturesPath, "themes", "github-dark-high-contrast.json");
-            _theme = Theme.LoadFromFile(themePath);
+            var themePath = Path.Combine(m_FixturesPath, "themes", "github-dark-high-contrast.json");
+            m_Theme = Theme.LoadFromFile(themePath);
         }
 
         [Fact]
         public void CanLoadThemeFromFile()
         {
             // Assert
-            Assert.NotNull(_theme);
+            Assert.NotNull(m_Theme);
         }
 
         [Fact]
         public void ThemeHasDefaultColors()
         {
             // Act
-            var foreground = _theme.GetDefaultForeground();
-            var background = _theme.GetDefaultBackground();
+            var foreground = m_Theme.GetDefaultForeground();
+            var background = m_Theme.GetDefaultBackground();
 
             // Assert
             Assert.NotEqual(0u, foreground);
@@ -52,7 +52,7 @@ namespace TextMateLib.Tests
             var scope = "keyword.control";
 
             // Act
-            var color = _theme.GetForeground(scope, 0xFFFFFFFF);
+            var color = m_Theme.GetForeground(scope, 0xFFFFFFFF);
 
             // Assert
             Assert.NotEqual(0u, color);
@@ -65,7 +65,7 @@ namespace TextMateLib.Tests
             var scope = "string.quoted";
 
             // Act
-            var color = _theme.GetBackground(scope, 0x00000000);
+            var color = m_Theme.GetBackground(scope, 0x00000000);
 
             // Assert - background might be transparent (0), which is valid
             // Just ensure no exception is thrown
@@ -78,7 +78,7 @@ namespace TextMateLib.Tests
             var commentScope = "comment";
 
             // Act
-            var style = _theme.GetFontStyle(commentScope, FontStyle.None);
+            var style = m_Theme.GetFontStyle(commentScope, FontStyle.None);
 
             // Assert
             // Comments are often italic in themes, but we just verify it returns something valid
@@ -106,7 +106,7 @@ namespace TextMateLib.Tests
             var defaultColor = 0xDEADBEEFu;
 
             // Act
-            var color = _theme.GetForeground(unknownScope, defaultColor);
+            var color = m_Theme.GetForeground(unknownScope, defaultColor);
 
             // Assert
             // The theme might have fallback rules, so just verify we got a valid color
@@ -148,7 +148,7 @@ namespace TextMateLib.Tests
         {
             // Arrange
             var registry = new Registry();
-            var jsGrammarPath = Path.Combine(_fixturesPath, "grammars", "javascript.json");
+            var jsGrammarPath = Path.Combine(m_FixturesPath, "grammars", "javascript.json");
             registry.AddGrammarFromFile(jsGrammarPath);
             var grammar = registry.LoadGrammar("source.js");
 
@@ -164,7 +164,7 @@ namespace TextMateLib.Tests
                 if (token.Scopes.Count > 0)
                 {
                     var scopePath = string.Join(" ", token.Scopes);
-                    var color = _theme.GetForeground(scopePath, 0xFFFFFFFF);
+                    var color = m_Theme.GetForeground(scopePath, 0xFFFFFFFF);
 
                     // Should return a valid color (not 0, as we provided non-zero default)
                     Assert.NotEqual(0u, color);
@@ -179,7 +179,7 @@ namespace TextMateLib.Tests
         public void DisposingThemeTwiceDoesNotCrash()
         {
             // Arrange
-            var themePath = Path.Combine(_fixturesPath, "themes", "github-dark-high-contrast.json");
+            var themePath = Path.Combine(m_FixturesPath, "themes", "github-dark-high-contrast.json");
             var theme = Theme.LoadFromFile(themePath);
 
             // Act & Assert - should not throw
@@ -191,7 +191,7 @@ namespace TextMateLib.Tests
         public void AccessingDisposedThemeThrows()
         {
             // Arrange
-            var themePath = Path.Combine(_fixturesPath, "themes", "github-dark-high-contrast.json");
+            var themePath = Path.Combine(m_FixturesPath, "themes", "github-dark-high-contrast.json");
             var theme = Theme.LoadFromFile(themePath);
             theme.Dispose();
 
@@ -201,7 +201,7 @@ namespace TextMateLib.Tests
 
         public void Dispose()
         {
-            _theme?.Dispose();
+            m_Theme?.Dispose();
         }
     }
 }

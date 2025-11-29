@@ -127,14 +127,18 @@ namespace TextMateLib.Tests
             Assert.Equal(lines.Length, results.Length);
 
             // First line should have "def" keyword
-            var foundDefKeyword = false;
-            foreach (var token in results[0].Tokens)
+            Assert.True(results[0].Tokens.Count > 0, "Expected tokens in first line");
+            Assert.Equal(3, results[0].Tokens[0].EndIndex);
+            var foundDef = false;
+            foreach (var scope in results[0].Tokens[0].Scopes)
             {
-                var scopeStr = string.Join(" ", token.Scopes);
-                if (scopeStr.Contains("keyword") && scopeStr.Contains("function"))
-                    foundDefKeyword = true;
+                if (scope == "storage.type.function.python")
+                {
+                    foundDef = true;
+                    break;
+                }
             }
-            Assert.True(foundDefKeyword, "Expected to find 'def' keyword in first line");
+            Assert.True(foundDef, "Expected to find 'def' keyword token");
         }
 
         [Fact]

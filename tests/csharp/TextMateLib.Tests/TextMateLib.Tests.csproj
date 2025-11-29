@@ -28,4 +28,10 @@
     <ProjectReference Include="..\..\..\src\csharp\TextMateLib.Bindings\TextMateLib.Bindings.csproj" />
   </ItemGroup>
 
+  <Target Name="CopyNativeLibraries" AfterTargets="Build">
+    <Copy SourceFiles="../../../build-shared/libtml.so" DestinationFolder="$(OutputPath)" Condition="Exists('../../../build-shared/libtml.so')" />
+    <Copy SourceFiles="../../../build-shared/libtml.dylib" DestinationFolder="$(OutputPath)" Condition="Exists('../../../build-shared/libtml.dylib')" />
+    <Copy SourceFiles="../../../build-shared/tml.dll" DestinationFolder="$(OutputPath)" Condition="Exists('../../../build-shared/tml.dll')" />
+  </Target>
+
 </Project>

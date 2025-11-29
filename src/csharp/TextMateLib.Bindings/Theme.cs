@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
 
 namespace TextMateLib.Bindings
 {
@@ -24,12 +23,13 @@ namespace TextMateLib.Bindings
     /// </summary>
     public class Theme : IDisposable
     {
-        private IntPtr _handle;
-        private bool _disposed;
+        IntPtr m_Handle;
+
+        bool m_Disposed;
 
         internal Theme(IntPtr handle)
         {
-            _handle = handle;
+            m_Handle = handle;
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace TextMateLib.Bindings
         public uint GetForeground(string scopePath, uint defaultColor = 0xFFFFFFFF)
         {
             ThrowIfDisposed();
-            return NativeMethods.textmate_theme_get_foreground(_handle, scopePath ?? string.Empty, defaultColor);
+            return NativeMethods.textmate_theme_get_foreground(m_Handle, scopePath ?? string.Empty, defaultColor);
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace TextMateLib.Bindings
         public uint GetBackground(string scopePath, uint defaultColor = 0x00000000)
         {
             ThrowIfDisposed();
-            return NativeMethods.textmate_theme_get_background(_handle, scopePath ?? string.Empty, defaultColor);
+            return NativeMethods.textmate_theme_get_background(m_Handle, scopePath ?? string.Empty, defaultColor);
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace TextMateLib.Bindings
         public FontStyle GetFontStyle(string scopePath, FontStyle defaultStyle = FontStyle.None)
         {
             ThrowIfDisposed();
-            int style = NativeMethods.textmate_theme_get_font_style(_handle, scopePath ?? string.Empty, (int)defaultStyle);
+            int style = NativeMethods.textmate_theme_get_font_style(m_Handle, scopePath ?? string.Empty, (int)defaultStyle);
             return (FontStyle)style;
         }
 
@@ -114,7 +114,7 @@ namespace TextMateLib.Bindings
         public uint GetDefaultForeground()
         {
             ThrowIfDisposed();
-            return NativeMethods.textmate_theme_get_default_foreground(_handle);
+            return NativeMethods.textmate_theme_get_default_foreground(m_Handle);
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace TextMateLib.Bindings
         public uint GetDefaultBackground()
         {
             ThrowIfDisposed();
-            return NativeMethods.textmate_theme_get_default_background(_handle);
+            return NativeMethods.textmate_theme_get_default_background(m_Handle);
         }
 
         internal IntPtr Handle
@@ -132,13 +132,13 @@ namespace TextMateLib.Bindings
             get
             {
                 ThrowIfDisposed();
-                return _handle;
+                return m_Handle;
             }
         }
 
-        private void ThrowIfDisposed()
+        void ThrowIfDisposed()
         {
-            if (_disposed)
+            if (m_Disposed)
                 throw new ObjectDisposedException(nameof(Theme));
         }
 
@@ -147,14 +147,14 @@ namespace TextMateLib.Bindings
         /// </summary>
         public void Dispose()
         {
-            if (!_disposed)
+            if (!m_Disposed)
             {
-                if (_handle != IntPtr.Zero)
+                if (m_Handle != IntPtr.Zero)
                 {
-                    NativeMethods.textmate_theme_dispose(_handle);
-                    _handle = IntPtr.Zero;
+                    NativeMethods.textmate_theme_dispose(m_Handle);
+                    m_Handle = IntPtr.Zero;
                 }
-                _disposed = true;
+                m_Disposed = true;
             }
             GC.SuppressFinalize(this);
         }
