@@ -618,17 +618,18 @@ void textmate_free_tokenize_lines_result(TextMateTokenizeMultiLinesResult* resul
 
 // Get scope name from grammar
 const char* textmate_grammar_get_scope_name(TextMateGrammar grammar) {
-    // Not implemented yet - would require adding a getter method to Grammar class
-    // For now, return nullptr
-    return nullptr;
-}
+    if (!grammar) {
+        return nullptr;
+    }
 
-// Dispose grammar (Note: Grammar lifecycle is managed by Registry in the C++ implementation)
-void textmate_grammar_dispose(TextMateGrammar grammar) {
-    // In the current C++ implementation, Grammar objects are owned by Registry
-    // so we don't delete them here. This function is provided for API consistency
-    // but doesn't do anything. If you want independent Grammar lifecycle,
-    // you'll need to modify the C++ implementation.
+    try {
+        Grammar* gram = static_cast<Grammar*>(grammar);
+        static thread_local std::string scopeName;
+        scopeName = gram->getScopeName();
+        return scopeName.c_str();
+    } catch (...) {
+        return nullptr;
+    }
 }
 
 // Dispose Oniguruma library

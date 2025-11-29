@@ -175,6 +175,7 @@ if(NOT USE_WASM_BUILD)
         -DBUILD_TEST=OFF
         -DCMAKE_INSTALL_PREFIX=${ONIG_INSTALL_DIR}
         -DCMAKE_C_FLAGS=-DONIG_STATIC
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
     )
 
     # On Windows/MSVC, ensure matching runtime library
@@ -328,8 +329,9 @@ install(FILES ${TEXTMATE_HEADERS}
     DESTINATION include/tml
 )
 
-# Enable testing (skip for WASM builds)
-if(NOT USE_WASM_BUILD)
+# Enable testing (skip for WASM builds and shared library builds)
+# Tests should only use the static library version for proper linking
+if(NOT USE_WASM_BUILD AND NOT BUILD_SHARED_LIBS)
     enable_testing()
 
     # Add test subdirectory if it exists

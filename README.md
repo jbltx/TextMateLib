@@ -275,6 +275,30 @@ int main() {
 </html>
 ```
 
+### C# / .NET
+
+```csharp
+using TextMateLib.Bindings;
+
+// Load a theme
+using var theme = Theme.LoadFromFile("path/to/theme.json");
+
+// Get colors and styles for scopes
+uint foreground = theme.GetForeground("keyword.control", 0xFFFFFFFF);
+FontStyle style = theme.GetFontStyle("comment", FontStyle.None);
+
+// Create a registry and load grammars
+using var registry = new Registry();
+registry.AddGrammarFromFile("path/to/javascript.json");
+using var grammar = registry.LoadGrammar("source.js");
+
+// Get default theme colors
+uint defaultFg = theme.GetDefaultForeground();
+uint defaultBg = theme.GetDefaultBackground();
+```
+
+See [C# Bindings Documentation](src/csharp/README.md) for detailed usage and API reference.
+
 ## Directory Structure
 
 ```
@@ -313,6 +337,15 @@ int main() {
 │       ├── bulk_memory_bindings.h/cpp
 │       ├── exception_bindings.h/cpp
 │       └── bigint_bindings.h
+│   │
+│   └── csharp/                   # C# / .NET bindings
+│       ├── TextMateLib.Bindings/ # .NET 9 class library
+│       │   ├── NativeMethods.cs  # P/Invoke declarations
+│       │   ├── Theme.cs          # Theme API wrapper
+│       │   ├── Registry.cs       # Registry API wrapper
+│       │   ├── Grammar.cs        # Grammar API wrapper
+│       │   └── Token.cs          # Token data structures
+│       └── README.md             # C# bindings documentation
 │
 ├── tests/                        # Test suites
 │   ├── test_first_mate/         # Core tokenization tests
@@ -321,10 +354,16 @@ int main() {
 │   ├── test_theme/              # Theme tests
 │   ├── benchmark_large/         # Large file benchmarks
 │   ├── benchmark_session/       # Session performance
+│   ├── csharp/                  # C# tests
+│   │   └── TextMateLib.Tests/   # xUnit test project
+│   │       ├── ThemeTests.cs    # Theme functionality tests
+│   │       ├── TokenizationTests.cs
+│   │       └── BasicTests.cs
 │   └── CMakeLists.txt
 │
 ├── scripts/                      # Build scripts
 │   ├── build.sh                 # Native Release build
+│   ├── build-shared.sh          # Shared library build for C# bindings
 │   ├── build-wasm-standard.sh   # Standard WASM variant
 │   ├── build-wasm-minimal.sh    # Minimal WASM variant
 │   ├── build-wasm-full.sh       # Full-featured WASM variant
