@@ -36,6 +36,12 @@ export default defineConfig({
         {
           src: '../thirdparty/textmate-grammars-themes/packages/tm-grammars/grammars/*.json',
           dest: 'tm-grammars'
+        },
+        {
+          // Copy Doxygen documentation to build output
+          // Docs are generated in public/docs during postinstall
+          src: 'public/docs/**/*',
+          dest: 'docs'
         }
       ]
     })

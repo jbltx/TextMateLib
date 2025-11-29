@@ -1,0 +1,21 @@
+# Doxygen generated documentation
+html/
+latex/
+rtf/
+man/
+xml/
+docbook/
+
+# Build artifacts
+*.o
+*.a
+*.so
+*.exe
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store

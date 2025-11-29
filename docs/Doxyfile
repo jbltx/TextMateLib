@@ -1,0 +1,298 @@
+# Doxyfile for TextMateLib (tml) - C++ Syntax Highlighting Engine
+# Generated for Doxygen 1.9.x and later
+#
+# This configuration generates HTML documentation for the TextMateLib C++ API
+# Build documentation with: doxygen docs/Doxyfile
+# Output will be in: docs/html/
+
+#---------------------------------------------------------------------------
+# Project Information
+#---------------------------------------------------------------------------
+
+PROJECT_NAME           = "TextMateLib"
+PROJECT_NUMBER         = "1.0"
+PROJECT_BRIEF          = "Modern C++ implementation of the TextMate syntax highlighting engine"
+PROJECT_LOGO           =
+STRIP_FROM_PATH        = @CMAKE_SOURCE_DIR@
+STRIP_FROM_INC_PATH    = @CMAKE_SOURCE_DIR@/src
+
+# Output
+OUTPUT_DIRECTORY       = ./
+CREATE_SUBDIRS         = NO
+
+#---------------------------------------------------------------------------
+# Build Settings
+#---------------------------------------------------------------------------
+
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = NO
+EXTRACT_PACKAGE        = NO
+EXTRACT_STATIC         = NO
+EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_LOCAL_METHODS  = NO
+EXTRACT_ANON_NSPACES   = NO
+
+HIDE_UNDOC_MEMBERS     = YES
+HIDE_UNDOC_CLASSES     = YES
+HIDE_FRIEND_COMPOUNDS  = NO
+HIDE_IN_BODY_DOCS      = NO
+
+INTERNAL_DOCS          = NO
+HIDE_SCOPE_NAMES       = NO
+HIDE_COMPOUND_REFERENCE= NO
+SHOW_HEADERFILE        = YES
+SHOW_USED_FILES        = YES
+SHOW_FILES             = YES
+SHOW_NAMESPACES        = YES
+
+LAYOUT_FILE            =
+
+#---------------------------------------------------------------------------
+# Input Files
+#---------------------------------------------------------------------------
+
+INPUT                  = ../src mainpage.md
+INPUT_ENCODING         = UTF-8
+
+# File patterns to include
+FILE_PATTERNS          = *.h \
+                         *.hpp \
+                         *.cpp \
+                         *.cc \
+                         *.cxx \
+                         *.c
+
+# Recursively scan directories
+RECURSIVE              = YES
+
+# Exclude patterns
+EXCLUDE_PATTERNS       = */wasm/* \
+                         */csharp/* \
+                         *_p.h \
+                         */test_*
+
+EXCLUDE_SYMBOLS        = *::Private \
+                         *::Private::*
+
+# Main page documentation
+USE_MDFILE_AS_MAINPAGE            = mainpage.md
+
+#---------------------------------------------------------------------------
+# Documentation Processing
+#---------------------------------------------------------------------------
+
+MARKDOWN_SUPPORT       = YES
+AUTOLINK_SUPPORT       = YES
+BUILTIN_STL_SUPPORT    = YES
+
+CPP_CLI_SUPPORT        = NO
+SIP_SUPPORT            = NO
+
+# Language
+JAVADOC_AUTOBRIEF      = YES
+JAVADOC_BANNER         = NO
+QT_AUTOBRIEF           = NO
+
+# Detailed description threshold
+BRIEF_MEMBER_DESC      = YES
+ALWAYS_DETAILED_SEC    = NO
+INLINE_INHERITED_MEMB  = NO
+REPEAT_BRIEF           = YES
+
+# Grouping
+SORT_MEMBER_DOCS       = YES
+SORT_BRIEF_DOCS        = NO
+SORT_MEMBERS_CTORS_1ST = NO
+SORT_GROUP_NAMES       = NO
+SORT_BY_SCOPE_NAME     = NO
+
+#---------------------------------------------------------------------------
+# Output Format
+#---------------------------------------------------------------------------
+
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
+HTML_HEADER            =
+HTML_FOOTER            =
+HTML_STYLESHEET        =
+HTML_EXTRA_STYLESHEET  =
+HTML_EXTRA_FILES       =
+HTML_COLORSTYLE_HUE    = 220
+HTML_COLORSTYLE_SAT    = 100
+HTML_COLORSTYLE_GAMMA  = 80
+HTML_DYNAMIC_SECTIONS  = NO
+HTML_INDEX_NUM_ENTRIES = 100
+GENERATE_DOCSET        = NO
+GENERATE_HTMLHELP      = NO
+GENERATE_CHI           = NO
+GENERATE_QHP           = NO
+GENERATE_ECLIPSEHELP   = NO
+ECLIPSE_DOC_ID         = org.doxygen.Project
+DISABLE_INDEX          = NO
+GENERATE_TREEVIEW      = YES
+TREEVIEW_WIDTH         = 250
+EXT_LINKS_IN_WINDOW    = NO
+OBFUSCATE_EMAILS       = YES
+HTML_FORMULA_FORMAT    = png
+MATHJAX_FORMAT         = CHTML
+
+#---------------------------------------------------------------------------
+# LaTeX Output
+#---------------------------------------------------------------------------
+
+GENERATE_LATEX         = NO
+LATEX_OUTPUT           = latex
+LATEX_CMD_NAME         = latex
+MAKEINDEX_CMD_NAME     = makeindex
+LATEX_MAKEINDEX_CMD    = makeindex
+COMPACT_LATEX          = NO
+PAPER_TYPE             = a4
+EXTRA_PACKAGES         =
+LATEX_HEADER           =
+LATEX_FOOTER           =
+PDF_HYPERLINKS         = YES
+USE_PDFLATEX           = YES
+LATEX_BATCHMODE        = NO
+LATEX_HIDE_INDICES     = NO
+
+#---------------------------------------------------------------------------
+# RTF Output
+#---------------------------------------------------------------------------
+
+GENERATE_RTF           = NO
+RTF_OUTPUT             = rtf
+COMPACT_RTF            = NO
+RTF_HYPERLINKS         = NO
+RTF_STYLESHEET_FILE    =
+RTF_EXTENSIONS_FILE    =
+
+#---------------------------------------------------------------------------
+# Man Pages
+#---------------------------------------------------------------------------
+
+GENERATE_MAN           = NO
+MAN_OUTPUT             = man
+MAN_EXTENSION          = .3
+MAN_SUBDIR             =
+MAN_LINKS              = NO
+
+#---------------------------------------------------------------------------
+# XML Output
+#---------------------------------------------------------------------------
+
+GENERATE_XML           = NO
+XML_OUTPUT             = xml
+XML_PROGRAMLISTING     = YES
+
+#---------------------------------------------------------------------------
+# DocBook Output
+#---------------------------------------------------------------------------
+
+GENERATE_DOCBOOK       = NO
+DOCBOOK_OUTPUT         = docbook
+
+#---------------------------------------------------------------------------
+# Preprocessing
+#---------------------------------------------------------------------------
+
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = NO
+EXPAND_ONLY_PREDEF     = NO
+SEARCH_INCLUDES        = YES
+INCLUDE_PATH           = ../src
+
+INCLUDE_FILE_PATTERNS  =
+PREDEFINED             =
+EXPAND_AS_DEFINED      =
+SKIP_FUNCTION_MACROS   = YES
+
+#---------------------------------------------------------------------------
+# Source Code Display
+#---------------------------------------------------------------------------
+
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = NO
+STRIP_CODE_COMMENTS    = NO
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+REFERENCES_LINK_SOURCE = YES
+SOURCE_TOOLTIPS        = YES
+USE_HTAGS              = NO
+VERBATIM_HEADERS       = YES
+
+#---------------------------------------------------------------------------
+# Alphabetical Index
+#---------------------------------------------------------------------------
+
+ALPHABETICAL_INDEX     = YES
+IGNORE_PREFIX          =
+
+#---------------------------------------------------------------------------
+# HTML Search Engine
+#---------------------------------------------------------------------------
+
+SEARCHENGINE           = YES
+SERVER_BASED_SEARCH    = NO
+EXTERNAL_SEARCH        = NO
+EXTRA_SEARCH_MAPPINGS  =
+
+#---------------------------------------------------------------------------
+# Misc Settings
+#---------------------------------------------------------------------------
+
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_NO_PARAMDOC       = NO
+WARN_AS_ERROR          = NO
+WARN_FORMAT            = "$file:$line: $text"
+WARN_LOGFILE           =
+
+#---------------------------------------------------------------------------
+# Aliases
+#---------------------------------------------------------------------------
+
+ALIASES                =
+
+#---------------------------------------------------------------------------
+# Execution Control
+#---------------------------------------------------------------------------
+
+CITE_BIB_FILES         =
+
+USE_MATHJAX            = NO
+MATHJAX_RELPATH        = https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+MATHJAX_EXTENSIONS     =
+MATHJAX_CODEFILE       =
+
+PLANTUML_JAR_PATH      =
+PLANTUML_CFG_FILE      =
+PLANTUML_INCLUDE_PATH  =
+
+DIA_PATH               =
+
+IMAGE_PATH             =
+
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+GROUP_GRAPHS           = YES
+UML_LOOK               = NO
+UML_LIMIT_NUM_FIELDS   = 10
+TEMPLATE_RELATIONS     = NO
+INCLUDE_GRAPH          = YES
+INCLUDED_BY_GRAPH      = YES
+CALL_GRAPH             = NO
+CALLER_GRAPH           = NO
+GRAPHICAL_HIERARCHY    = YES
+DIRECTORY_GRAPH        = YES
+DOT_IMAGE_FORMAT       = svg
+INTERACTIVE_SVG        = NO
+DOT_PATH               =
+DOTFILE_DIRS           =
+MSCFILE_DIRS           =
+DIAFILE_DIRS           =
+DOT_GRAPH_MAX_NODES    = 50
+MAX_DOT_GRAPH_DEPTH    = 0
+GENERATE_LEGEND        = YES
+DOT_CLEANUP            = YES
