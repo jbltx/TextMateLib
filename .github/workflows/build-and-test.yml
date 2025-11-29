@@ -50,6 +50,7 @@ jobs:
         shell: bash
         run: |
           echo "build-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+          echo "build-shared-dir=${{ github.workspace }}/build-shared" >> "$GITHUB_OUTPUT"
           echo "onig-source-dir=${{ github.workspace }}/thirdparty/oniguruma" >> "$GITHUB_OUTPUT"
           echo "onig-build-dir=${{ github.workspace }}/thirdparty/oniguruma/build" >> "$GITHUB_OUTPUT"
 
