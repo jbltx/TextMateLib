@@ -30,3 +30,9 @@ coverage/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# TextMateLib WASM binaries
+wasm/*.wasm
+wasm/*.js
+wasm/*.ts
+wasm/*.d.ts
