@@ -1,0 +1,34 @@
+# Source files (not needed at runtime)
+src/
+tests/
+examples/
+
+# Build/dev config
+vite.config.ts
+tsconfig.json
+tsconfig.node.json
+.eslintrc*
+.prettierrc*
+
+# Source maps (optional - comment out to include)
+*.map
+
+# Version control
+.git/
+.gitignore
+.github/
+
+# Development files
+node_modules/
+.env*
+.DS_Store
+*.swp
+*.swo
+*~
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.circleci/
+
+# KEEP: dist/ and wasm/ directories - they are needed at runtime

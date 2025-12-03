@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Run lint-staged to check and fix only the files you're committing
+npx lint-staged --allow-empty
