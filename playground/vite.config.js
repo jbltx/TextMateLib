@@ -1,6 +1,40 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { createReadStream, existsSync } from 'fs';
+
+// Custom plugin to serve grammar/theme files during dev
+function serveGrammarsThemes() {
+  const themesDir = resolve(__dirname, '../thirdparty/textmate-grammars-themes/packages/tm-themes/themes');
+  const grammarsDir = resolve(__dirname, '../thirdparty/textmate-grammars-themes/packages/tm-grammars/grammars');
+
+  return {
+    name: 'serve-grammars-themes',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url?.startsWith('/tm-themes/')) {
+          const fileName = req.url.replace('/tm-themes/', '');
+          const filePath = resolve(themesDir, fileName);
+          if (existsSync(filePath)) {
+            res.setHeader('Content-Type', 'application/json');
+            createReadStream(filePath).pipe(res);
+            return;
+          }
+        }
+        if (req.url?.startsWith('/tm-grammars/')) {
+          const fileName = req.url.replace('/tm-grammars/', '');
+          const filePath = resolve(grammarsDir, fileName);
+          if (existsSync(filePath)) {
+            res.setHeader('Content-Type', 'application/json');
+            createReadStream(filePath).pipe(res);
+            return;
+          }
+        }
+        next();
+      });
+    }
+  };
+}
 
 export default defineConfig({
   // Set base path for GitHub Pages deployment
@@ -27,6 +61,8 @@ export default defineConfig({
     ]
   },
   plugins: [
+    // Serve grammars/themes during dev (configureServer only runs in dev mode)
+    serveGrammarsThemes(),
     viteStaticCopy({
       targets: [
         {

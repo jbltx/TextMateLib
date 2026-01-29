@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace TextMateLib.Bindings
@@ -68,7 +69,7 @@ namespace TextMateLib.Bindings
                         IntPtr scopePtr = Marshal.ReadIntPtr(nativeToken.Scopes, j * IntPtr.Size);
                         if (scopePtr != IntPtr.Zero)
                         {
-                            string? scope = Marshal.PtrToStringAnsi(scopePtr);
+                            var scope = Marshal.PtrToStringAnsi(scopePtr);
                             if (!string.IsNullOrEmpty(scope))
                                 scopes.Add(scope);
                         }

@@ -83,6 +83,40 @@ IRawTheme* parseRawTheme(const std::string& content) {
             }
         }
 
+        // VSCode themes have editor colors in "colors" section
+        // Extract editor.foreground and editor.background as default theme colors
+        if (doc.HasMember("colors") && doc["colors"].IsObject()) {
+            const auto& colors = doc["colors"];
+
+            std::string* defaultForeground = nullptr;
+            std::string* defaultBackground = nullptr;
+
+            if (colors.HasMember("editor.foreground") && colors["editor.foreground"].IsString()) {
+                defaultForeground = new std::string(colors["editor.foreground"].GetString());
+            }
+            if (colors.HasMember("editor.background") && colors["editor.background"].IsString()) {
+                defaultBackground = new std::string(colors["editor.background"].GetString());
+            }
+
+            // Create a default setting with empty scope for editor colors
+            if (defaultForeground || defaultBackground) {
+                auto defaultSetting = new IRawThemeSetting();
+                // Empty scope means this is the default
+                defaultSetting->scope = nullptr;
+                defaultSetting->scopeString = "";
+
+                if (defaultForeground) {
+                    defaultSetting->settings.foreground = defaultForeground;
+                }
+                if (defaultBackground) {
+                    defaultSetting->settings.background = defaultBackground;
+                }
+
+                // Insert at beginning so it acts as the base default
+                rawTheme->settings.insert(rawTheme->settings.begin(), defaultSetting);
+            }
+        }
+
         return rawTheme;
     } catch (...) {
         return nullptr;

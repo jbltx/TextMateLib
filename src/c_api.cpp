@@ -79,6 +79,77 @@ static int32_t fontStyleStringToFlags(const std::string& fontStyle) {
     return flags;
 }
 
+// Helper to free ScopeStack linked list created by ScopeStack::from()
+static void freeScopeStack(ScopeStack* stack) {
+    while (stack) {
+        ScopeStack* parent = stack->parent;
+        delete stack;
+        stack = parent;
+    }
+}
+
+// Parse space-separated scope path into vector of scope names
+static std::vector<ScopeName> parseScopePath(const char* scopePath) {
+    std::vector<ScopeName> scopes;
+    if (!scopePath || !scopePath[0]) {
+        return scopes;
+    }
+
+    std::istringstream iss(scopePath);
+    std::string scope;
+    while (iss >> scope) {
+        scopes.push_back(scope);
+    }
+    return scopes;
+}
+
+// Match all scopes in the stack against the theme and merge results
+// This iterates from outermost to innermost scope, with inner scopes overwriting outer ones
+static StyleAttributes* matchAllScopes(Theme* theme, const std::vector<ScopeName>& scopes) {
+    if (scopes.empty()) {
+        return nullptr;
+    }
+
+    StyleAttributes* merged = nullptr;
+
+    // Iterate through all scopes from outermost to innermost
+    // Build a progressively deeper scope stack for each match
+    for (size_t i = 0; i < scopes.size(); i++) {
+        // Create a scope stack up to this scope
+        ScopeStack* scopeStack = nullptr;
+        for (size_t j = 0; j <= i; j++) {
+            scopeStack = new ScopeStack(scopeStack, scopes[j]);
+        }
+
+        // Match against theme
+        StyleAttributes* attrs = theme->match(scopeStack);
+
+        // Clean up scope stack
+        freeScopeStack(scopeStack);
+
+        // Merge results
+        if (attrs) {
+            if (!merged) {
+                merged = attrs;
+            } else {
+                // Inner scope attributes override outer ones (if set)
+                if (attrs->fontStyle != static_cast<int>(FontStyle::NotSet)) {
+                    merged->fontStyle = attrs->fontStyle;
+                }
+                if (attrs->foregroundId != 0) {
+                    merged->foregroundId = attrs->foregroundId;
+                }
+                if (attrs->backgroundId != 0) {
+                    merged->backgroundId = attrs->backgroundId;
+                }
+                delete attrs;
+            }
+        }
+    }
+
+    return merged;
+}
+
 // Parse JSON theme and create Theme object
 // Use the shared parseJSONTheme from parseRawTheme.h
 // (Implementation moved to parseRawTheme.cpp to avoid duplication)
@@ -145,19 +216,53 @@ uint32_t textmate_theme_get_foreground(
     const char* scopePath,
     uint32_t defaultColor
 ) {
-    if (!theme || !scopePath || !scopePath[0]) {
+    if (!theme) {
         return defaultColor;
     }
 
     try {
         auto managed = static_cast<ManagedTheme*>(theme);
+        auto colorMap = managed->theme->getColorMap();
 
-        // For now, just return the default foreground color
-        // TODO: implement proper scope matching with theme trie
+        // If no scope path provided, return default foreground
+        if (!scopePath || !scopePath[0]) {
+            if (managed->defaults) {
+                int fgId = managed->defaults->foregroundId;
+                if (fgId > 0 && fgId < static_cast<int>(colorMap.size())) {
+                    return hexColorToUint32(colorMap[fgId]);
+                }
+            }
+            return defaultColor;
+        }
+
+        // Parse scope path
+        std::vector<ScopeName> scopes = parseScopePath(scopePath);
+        if (scopes.empty()) {
+            if (managed->defaults) {
+                int fgId = managed->defaults->foregroundId;
+                if (fgId > 0 && fgId < static_cast<int>(colorMap.size())) {
+                    return hexColorToUint32(colorMap[fgId]);
+                }
+            }
+            return defaultColor;
+        }
+
+        // Match all scopes against theme and merge results
+        StyleAttributes* attrs = matchAllScopes(managed->theme, scopes);
+
+        // Get color from matched attributes
+        if (attrs) {
+            int fgId = attrs->foregroundId;
+            delete attrs;
+
+            if (fgId > 0 && fgId < static_cast<int>(colorMap.size())) {
+                return hexColorToUint32(colorMap[fgId]);
+            }
+        }
+
+        // Fall back to default foreground
         if (managed->defaults) {
-            auto colorMap = managed->theme->getColorMap();
             int fgId = managed->defaults->foregroundId;
-
             if (fgId > 0 && fgId < static_cast<int>(colorMap.size())) {
                 return hexColorToUint32(colorMap[fgId]);
             }
@@ -174,19 +279,53 @@ uint32_t textmate_theme_get_background(
     const char* scopePath,
     uint32_t defaultColor
 ) {
-    if (!theme || !scopePath || !scopePath[0]) {
+    if (!theme) {
         return defaultColor;
     }
 
     try {
         auto managed = static_cast<ManagedTheme*>(theme);
+        auto colorMap = managed->theme->getColorMap();
 
-        // For now, just return the default background color
-        // TODO: implement proper scope matching with theme trie
+        // If no scope path provided, return default background
+        if (!scopePath || !scopePath[0]) {
+            if (managed->defaults) {
+                int bgId = managed->defaults->backgroundId;
+                if (bgId > 0 && bgId < static_cast<int>(colorMap.size())) {
+                    return hexColorToUint32(colorMap[bgId]);
+                }
+            }
+            return defaultColor;
+        }
+
+        // Parse scope path
+        std::vector<ScopeName> scopes = parseScopePath(scopePath);
+        if (scopes.empty()) {
+            if (managed->defaults) {
+                int bgId = managed->defaults->backgroundId;
+                if (bgId > 0 && bgId < static_cast<int>(colorMap.size())) {
+                    return hexColorToUint32(colorMap[bgId]);
+                }
+            }
+            return defaultColor;
+        }
+
+        // Match all scopes against theme and merge results
+        StyleAttributes* attrs = matchAllScopes(managed->theme, scopes);
+
+        // Get color from matched attributes
+        if (attrs) {
+            int bgId = attrs->backgroundId;
+            delete attrs;
+
+            if (bgId > 0 && bgId < static_cast<int>(colorMap.size())) {
+                return hexColorToUint32(colorMap[bgId]);
+            }
+        }
+
+        // Fall back to default background
         if (managed->defaults) {
-            auto colorMap = managed->theme->getColorMap();
             int bgId = managed->defaults->backgroundId;
-
             if (bgId > 0 && bgId < static_cast<int>(colorMap.size())) {
                 return hexColorToUint32(colorMap[bgId]);
             }
@@ -203,15 +342,45 @@ int32_t textmate_theme_get_font_style(
     const char* scopePath,
     int32_t defaultStyle
 ) {
-    if (!theme || !scopePath || !scopePath[0]) {
+    if (!theme) {
         return defaultStyle;
     }
 
     try {
         auto managed = static_cast<ManagedTheme*>(theme);
 
-        // For now, just return the default font style
-        // TODO: implement proper scope matching with theme trie
+        // If no scope path provided, return default font style
+        if (!scopePath || !scopePath[0]) {
+            if (managed->defaults) {
+                return managed->defaults->fontStyle;
+            }
+            return defaultStyle;
+        }
+
+        // Parse scope path
+        std::vector<ScopeName> scopes = parseScopePath(scopePath);
+        if (scopes.empty()) {
+            if (managed->defaults) {
+                return managed->defaults->fontStyle;
+            }
+            return defaultStyle;
+        }
+
+        // Match all scopes against theme and merge results
+        StyleAttributes* attrs = matchAllScopes(managed->theme, scopes);
+
+        // Get font style from matched attributes
+        if (attrs) {
+            int fontStyle = attrs->fontStyle;
+            delete attrs;
+
+            // FontStyle::NotSet is -1, only return if explicitly set
+            if (fontStyle >= 0) {
+                return fontStyle;
+            }
+        }
+
+        // Fall back to default font style
         if (managed->defaults) {
             return managed->defaults->fontStyle;
         }
