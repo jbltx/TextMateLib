@@ -1,0 +1,44 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    # Only run if this is a version packages merge
+    if: contains(github.event.head_commit.message, 'Version Packages')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(grep '"version"' src/js/package.json | head -1 | sed 's/.*"\([0-9.]*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          # Extract changes from recent commits or generate from package.json
+          echo "Release v${{ steps.version.outputs.version }}" > /tmp/release-notes.md
+          echo "" >> /tmp/release-notes.md
+          echo "## Changes" >> /tmp/release-notes.md
+          echo "" >> /tmp/release-notes.md
+          git log --oneline -10 --format="- %s" >> /tmp/release-notes.md
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --notes-file /tmp/release-notes.md \
+            --draft

@@ -1,0 +1,343 @@
+name: Draft Release Build
+
+on:
+  release:
+    types: [created]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  # Verify this is a draft release
+  check-draft:
+    runs-on: ubuntu-latest
+    outputs:
+      is_draft: ${{ steps.check.outputs.is_draft }}
+    steps:
+      - id: check
+        run: echo "is_draft=${{ github.event.release.draft }}" >> $GITHUB_OUTPUT
+
+  # Build native libraries for all platforms
+  build-native:
+    needs: check-draft
+    if: needs.check-draft.outputs.is_draft == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: linux-x64
+            lib_name: libtml.so
+            c_compiler: gcc
+            cpp_compiler: g++
+          - os: windows-latest
+            artifact: win-x64
+            lib_name: tml.dll
+            c_compiler: cl
+            cpp_compiler: cl
+          - os: macos-latest
+            artifact: osx-universal
+            lib_name: libtml.dylib
+            c_compiler: clang
+            cpp_compiler: clang++
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+          echo "build-shared-dir=${{ github.workspace }}/build-shared" >> "$GITHUB_OUTPUT"
+
+      - name: Configure CMake (Static)
+        run: >
+          cmake
+          -S ${{ github.workspace }}
+          -B ${{ steps.strings.outputs.build-dir }}
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+          -DBUILD_SHARED_LIBS=OFF
+          ${{ matrix.os == 'macos-latest' && '-DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"' || '' }}
+
+      - name: Configure CMake (Shared)
+        run: >
+          cmake
+          -S ${{ github.workspace }}
+          -B ${{ steps.strings.outputs.build-shared-dir }}
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+          -DBUILD_SHARED_LIBS=ON
+          ${{ matrix.os == 'macos-latest' && '-DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"' || '' }}
+
+      - name: Build Native Library (Static)
+        run: cmake --build ${{ steps.strings.outputs.build-dir }} --config ${{ env.BUILD_TYPE }}
+
+      - name: Build Native Library (Shared)
+        run: cmake --build ${{ steps.strings.outputs.build-shared-dir }} --config ${{ env.BUILD_TYPE }}
+
+      - name: Create artifact directory
+        shell: bash
+        run: |
+          mkdir -p artifacts/static
+          mkdir -p artifacts/shared
+
+      - name: Copy artifacts (Unix)
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: |
+          cp ${{ steps.strings.outputs.build-dir }}/*.a artifacts/static/ || true
+          cp ${{ steps.strings.outputs.build-shared-dir }}/${{ matrix.lib_name }} artifacts/shared/ || true
+
+      - name: Copy artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          cp ${{ steps.strings.outputs.build-dir }}/${{ env.BUILD_TYPE }}/*.lib artifacts/static/ || true
+          cp ${{ steps.strings.outputs.build-shared-dir }}/${{ env.BUILD_TYPE }}/*.dll artifacts/shared/ || true
+          cp ${{ steps.strings.outputs.build-shared-dir }}/${{ env.BUILD_TYPE }}/*.lib artifacts/shared/ || true
+
+      - name: Upload native artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.artifact }}
+          path: artifacts/
+
+  # Build WASM with standard variant
+  build-wasm:
+    needs: check-draft
+    if: needs.check-draft.outputs.is_draft == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: '4.0.9'
+          actions-cache-folder: 'emsdk-cache'
+
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-dir=${{ github.workspace }}/build-wasm" >> "$GITHUB_OUTPUT"
+
+      - name: Configure CMake for WASM
+        run: >
+          emcmake cmake
+          -S ${{ github.workspace }}
+          -B ${{ steps.strings.outputs.build-dir }}
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+          -DUSE_WASM_BUILD=ON
+          -DWASM_VARIANT=standard
+
+      - name: Build WASM Library
+        run: cmake --build ${{ steps.strings.outputs.build-dir }} --config ${{ env.BUILD_TYPE }}
+
+      - name: Create artifact directory
+        run: |
+          mkdir -p artifacts/wasm
+          cp ${{ steps.strings.outputs.build-dir }}/browser/*.js artifacts/wasm/ || true
+          cp ${{ steps.strings.outputs.build-dir }}/browser/*.wasm artifacts/wasm/ || true
+
+      - name: Upload WASM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm
+          path: artifacts/wasm/
+
+  # Package NPM (build only, no publish)
+  package-npm:
+    needs: [check-draft, build-wasm]
+    if: needs.check-draft.outputs.is_draft == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download WASM artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wasm
+          path: src/js/wasm/
+
+      - name: Install dependencies
+        working-directory: src/js
+        run: npm ci
+
+      - name: Build package
+        working-directory: src/js
+        run: npm run build
+
+      - name: Create package tarball
+        working-directory: src/js
+        run: npm pack
+
+      - name: Upload NPM package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: src/js/*.tgz
+
+  # Package NuGet (build only, no publish)
+  package-nuget:
+    needs: [check-draft, build-native]
+    if: needs.check-draft.outputs.is_draft == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: native-linux-x64
+          path: native-linux-x64/
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: native-win-x64
+          path: native-win-x64/
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: native-osx-universal
+          path: native-osx-universal/
+
+      - name: Prepare runtime assets
+        run: |
+          mkdir -p src/csharp/TextMateLib.Bindings/runtimes/linux-x64/native
+          mkdir -p src/csharp/TextMateLib.Bindings/runtimes/win-x64/native
+          mkdir -p src/csharp/TextMateLib.Bindings/runtimes/osx-x64/native
+          mkdir -p src/csharp/TextMateLib.Bindings/runtimes/osx-arm64/native
+
+          cp native-linux-x64/shared/libtml.so src/csharp/TextMateLib.Bindings/runtimes/linux-x64/native/ || true
+          cp native-win-x64/shared/tml.dll src/csharp/TextMateLib.Bindings/runtimes/win-x64/native/ || true
+          cp native-osx-universal/shared/libtml.dylib src/csharp/TextMateLib.Bindings/runtimes/osx-x64/native/ || true
+          cp native-osx-universal/shared/libtml.dylib src/csharp/TextMateLib.Bindings/runtimes/osx-arm64/native/ || true
+
+      - name: Build NuGet package
+        run: dotnet pack src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj --configuration Release --output ./nupkg
+
+      - name: Upload NuGet package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: ./nupkg/
+
+  # Attach all packages to the draft GitHub Release
+  attach-to-release:
+    needs: [check-draft, build-native, build-wasm, package-npm, package-nuget]
+    if: needs.check-draft.outputs.is_draft == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: native-linux-x64
+          path: native-linux-x64/
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: native-win-x64
+          path: native-win-x64/
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: native-osx-universal
+          path: native-osx-universal/
+
+      - name: Download WASM artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wasm
+          path: wasm/
+
+      - name: Download NPM package
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: npm-package/
+
+      - name: Download NuGet package
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-package
+          path: nuget-package/
+
+      - name: Create zip archives for native libraries
+        run: |
+          # Linux
+          cd native-linux-x64
+          zip -r ../textmatelib-linux-x64.zip static/ shared/
+          cd ..
+
+          # Windows
+          cd native-win-x64
+          zip -r ../textmatelib-win-x64.zip static/ shared/
+          cd ..
+
+          # macOS
+          cd native-osx-universal
+          zip -r ../textmatelib-osx-universal.zip static/ shared/
+          cd ..
+
+          # WASM
+          cd wasm
+          zip -r ../textmatelib-wasm.zip .
+          cd ..
+
+      - name: Upload assets to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Upload native library archives
+          gh release upload "${{ github.event.release.tag_name }}" \
+            textmatelib-linux-x64.zip \
+            textmatelib-win-x64.zip \
+            textmatelib-osx-universal.zip \
+            textmatelib-wasm.zip \
+            --repo "${{ github.repository }}"
+
+          # Upload NPM package tarball
+          gh release upload "${{ github.event.release.tag_name }}" \
+            npm-package/*.tgz \
+            --repo "${{ github.repository }}"
+
+          # Upload NuGet packages
+          gh release upload "${{ github.event.release.tag_name }}" \
+            nuget-package/*.nupkg \
+            nuget-package/*.snupkg \
+            --repo "${{ github.repository }}" || true

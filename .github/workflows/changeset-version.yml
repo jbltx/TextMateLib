@@ -1,0 +1,66 @@
+name: Changeset Version
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changesets
+        id: check
+        run: |
+          if [ -d ".changesets" ] && [ "$(ls -A .changesets/*.md 2>/dev/null)" ]; then
+            echo "has_changesets=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changesets=false" >> $GITHUB_OUTPUT
+            echo "No changesets found, skipping version bump"
+          fi
+
+      - name: Parse changesets and bump versions
+        if: steps.check.outputs.has_changesets == 'true'
+        id: version
+        run: |
+          chmod +x ./scripts/bump-versions.sh
+          ./scripts/bump-versions.sh
+
+      - name: Commit and create PR
+        if: steps.check.outputs.has_changesets == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create or checkout release branch
+          git checkout -B changeset-release
+
+          # Stage and commit
+          git add -A
+          git commit -m "Version Packages"
+
+          # Force push
+          git push --force origin changeset-release
+
+          # Create or update PR
+          existing_pr=$(gh pr list --head changeset-release --base main --json number -q '.[0].number' || echo "")
+          if [ -n "$existing_pr" ]; then
+            echo "Updated existing PR #$existing_pr"
+          else
+            gh pr create \
+              --title "Version Packages" \
+              --body-file /tmp/pr-body.md \
+              --base main \
+              --head changeset-release
+          fi
