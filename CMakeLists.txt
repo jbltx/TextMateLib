@@ -87,7 +87,8 @@ if(NOT USE_WASM_BUILD)
         set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi")
     else()
         # GCC/Clang flags
-        set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -march=native -ffast-math")
+        # Note: -march=native is omitted to allow cross-compilation (e.g., universal binaries on macOS)
+        set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -ffast-math")
         set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
     endif()
 endif()
@@ -181,6 +182,22 @@ if(NOT USE_WASM_BUILD)
     # On Windows/MSVC, ensure matching runtime library
     if(MSVC)
         list(APPEND ONIG_CMAKE_ARGS -DMSVC_STATIC_RUNTIME=ON)
+    endif()
+
+    # On Apple platforms, propagate architecture and SDK settings
+    if(CMAKE_OSX_ARCHITECTURES)
+        # Join the list with semicolons and quote it properly for ExternalProject
+        string(REPLACE ";" "$<SEMICOLON>" ONIG_OSX_ARCHITECTURES "${CMAKE_OSX_ARCHITECTURES}")
+        list(APPEND ONIG_CMAKE_ARGS "-DCMAKE_OSX_ARCHITECTURES=${ONIG_OSX_ARCHITECTURES}")
+    endif()
+    if(CMAKE_OSX_DEPLOYMENT_TARGET)
+        list(APPEND ONIG_CMAKE_ARGS -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
+    endif()
+    if(CMAKE_OSX_SYSROOT)
+        list(APPEND ONIG_CMAKE_ARGS -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT})
+    endif()
+    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        list(APPEND ONIG_CMAKE_ARGS -DCMAKE_SYSTEM_NAME=iOS)
     endif()
 
     ExternalProject_Add(

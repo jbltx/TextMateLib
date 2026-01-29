@@ -361,13 +361,21 @@ std::vector<ThemeTrieElementRule*> ThemeTrieElement::match(const ScopeName& scop
     // Add rules with parent scopes
     result.insert(result.end(), _rulesWithParentScopes.begin(), _rulesWithParentScopes.end());
 
-    // Check children
-    std::string dotScope = "." + scope;
-    for (auto& pair : _children) {
-        if (_matchesScope(scope, pair.first)) {
-            auto childMatches = pair.second->match(scope);
-            result.insert(result.end(), childMatches.begin(), childMatches.end());
-        }
+    // If scope is empty, return current rules
+    if (scope.empty()) {
+        return result;
+    }
+
+    // Traverse trie segment by segment (matching insert() behavior)
+    size_t dotIndex = scope.find('.');
+    std::string head = (dotIndex == std::string::npos) ? scope : scope.substr(0, dotIndex);
+    std::string tail = (dotIndex == std::string::npos) ? "" : scope.substr(dotIndex + 1);
+
+    // Look for exact match on first segment
+    auto it = _children.find(head);
+    if (it != _children.end()) {
+        auto childMatches = it->second->match(tail);
+        result.insert(result.end(), childMatches.begin(), childMatches.end());
     }
 
     return result;
@@ -421,8 +429,10 @@ void ThemeTrieElement::insert(int scopeDepth,
     if (it != _children.end()) {
         child = it->second;
     } else {
+        // Create intermediate child with placeholder rule (no style yet)
+        // The actual style will be set via acceptOverwrite when we reach the final destination
         child = new ThemeTrieElement(
-            new ThemeTrieElementRule(scopeDepth, parentScopes, fontStyle, foreground, background),
+            new ThemeTrieElementRule(0, nullptr, static_cast<int>(FontStyle::NotSet), 0, 0),
             std::vector<ThemeTrieElementRule*>()
         );
         _children[head] = child;
@@ -582,10 +592,13 @@ StyleAttributes* Theme::match(ScopeStack* scopePath) {
 
     // Find the effective rule
     ThemeTrieElementRule* effectiveRule = nullptr;
+    // Find the most specific matching rule
+    // Rules are returned in order from root (least specific) to deepest (most specific)
+    // We want the last/deepest match, so don't break - keep iterating
     for (auto* rule : matchingTrieElements) {
         if (_scopePathMatchesParentScopes(scopePath->parent, rule->parentScopes)) {
             effectiveRule = rule;
-            break;
+            // Continue to find more specific matches (deeper in the trie)
         }
     }
 
