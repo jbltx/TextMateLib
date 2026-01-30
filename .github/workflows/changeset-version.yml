@@ -31,13 +31,9 @@ jobs:
       - name: Parse changesets and bump versions
         if: steps.check.outputs.has_changesets == 'true'
         id: version
-        run: |
-          chmod +x ./scripts/bump-versions.sh
-          ./scripts/bump-versions.sh
-
-          echo "=== Generated PR body ==="
-          cat /tmp/pr-body.md
-          echo "=== End PR body ==="
+        uses: ./.github/actions/bump-versions
+        with:
+          github-token: ${{ github.token }}
 
       - name: Commit and create PR
         if: steps.check.outputs.has_changesets == 'true'
