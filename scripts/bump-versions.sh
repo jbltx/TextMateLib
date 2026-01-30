@@ -21,8 +21,11 @@ for file in "$ROOT_DIR"/.changeset/*.md; do
     # Skip README.md
     [ "$(basename "$file")" = "README.md" ] && continue
 
+    echo "Processing changeset: $(basename "$file")"
+
     # Extract bump type from frontmatter
     type=$(sed -n '/^---$/,/^---$/p' "$file" | grep -E "^\s*[\"']?textmatelib[\"']?\s*:" | sed 's/.*:\s*//' | tr -d " \"'")
+    echo "  Bump type: '$type'"
 
     case "$type" in
         major) BUMP_TYPE="major" ;;
@@ -32,6 +35,7 @@ for file in "$ROOT_DIR"/.changeset/*.md; do
     # Extract description (after second ---), preserve multiline with indentation
     # First line no indent, subsequent lines indented with 2 spaces for markdown bullets
     desc=$(sed '1,/^---$/d;1,/^---$/d' "$file" | sed '/./,$!d' | sed '2,$s/^/  /')
+    echo "  Description: '$desc'"
     CHANGELOG="$CHANGELOG\n- $desc"
 done
 
