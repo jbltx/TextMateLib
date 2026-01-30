@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+# Example changeset markdown format (both single and double quotes supported):
+# ---
+# 'textmatelib': minor
+# ---
+#
+# Added support for incremental tokenization with line caching
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
@@ -12,7 +19,7 @@ for file in "$ROOT_DIR"/.changesets/*.md; do
     [ -f "$file" ] || continue
 
     # Extract bump type from frontmatter
-    type=$(sed -n '/^---$/,/^---$/p' "$file" | grep -E '^\s*"?textmatelib"?\s*:' | sed 's/.*:\s*//' | tr -d ' "')
+    type=$(sed -n '/^---$/,/^---$/p' "$file" | grep -E '^\s*["\']?textmatelib["\']?\s*:' | sed 's/.*:\s*//' | tr -d ' "'\'''))
 
     case "$type" in
         major) BUMP_TYPE="major" ;;

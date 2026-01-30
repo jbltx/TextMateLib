@@ -6,7 +6,7 @@ import os
 
 class TextMateLibConan(ConanFile):
     name = "textmatelib"
-    version = "1.0.0"
+    version = "0.1.0"
     license = "MIT"
     author = "Mickael Bonfill <jbltx@protonmail.com>"
     url = "https://github.com/jbltx/TextMateLib"
