@@ -35,6 +35,10 @@ jobs:
           chmod +x ./scripts/bump-versions.sh
           ./scripts/bump-versions.sh
 
+          echo "=== Generated PR body ==="
+          cat /tmp/pr-body.md
+          echo "=== End PR body ==="
+
       - name: Commit and create PR
         if: steps.check.outputs.has_changesets == 'true'
         env:
