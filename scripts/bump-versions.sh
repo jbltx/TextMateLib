@@ -29,8 +29,9 @@ for file in "$ROOT_DIR"/.changeset/*.md; do
         minor) [ "$BUMP_TYPE" != "major" ] && BUMP_TYPE="minor" ;;
     esac
 
-    # Extract description (after second ---)
-    desc=$(sed '1,/^---$/d;1,/^---$/d' "$file" | sed '/^$/d')
+    # Extract description (after second ---), preserve multiline with indentation
+    # First line no indent, subsequent lines indented with 2 spaces for markdown bullets
+    desc=$(sed '1,/^---$/d;1,/^---$/d' "$file" | sed '/./,$!d' | sed '2,$s/^/  /')
     CHANGELOG="$CHANGELOG\n- $desc"
 done
 
