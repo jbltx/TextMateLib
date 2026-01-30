@@ -56,6 +56,7 @@ jobs:
           # Create or update PR
           existing_pr=$(gh pr list --head changeset-release --base main --json number -q '.[0].number' || echo "")
           if [ -n "$existing_pr" ]; then
+            gh pr edit "$existing_pr" --body-file /tmp/pr-body.md
             echo "Updated existing PR #$existing_pr"
           else
             gh pr create \
