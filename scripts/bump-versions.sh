@@ -22,7 +22,7 @@ for file in "$ROOT_DIR"/.changeset/*.md; do
     [ "$(basename "$file")" = "README.md" ] && continue
 
     # Extract bump type from frontmatter
-    type=$(sed -n '/^---$/,/^---$/p' "$file" | grep -E '^\s*["\x27]?textmatelib["\x27]?\s*:' | sed 's/.*:\s*//' | tr -d ' "\x27')
+    type=$(sed -n '/^---$/,/^---$/p' "$file" | grep -E "^\s*[\"']?textmatelib[\"']?\s*:" | sed 's/.*:\s*//' | tr -d " \"'")
 
     case "$type" in
         major) BUMP_TYPE="major" ;;
