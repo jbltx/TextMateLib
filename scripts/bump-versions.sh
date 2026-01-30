@@ -15,11 +15,14 @@ ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 BUMP_TYPE="patch"
 CHANGELOG=""
 
-for file in "$ROOT_DIR"/.changesets/*.md; do
+for file in "$ROOT_DIR"/.changeset/*.md; do
     [ -f "$file" ] || continue
 
+    # Skip README.md
+    [ "$(basename "$file")" = "README.md" ] && continue
+
     # Extract bump type from frontmatter
-    type=$(sed -n '/^---$/,/^---$/p' "$file" | grep -E '^\s*["\']?textmatelib["\']?\s*:' | sed 's/.*:\s*//' | tr -d ' "'\'''))
+    type=$(sed -n '/^---$/,/^---$/p' "$file" | grep -E '^\s*["\x27]?textmatelib["\x27]?\s*:' | sed 's/.*:\s*//' | tr -d ' "\x27')
 
     case "$type" in
         major) BUMP_TYPE="major" ;;
@@ -63,8 +66,10 @@ rm -f "$ROOT_DIR/src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj.bak
 # Update playground/package.json
 cd "$ROOT_DIR/playground" && npm pkg set version="$NEW_VERSION"
 
-# Delete consumed changesets
-rm -f "$ROOT_DIR"/.changesets/*.md
+# Delete consumed changesets (keep README.md)
+for file in "$ROOT_DIR"/.changeset/*.md; do
+    [ "$(basename "$file")" != "README.md" ] && rm -f "$file"
+done
 
 # Generate PR body
 cat > /tmp/pr-body.md << EOF
@@ -83,4 +88,4 @@ $(echo -e "$CHANGELOG")
 - playground/package.json
 EOF
 
-echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+[ -n "$GITHUB_OUTPUT" ] && echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT

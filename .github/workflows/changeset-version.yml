@@ -21,7 +21,7 @@ jobs:
       - name: Check for changesets
         id: check
         run: |
-          if [ -d ".changesets" ] && [ "$(ls -A .changesets/*.md 2>/dev/null)" ]; then
+          if [ -d ".changeset" ] && [ "$(ls -A .changeset/*.md 2>/dev/null | grep -v README.md)" ]; then
             echo "has_changesets=true" >> $GITHUB_OUTPUT
           else
             echo "has_changesets=false" >> $GITHUB_OUTPUT
