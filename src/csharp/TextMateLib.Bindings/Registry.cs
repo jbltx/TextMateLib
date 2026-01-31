@@ -136,6 +136,9 @@ namespace TextMateLib.Bindings
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Finalizer to ensure resources are released
+        /// </summary>
         ~Registry()
         {
             Dispose();

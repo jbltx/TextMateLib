@@ -38,6 +38,8 @@ namespace TextMateLib.Bindings
         /// <summary>
         /// Gets the value of the token from the source line
         /// </summary>
+        /// <param name="line">The source line</param>
+        /// <returns>The substring representing the token</returns>
         public string GetValue(string line)
         {
             if (string.IsNullOrEmpty(line))
@@ -50,6 +52,10 @@ namespace TextMateLib.Bindings
             return line.Substring(StartIndex, length);
         }
 
+        /// <summary>
+        /// Returns a string representation of the token
+        /// </summary>
+        /// <returns>String representation</returns>
         public override string ToString()
         {
             return $"Token [{StartIndex}..{EndIndex}] Scopes: {string.Join(", ", Scopes)}";
