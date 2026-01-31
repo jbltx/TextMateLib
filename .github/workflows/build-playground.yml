@@ -8,8 +8,14 @@ on:
     branches:
       - develop
       - main
+  pull_request_target:
+    branches:
+      - develop
+      - main
 
-concurrency: build-playground-${{ github.ref }}
+concurrency:
+  group: build-playground-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
