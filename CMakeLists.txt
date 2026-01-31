@@ -15,9 +15,11 @@ set_property(CACHE WASM_VARIANT PROPERTY STRINGS "minimal" "standard" "full" "de
 
 # WASM 2023 Configuration (when building for WebAssembly)
 if(USE_WASM_BUILD)
-    # WebAssembly 2023 target flags
+    # WebAssembly 2023 target flags (per Unity documentation for 2023.2+/6000.0)
+    # IMPORTANT: Must build with Unity's bundled Emscripten (3.1.39) for compatibility.
+    # Using a different Emscripten version will cause linker errors in Unity.
+    # See: https://docs.unity3d.com/6000.0/Documentation/Manual/webgl-native-plugins-with-emscripten.html
     set(WASM_2023_FLAGS
-        -target wasm32-unknown-emscripten
         -msimd128
         -fwasm-exceptions
         -mbulk-memory
@@ -43,20 +45,14 @@ if(USE_WASM_BUILD)
         -s MAXIMUM_MEMORY=536870912
     )
 
-    # Bulk memory operations
+    # Bulk memory operations (included in WASM_2023_FLAGS)
     set(WASM_BULK_MEMORY
         -mbulk-memory
         -s BULK_MEMORY=1
     )
 
-    # Exception handling (compiler flag)
+    # Exception handling via native WASM exceptions (included in WASM_2023_FLAGS)
     set(EXCEPTION_FLAGS -fwasm-exceptions)
-
-    # Linker exception flags (separate) - not used for static library builds
-    set(EXCEPTION_LINKER_FLAGS
-        -s EXCEPTION_CATCHING_ALLOWED='["std::exception"]'
-        -sLIKE_FETCH=1
-    )
 
     # Variant-specific flags
     if(WASM_VARIANT STREQUAL "full" OR WASM_VARIANT STREQUAL "debug")
@@ -65,10 +61,9 @@ if(USE_WASM_BUILD)
 
     # Combine all flags for compilation (excluding linker-only flags)
     string(REPLACE ";" " " WASM_2023_FLAGS_STR "${WASM_2023_FLAGS}")
-    string(REPLACE ";" " " EXCEPTION_FLAGS_STR "${EXCEPTION_FLAGS}")
 
     # Compiler flags for object file generation suitable for archiving
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WASM_2023_FLAGS_STR} ${EXCEPTION_FLAGS_STR}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WASM_2023_FLAGS_STR}")
 
     # Set output format - for static archives, skip JavaScript/WASM runtime flags
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
@@ -224,8 +219,9 @@ else()
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=Release
             -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-            -DCMAKE_CROSSCOMPILING_EMULATOR=${CMAKE_CROSSCOMPILING_EMULATOR}
             -DCMAKE_INSTALL_PREFIX=${ONIG_INSTALL_DIR}
+            # Note: CMAKE_CROSSCOMPILING_EMULATOR intentionally omitted - not needed for
+            # static library builds and causes issues when it contains node arguments
         INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install
     )
 
@@ -242,9 +238,41 @@ if(USE_WASM_BUILD)
         ${TEXTMATE_SOURCES}
     )
     set_target_properties(tml PROPERTIES
-        OUTPUT_NAME "tml-${WASM_VARIANT}"
+        OUTPUT_NAME "tml-${WASM_VARIANT}-partial"
         SUFFIX ".a"
         ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/wasm
+    )
+
+    # Create merged library containing both tml and oniguruma
+    # This is necessary because Unity's WebGL linker needs all symbols in a single archive
+    set(TML_MERGED_LIB ${CMAKE_CURRENT_BINARY_DIR}/wasm/libtml-${WASM_VARIANT}.a)
+    set(MERGE_TMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/wasm/merge_tmp)
+
+    # Create a shell script to merge the libraries (needed for glob expansion)
+    set(MERGE_SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/merge_libs.sh)
+    file(WRITE ${MERGE_SCRIPT} "#!/bin/bash
+set -e
+rm -rf ${MERGE_TMP_DIR}
+mkdir -p ${MERGE_TMP_DIR}/tml
+mkdir -p ${MERGE_TMP_DIR}/onig
+cd ${MERGE_TMP_DIR}/tml && ${CMAKE_AR} x $1
+cd ${MERGE_TMP_DIR}/onig && ${CMAKE_AR} x $2
+${CMAKE_AR} rcs $3 ${MERGE_TMP_DIR}/tml/*.o ${MERGE_TMP_DIR}/onig/*.o
+${CMAKE_RANLIB} $3
+rm -rf ${MERGE_TMP_DIR}
+")
+
+    add_custom_command(
+        OUTPUT ${TML_MERGED_LIB}
+        DEPENDS tml oniguruma_wasm
+        COMMAND chmod +x ${MERGE_SCRIPT}
+        COMMAND ${MERGE_SCRIPT} $<TARGET_FILE:tml> ${ONIGURUMA_LIB} ${TML_MERGED_LIB}
+        COMMENT "Merging tml and oniguruma into single static library"
+        VERBATIM
+    )
+
+    add_custom_target(tml_merged ALL
+        DEPENDS ${TML_MERGED_LIB}
     )
 
     # 2. Executable target for browser testing (.js + .wasm)
