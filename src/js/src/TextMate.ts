@@ -24,7 +24,7 @@ export class TextMate {
    */
   static async create(): Promise<TextMate> {
     // Dynamic import of the WASM module
-    const createModule = await import('../../wasm/tml-standard.js');
+    const createModule = await import('../wasm/tml-standard.js');
     const module = await createModule.default() as WasmModule;
     return new TextMate(module);
   }

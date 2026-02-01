@@ -19,7 +19,10 @@
   ],
   "scripts": {
     "build": "rollup -c && tsc --emitDeclarationOnly",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [
     "textmate",
@@ -38,8 +41,12 @@
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-typescript": "^12.1.2",
+    "@vitest/coverage-v8": "^4.0.18",
     "rollup": "^4.29.1",
+    "tm-grammars": "^1.30.2",
+    "tm-themes": "^1.11.0",
     "tslib": "^2.8.1",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^4.0.18"
   }
 }

@@ -22,5 +22,5 @@ export default {
       declaration: false
     })
   ],
-  external: []
+  external: [/\.\.\/wasm\//]
 };

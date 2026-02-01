@@ -105,3 +105,43 @@ jobs:
 
       - name: Run C# Tests
         run: dotnet test tests/csharp/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release --verbosity normal
+
+  js-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: '3.1.51'
+
+      - name: Build WASM
+        run: ./scripts/build-wasm-standard.sh
+
+      - name: Copy WASM to src/js/wasm
+        run: |
+          mkdir -p src/js/wasm
+          cp build/wasm-standard/browser/tml-standard.js src/js/wasm/
+          cp build/wasm-standard/browser/tml-standard.wasm src/js/wasm/
+
+      - name: Install JS package dependencies
+        working-directory: src/js
+        run: npm install
+
+      - name: Build JS package
+        working-directory: src/js
+        run: npm run build
+
+      - name: Run JS tests
+        working-directory: src/js
+        run: npm test
