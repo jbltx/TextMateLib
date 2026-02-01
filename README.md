@@ -10,7 +10,7 @@ Want to see TextMateLib in action? Check out our **[interactive playground](play
 - 🐛 Debug view showing detailed tokenization
 - ⚡ Real-time syntax highlighting
 
-[**→ Open the Playground**](playground/README.md)
+[**→ Open the Playground**](https://tml.jbltx.com)
 
 ## Features
 
@@ -38,7 +38,7 @@ Want to see TextMateLib in action? Check out our **[interactive playground](play
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/TextMateLib.git
+git clone https://github.com/jbltx/TextMateLib.git
 cd TextMateLib
 
 # Build the library (Release)
@@ -92,10 +92,10 @@ make benchmark_session
 
 ```
 ┌─────────────────────────────────────────────────┐
-│  Public APIs (C++, C, JavaScript/WASM)         │
+│  Public APIs (C++, C, JavaScript/WASM)          │
 ├─────────────────────────────────────────────────┤
-│  Session API        │  Syntax Highlighter      │
-│  (Stateful)         │  (Convenience Wrapper)   │
+│  Session API        │  Syntax Highlighter       │
+│  (Stateful)         │  (Convenience Wrapper)    │
 ├─────────────────────────────────────────────────┤
 │  Grammar (Tokenization Logic)                   │
 │  - Rule matching, state transitions             │
@@ -103,12 +103,12 @@ make benchmark_session
 ├─────────────────────────────────────────────────┤
 │  Registry (Grammar/Theme Management)            │
 │  - Grammar lookup and caching                   │
-│  - Theme application                           │
+│  - Theme application                            │
 ├─────────────────────────────────────────────────┤
 │  Core Components                                │
-│  - Regex engine (Oniguruma)                    │
-│  - JSON parser (RapidJSON)                     │
-│  - Scope/attribute providers                   │
+│  - Regex engine (Oniguruma)                     │
+│  - JSON parser (RapidJSON)                      │
+│  - Scope/attribute providers                    │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -275,6 +275,33 @@ int main() {
 </html>
 ```
 
+### JavaScript / TypeScript (NPM)
+
+```typescript
+import { TextMate, Registry, Grammar } from 'textmatelib';
+
+// Create a TextMate instance
+const textmate = new TextMate();
+
+// Initialize with WASM module
+await textmate.init();
+
+// Create a registry and load grammars
+const registry = new Registry();
+await registry.loadGrammarFromFile('path/to/javascript.json');
+
+// Get grammar and tokenize
+const grammar = registry.grammarForScopeName('source.js');
+const tokens = grammar.tokenizeString('const x = 42;');
+
+// Process tokens
+tokens.forEach(token => {
+  console.log(`Token: ${token.value} (scope: ${token.scope})`);
+});
+```
+
+See [JavaScript Bindings Documentation](src/js/README.md) for detailed usage and API reference.
+
 ### C# / .NET
 
 ```csharp
@@ -346,6 +373,17 @@ See [C# Bindings Documentation](src/csharp/README.md) for detailed usage and API
 │       │   ├── Grammar.cs        # Grammar API wrapper
 │       │   └── Token.cs          # Token data structures
 │       └── README.md             # C# bindings documentation
+│   │
+│   └── js/                       # JavaScript bindings (WASM)
+│       ├── src/
+│       │   ├── index.ts          # Main JS entry point
+│       │   ├── types.ts          # Type definitions
+│       │   ├── Grammar.ts        # Grammar wrapper
+│       │   ├── Registry.ts       # Registry wrapper
+│       │   ├── TextMate.ts       # Main API
+│       ├── package.json         # NPM package definition
+│       ├── rollup.config.js     # Rollup build config
+│       └── tsconfig.json        # TypeScript config
 │
 ├── tests/                        # Test suites
 │   ├── test_first_mate/         # Core tokenization tests
