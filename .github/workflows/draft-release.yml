@@ -53,13 +53,13 @@ jobs:
         id: strings
         shell: bash
         run: |
-          echo "build-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
-          echo "build-shared-dir=${{ github.workspace }}/build-shared" >> "$GITHUB_OUTPUT"
+          echo "build-dir=${{ github.workspace }}/packages/tml-cpp/build" >> "$GITHUB_OUTPUT"
+          echo "build-shared-dir=${{ github.workspace }}/packages/tml-cpp/build-shared" >> "$GITHUB_OUTPUT"
 
       - name: Configure CMake (Static)
         run: >
           cmake
-          -S ${{ github.workspace }}
+          -S ${{ github.workspace }}/packages/tml-cpp
           -B ${{ steps.strings.outputs.build-dir }}
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
@@ -70,7 +70,7 @@ jobs:
       - name: Configure CMake (Shared)
         run: >
           cmake
-          -S ${{ github.workspace }}
+          -S ${{ github.workspace }}/packages/tml-cpp
           -B ${{ steps.strings.outputs.build-shared-dir }}
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
@@ -133,12 +133,12 @@ jobs:
         id: strings
         shell: bash
         run: |
-          echo "build-dir=${{ github.workspace }}/build-wasm" >> "$GITHUB_OUTPUT"
+          echo "build-dir=${{ github.workspace }}/packages/tml-cpp/build-wasm" >> "$GITHUB_OUTPUT"
 
       - name: Configure CMake for WASM
         run: >
           emcmake cmake
-          -S ${{ github.workspace }}
+          -S ${{ github.workspace }}/packages/tml-cpp
           -B ${{ steps.strings.outputs.build-dir }}
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
           -DUSE_WASM_BUILD=ON
@@ -178,25 +178,25 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: wasm
-          path: src/js/wasm/
+          path: packages/tml-js/wasm/
 
       - name: Install dependencies
-        working-directory: src/js
+        working-directory: packages/tml-js
         run: npm ci
 
       - name: Build package
-        working-directory: src/js
+        working-directory: packages/tml-js
         run: npm run build
 
       - name: Create package tarball
-        working-directory: src/js
+        working-directory: packages/tml-js
         run: npm pack
 
       - name: Upload NPM package artifact
         uses: actions/upload-artifact@v4
         with:
           name: npm-package
-          path: src/js/*.tgz
+          path: packages/tml-js/*.tgz
 
   # Package NuGet (build only, no publish)
   package-nuget:
@@ -233,18 +233,18 @@ jobs:
 
       - name: Prepare runtime assets
         run: |
-          mkdir -p src/csharp/TextMateLib.Bindings/runtimes/linux-x64/native
-          mkdir -p src/csharp/TextMateLib.Bindings/runtimes/win-x64/native
-          mkdir -p src/csharp/TextMateLib.Bindings/runtimes/osx-x64/native
-          mkdir -p src/csharp/TextMateLib.Bindings/runtimes/osx-arm64/native
+          mkdir -p packages/tml-cs/src/TextMateLib.Bindings/runtimes/linux-x64/native
+          mkdir -p packages/tml-cs/src/TextMateLib.Bindings/runtimes/win-x64/native
+          mkdir -p packages/tml-cs/src/TextMateLib.Bindings/runtimes/osx-x64/native
+          mkdir -p packages/tml-cs/src/TextMateLib.Bindings/runtimes/osx-arm64/native
 
-          cp native-linux-x64/shared/libtml.so src/csharp/TextMateLib.Bindings/runtimes/linux-x64/native/ || true
-          cp native-win-x64/shared/tml.dll src/csharp/TextMateLib.Bindings/runtimes/win-x64/native/ || true
-          cp native-osx-universal/shared/libtml.dylib src/csharp/TextMateLib.Bindings/runtimes/osx-x64/native/ || true
-          cp native-osx-universal/shared/libtml.dylib src/csharp/TextMateLib.Bindings/runtimes/osx-arm64/native/ || true
+          cp native-linux-x64/shared/libtml.so packages/tml-cs/src/TextMateLib.Bindings/runtimes/linux-x64/native/ || true
+          cp native-win-x64/shared/tml.dll packages/tml-cs/src/TextMateLib.Bindings/runtimes/win-x64/native/ || true
+          cp native-osx-universal/shared/libtml.dylib packages/tml-cs/src/TextMateLib.Bindings/runtimes/osx-x64/native/ || true
+          cp native-osx-universal/shared/libtml.dylib packages/tml-cs/src/TextMateLib.Bindings/runtimes/osx-arm64/native/ || true
 
       - name: Build NuGet package
-        run: dotnet pack src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj --configuration Release --output ./nupkg
+        run: dotnet pack packages/tml-cs/src/TextMateLib.Bindings/TextMateLib.Bindings.csproj --configuration Release --output ./nupkg
 
       - name: Upload NuGet package artifact
         uses: actions/upload-artifact@v4

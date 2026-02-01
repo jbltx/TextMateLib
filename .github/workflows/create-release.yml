@@ -21,7 +21,7 @@ jobs:
       - name: Extract version
         id: version
         run: |
-          VERSION=$(grep '"version"' src/js/package.json | head -1 | sed 's/.*"\([0-9.]*\)".*/\1/')
+          VERSION=$(grep '"version"' packages/tml-js/package.json | head -1 | sed 's/.*"\([0-9.]*\)".*/\1/')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Generate release notes

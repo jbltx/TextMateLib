@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextMateLib.Tests", "TextMateLib.Tests.csproj", "{8FAA4237-3142-4406-87D4-585AFE8A5975}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextMateLib.Bindings", "..\..\src\TextMateLib.Bindings\TextMateLib.Bindings.csproj", "{D8C3FF12-1CA6-4CF7-9112-4333CEEB4718}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8FAA4237-3142-4406-87D4-585AFE8A5975}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FAA4237-3142-4406-87D4-585AFE8A5975}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FAA4237-3142-4406-87D4-585AFE8A5975}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FAA4237-3142-4406-87D4-585AFE8A5975}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8C3FF12-1CA6-4CF7-9112-4333CEEB4718}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8C3FF12-1CA6-4CF7-9112-4333CEEB4718}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8C3FF12-1CA6-4CF7-9112-4333CEEB4718}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8C3FF12-1CA6-4CF7-9112-4333CEEB4718}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

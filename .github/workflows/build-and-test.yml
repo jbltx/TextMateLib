@@ -58,8 +58,8 @@ jobs:
         id: strings
         shell: bash
         run: |
-          echo "build-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
-          echo "build-shared-dir=${{ github.workspace }}/build-shared" >> "$GITHUB_OUTPUT"
+          echo "build-dir=${{ github.workspace }}/packages/tml-cpp/build" >> "$GITHUB_OUTPUT"
+          echo "build-shared-dir=${{ github.workspace }}/packages/tml-cpp/build-shared" >> "$GITHUB_OUTPUT"
           echo "onig-source-dir=${{ github.workspace }}/thirdparty/oniguruma" >> "$GITHUB_OUTPUT"
           echo "onig-build-dir=${{ github.workspace }}/thirdparty/oniguruma/build" >> "$GITHUB_OUTPUT"
 
@@ -71,7 +71,7 @@ jobs:
       - name: Configure CMake
         run: >
           cmake
-          -S ${{ github.workspace }}
+          -S ${{ github.workspace }}/packages/tml-cpp
           -B ${{ steps.strings.outputs.build-dir }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
@@ -81,7 +81,7 @@ jobs:
       - name: Configure CMake [Shared]
         run: >
           cmake
-          -S ${{ github.workspace }}
+          -S ${{ github.workspace }}/packages/tml-cpp
           -B ${{ steps.strings.outputs.build-shared-dir }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
@@ -98,13 +98,13 @@ jobs:
         run: ctest --build-config ${{ matrix.build_type }} -V
 
       - name: Build C# Bindings
-        run: dotnet build src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj --configuration Release
+        run: dotnet build packages/tml-cs/src/TextMateLib.Bindings/TextMateLib.Bindings.csproj --configuration Release
 
       - name: Build C# Tests
-        run: dotnet build tests/csharp/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release
+        run: dotnet build packages/tml-cs/tests/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release
 
       - name: Run C# Tests
-        run: dotnet test tests/csharp/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release --verbosity normal
+        run: dotnet test packages/tml-cs/tests/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release --verbosity normal
 
   js-tests:
     runs-on: ubuntu-latest
@@ -126,22 +126,23 @@ jobs:
           version: '3.1.51'
 
       - name: Build WASM
+        working-directory: packages/tml-cpp
         run: ./scripts/build-wasm-standard.sh
 
-      - name: Copy WASM to src/js/wasm
+      - name: Copy WASM to packages/tml-js/wasm
         run: |
-          mkdir -p src/js/wasm
-          cp build/wasm-standard/browser/tml-standard.js src/js/wasm/
-          cp build/wasm-standard/browser/tml-standard.wasm src/js/wasm/
+          mkdir -p packages/tml-js/wasm
+          cp packages/tml-cpp/build/wasm-standard/browser/tml-standard.js packages/tml-js/wasm/
+          cp packages/tml-cpp/build/wasm-standard/browser/tml-standard.wasm packages/tml-js/wasm/
 
       - name: Install JS package dependencies
-        working-directory: src/js
+        working-directory: packages/tml-js
         run: npm install
 
       - name: Build JS package
-        working-directory: src/js
+        working-directory: packages/tml-js
         run: npm run build
 
       - name: Run JS tests
-        working-directory: src/js
+        working-directory: packages/tml-js
         run: npm test

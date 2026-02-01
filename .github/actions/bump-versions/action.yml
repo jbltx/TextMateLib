@@ -86,7 +86,7 @@ runs:
         echo "=== Version Bump ==="
 
         # Get current version from package.json
-        CURRENT_VERSION=$(jq -r '.version' src/js/package.json)
+        CURRENT_VERSION=$(jq -r '.version' packages/tml-js/package.json)
         IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
 
         # Calculate new version
@@ -105,19 +105,19 @@ runs:
         echo "Bumping: $CURRENT_VERSION -> $NEW_VERSION ($BUMP_TYPE)"
 
         # Update CMakeLists.txt
-        sed -i.bak -E "s/project\(tml VERSION [0-9.]+/project(tml VERSION $NEW_VERSION/" CMakeLists.txt && rm CMakeLists.txt.bak
+        sed -i.bak -E "s/project\(tml VERSION [0-9.]+/project(tml VERSION $NEW_VERSION/" packages/tml-cpp/CMakeLists.txt && rm packages/tml-cpp/CMakeLists.txt.bak
 
         # Update conanfile.py
-        sed -i.bak -E "s/version = \"[0-9.]+\"/version = \"$NEW_VERSION\"/" conanfile.py && rm conanfile.py.bak
+        sed -i.bak -E "s/version = \"[0-9.]+\"/version = \"$NEW_VERSION\"/" packages/tml-cpp/conanfile.py && rm packages/tml-cpp/conanfile.py.bak
 
-        # Update src/js/package.json
-        jq ".version = \"$NEW_VERSION\"" src/js/package.json > src/js/package.json.tmp && mv src/js/package.json.tmp src/js/package.json
+        # Update packages/tml-js/package.json
+        jq ".version = \"$NEW_VERSION\"" packages/tml-js/package.json > packages/tml-js/package.json.tmp && mv packages/tml-js/package.json.tmp packages/tml-js/package.json
 
         # Update C# csproj
-        sed -i.bak -E "s|<Version>[0-9.]+</Version>|<Version>$NEW_VERSION</Version>|" src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj && rm src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj.bak
+        sed -i.bak -E "s|<Version>[0-9.]+</Version>|<Version>$NEW_VERSION</Version>|" packages/tml-cs/src/TextMateLib.Bindings/TextMateLib.Bindings.csproj && rm packages/tml-cs/src/TextMateLib.Bindings/TextMateLib.Bindings.csproj.bak
 
-        # Update playground/package.json
-        jq ".version = \"$NEW_VERSION\"" playground/package.json > playground/package.json.tmp && mv playground/package.json.tmp playground/package.json
+        # Update packages/playground/package.json
+        jq ".version = \"$NEW_VERSION\"" packages/playground/package.json > packages/playground/package.json.tmp && mv packages/playground/package.json.tmp packages/playground/package.json
 
         # Delete consumed changesets
         for changeset in .changeset/*.md; do
@@ -208,11 +208,11 @@ runs:
           ${changelogText}
 
           ### Updated Files
-          - CMakeLists.txt
-          - conanfile.py
-          - src/js/package.json
-          - src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj
-          - playground/package.json
+          - packages/tml-cpp/CMakeLists.txt
+          - packages/tml-cpp/conanfile.py
+          - packages/tml-js/package.json
+          - packages/tml-cs/src/TextMateLib.Bindings/TextMateLib.Bindings.csproj
+          - packages/playground/package.json
           `;
 
           fs.writeFileSync('/tmp/pr-body.md', prBody);

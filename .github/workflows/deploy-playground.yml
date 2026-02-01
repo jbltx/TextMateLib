@@ -31,7 +31,7 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: playground/package-lock.json
+          cache-dependency-path: packages/playground/package-lock.json
 
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
@@ -45,11 +45,11 @@ jobs:
           sudo apt-get install -y doxygen graphviz
 
       - name: Install playground dependencies
-        working-directory: playground
+        working-directory: packages/playground
         run: npm ci
 
       - name: Build playground
-        working-directory: playground
+        working-directory: packages/playground
         run: npm run build
 
       - name: Setup Pages
@@ -58,7 +58,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: playground/dist
+          path: packages/playground/dist
 
   deploy:
     environment:
