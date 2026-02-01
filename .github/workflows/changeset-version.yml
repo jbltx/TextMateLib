@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -11,6 +12,8 @@ permissions:
 
 jobs:
   version:
+    # Skip if this is a Version Packages merge (prevents infinite loop)
+    if: "!contains(github.event.head_commit.message, 'Version Packages')"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -43,18 +46,21 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          BASE_BRANCH="${{ github.ref_name }}"
+          RELEASE_BRANCH="changeset-release/${BASE_BRANCH}"
+
           # Create or checkout release branch
-          git checkout -B changeset-release
+          git checkout -B "$RELEASE_BRANCH"
 
           # Stage and commit
           git add -A
           git commit -m "Version Packages"
 
           # Force push
-          git push --force origin changeset-release
+          git push --force origin "$RELEASE_BRANCH"
 
           # Create or update PR
-          existing_pr=$(gh pr list --head changeset-release --base main --json number -q '.[0].number' || echo "")
+          existing_pr=$(gh pr list --head "$RELEASE_BRANCH" --base "$BASE_BRANCH" --json number -q '.[0].number' || echo "")
           if [ -n "$existing_pr" ]; then
             gh pr edit "$existing_pr" --body-file /tmp/pr-body.md
             echo "Updated existing PR #$existing_pr"
@@ -62,6 +68,6 @@ jobs:
             gh pr create \
               --title "Version Packages" \
               --body-file /tmp/pr-body.md \
-              --base main \
-              --head changeset-release
+              --base "$BASE_BRANCH" \
+              --head "$RELEASE_BRANCH"
           fi
