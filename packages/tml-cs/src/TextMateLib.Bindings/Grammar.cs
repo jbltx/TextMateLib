@@ -66,11 +66,31 @@ namespace TextMateLib.Bindings
                 var result = Marshal.PtrToStructure<NativeMethods.TextMateTokenizeResult>(resultPtr);
                 var tokens = new List<Token>();
 
-                // Build a mapping from UTF-8 byte offsets (returned by the native library)
-                // to UTF-16 char indices (used by C# string operations).
-                // For pure ASCII this is an identity mapping, but for multi-byte characters
-                // (accented chars, CJK, emojis) the offsets diverge.
-                var byteToCharIndex = BuildUtf8ByteToCharIndexMap(text, utf8ByteCount);
+                // The native library returns Unicode codepoint indices.
+                // C# strings use UTF-16 where codepoints above U+FFFF occupy 2 chars
+                // (surrogate pairs), so we need to adjust for those.
+                // For strings without astral plane characters, codepoint == char index.
+                int surrogatePairCount = 0;
+                for (int ci = 0; ci < text.Length; ci++)
+                {
+                    if (char.IsHighSurrogate(text[ci]))
+                        surrogatePairCount++;
+                }
+
+                // Only build the mapping if there are surrogate pairs
+                int[]? codepointToCharIndex = null;
+                if (surrogatePairCount > 0)
+                {
+                    int cpCount = text.Length - surrogatePairCount;
+                    codepointToCharIndex = new int[cpCount + 1];
+                    int cpIdx = 0;
+                    for (int ci = 0; ci < text.Length; cpIdx++)
+                    {
+                        codepointToCharIndex[cpIdx] = ci;
+                        ci += char.IsHighSurrogate(text[ci]) ? 2 : 1;
+                    }
+                    codepointToCharIndex[cpIdx] = text.Length; // end sentinel
+                }
 
                 // Convert native tokens to managed tokens
                 for (int i = 0; i < result.TokenCount; i++)
@@ -91,9 +111,18 @@ namespace TextMateLib.Bindings
                         }
                     }
 
-                    // Convert UTF-8 byte offsets to UTF-16 char indices
-                    var startCharIndex = byteToCharIndex[Math.Min(nativeToken.StartIndex, utf8ByteCount)];
-                    var endCharIndex = byteToCharIndex[Math.Min(nativeToken.EndIndex, utf8ByteCount)];
+                    int startCharIndex, endCharIndex;
+                    if (codepointToCharIndex != null)
+                    {
+                        startCharIndex = codepointToCharIndex[Math.Min(nativeToken.StartIndex, codepointToCharIndex.Length - 1)];
+                        endCharIndex = codepointToCharIndex[Math.Min(nativeToken.EndIndex, codepointToCharIndex.Length - 1)];
+                    }
+                    else
+                    {
+                        // No surrogate pairs: codepoint index == char index
+                        startCharIndex = nativeToken.StartIndex;
+                        endCharIndex = nativeToken.EndIndex;
+                    }
 
                     tokens.Add(new Token(startCharIndex, endCharIndex, scopes));
                 }
@@ -128,38 +157,6 @@ namespace TextMateLib.Bindings
             }
 
             return results;
-        }
-
-        /// <summary>
-        /// Builds a lookup table mapping UTF-8 byte offsets to UTF-16 char indices.
-        /// </summary>
-        static int[] BuildUtf8ByteToCharIndexMap(string text, int utf8ByteCount)
-        {
-            var map = new int[utf8ByteCount + 1];
-            int charIdx = 0;
-            int byteIdx = 0;
-
-            while (charIdx < text.Length && byteIdx < utf8ByteCount)
-            {
-                int codepoint = char.ConvertToUtf32(text, charIdx);
-                int utf8Len = codepoint <= 0x7F ? 1
-                    : codepoint <= 0x7FF ? 2
-                    : codepoint <= 0xFFFF ? 3
-                    : 4;
-                int charLen = codepoint > 0xFFFF ? 2 : 1; // surrogate pair
-
-                for (int k = 0; k < utf8Len; k++)
-                    map[byteIdx + k] = charIdx;
-
-                byteIdx += utf8Len;
-                charIdx += charLen;
-            }
-
-            // End sentinel: maps one-past-last byte offset to one-past-last char index
-            if (byteIdx <= utf8ByteCount)
-                map[byteIdx] = charIdx;
-
-            return map;
         }
 
         internal IntPtr Handle
