@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace TextMateLib.Bindings
 {
@@ -46,7 +47,16 @@ namespace TextMateLib.Bindings
                 prevState = NativeMethods.textmate_get_initial_state();
             }
 
-            var resultPtr = NativeMethods.textmate_tokenize_line(m_Handle, lineText ?? string.Empty, prevState);
+            var text = lineText ?? string.Empty;
+
+            // Manually encode to UTF-8 with null terminator.
+            // This avoids CharSet.Ansi which uses the system ANSI code page on Windows,
+            // corrupting non-ASCII characters.
+            var utf8ByteCount = Encoding.UTF8.GetByteCount(text);
+            var utf8Bytes = new byte[utf8ByteCount + 1]; // +1 for null terminator
+            Encoding.UTF8.GetBytes(text, 0, text.Length, utf8Bytes, 0);
+
+            var resultPtr = NativeMethods.textmate_tokenize_line(m_Handle, utf8Bytes, prevState);
 
             if (resultPtr == IntPtr.Zero)
                 throw new InvalidOperationException("Failed to tokenize line");
@@ -55,6 +65,12 @@ namespace TextMateLib.Bindings
             {
                 var result = Marshal.PtrToStructure<NativeMethods.TextMateTokenizeResult>(resultPtr);
                 var tokens = new List<Token>();
+
+                // Build a mapping from UTF-8 byte offsets (returned by the native library)
+                // to UTF-16 char indices (used by C# string operations).
+                // For pure ASCII this is an identity mapping, but for multi-byte characters
+                // (accented chars, CJK, emojis) the offsets diverge.
+                var byteToCharIndex = BuildUtf8ByteToCharIndexMap(text, utf8ByteCount);
 
                 // Convert native tokens to managed tokens
                 for (int i = 0; i < result.TokenCount; i++)
@@ -75,7 +91,11 @@ namespace TextMateLib.Bindings
                         }
                     }
 
-                    tokens.Add(new Token(nativeToken.StartIndex, nativeToken.EndIndex, scopes));
+                    // Convert UTF-8 byte offsets to UTF-16 char indices
+                    var startCharIndex = byteToCharIndex[Math.Min(nativeToken.StartIndex, utf8ByteCount)];
+                    var endCharIndex = byteToCharIndex[Math.Min(nativeToken.EndIndex, utf8ByteCount)];
+
+                    tokens.Add(new Token(startCharIndex, endCharIndex, scopes));
                 }
 
                 return new TokenizeResult(tokens, result.RuleStack, result.StoppedEarly != 0);
@@ -108,6 +128,38 @@ namespace TextMateLib.Bindings
             }
 
             return results;
+        }
+
+        /// <summary>
+        /// Builds a lookup table mapping UTF-8 byte offsets to UTF-16 char indices.
+        /// </summary>
+        static int[] BuildUtf8ByteToCharIndexMap(string text, int utf8ByteCount)
+        {
+            var map = new int[utf8ByteCount + 1];
+            int charIdx = 0;
+            int byteIdx = 0;
+
+            while (charIdx < text.Length && byteIdx < utf8ByteCount)
+            {
+                int codepoint = char.ConvertToUtf32(text, charIdx);
+                int utf8Len = codepoint <= 0x7F ? 1
+                    : codepoint <= 0x7FF ? 2
+                    : codepoint <= 0xFFFF ? 3
+                    : 4;
+                int charLen = codepoint > 0xFFFF ? 2 : 1; // surrogate pair
+
+                for (int k = 0; k < utf8Len; k++)
+                    map[byteIdx + k] = charIdx;
+
+                byteIdx += utf8Len;
+                charIdx += charLen;
+            }
+
+            // End sentinel: maps one-past-last byte offset to one-past-last char index
+            if (byteIdx <= utf8ByteCount)
+                map[byteIdx] = charIdx;
+
+            return map;
         }
 
         internal IntPtr Handle

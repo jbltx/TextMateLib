@@ -126,16 +126,16 @@ namespace TextMateLib.Bindings
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr textmate_get_initial_state();
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr textmate_tokenize_line(
             IntPtr grammar,
-            string lineText,
+            byte[] lineTextUtf8,
             IntPtr prevState);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr textmate_tokenize_line2(
             IntPtr grammar,
-            string lineText,
+            byte[] lineTextUtf8,
             IntPtr prevState);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]

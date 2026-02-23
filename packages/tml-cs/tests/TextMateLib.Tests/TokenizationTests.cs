@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using TextMateLib.Bindings;
 
 namespace TextMateLib.Tests
@@ -200,6 +201,48 @@ namespace TextMateLib.Tests
             // Assert
             Assert.Equal("source.js", m_JsGrammar.ScopeName);
             Assert.Equal("source.python", m_PythonGrammar.ScopeName);
+        }
+
+        [Fact]
+        public void TokenIndicesAlignForNonAsciiCharacters()
+        {
+            // Emoji (U+1F600) = 4 UTF-8 bytes, 2 UTF-16 chars (surrogate pair).
+            // If the native library returns UTF-8 byte offsets and they are used
+            // directly as char indices, tokens after the emoji will misalign.
+            var code = "\U0001F600 const x = 42;";
+
+            var result = m_JsGrammar.TokenizeLine(code, IntPtr.Zero);
+
+            Assert.NotNull(result);
+            Assert.NotEmpty(result.Tokens);
+
+            // Verify tokens can extract their values without throwing
+            // and that the full line is reconstructable from token values
+            var reconstructed = string.Concat(
+                result.Tokens.Select(t => t.GetValue(code)));
+
+            Assert.Equal(code, reconstructed);
+
+            // Verify the "const" keyword is found as a distinct token value
+            var foundConst = result.Tokens.Any(t => t.GetValue(code) == "const");
+            Assert.True(foundConst, "Expected to find 'const' token after emoji");
+        }
+
+        [Fact]
+        public void TokenIndicesAlignForAccentedCharacters()
+        {
+            // Accented chars like 'é' = 2 UTF-8 bytes, 1 UTF-16 char.
+            var code = "const café = 42;";
+
+            var result = m_JsGrammar.TokenizeLine(code, IntPtr.Zero);
+
+            Assert.NotNull(result);
+            Assert.NotEmpty(result.Tokens);
+
+            var reconstructed = string.Concat(
+                result.Tokens.Select(t => t.GetValue(code)));
+
+            Assert.Equal(code, reconstructed);
         }
 
         [Fact]
