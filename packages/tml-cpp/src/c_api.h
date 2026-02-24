@@ -340,6 +340,55 @@ TML_API void textmate_free_tokenize_result2(TextMateTokenizeResult2* result);
 /// @note Safe to call with NULL
 TML_API void textmate_free_tokenize_lines_result(TextMateTokenizeMultiLinesResult* result);
 
+/// @defgroup tokenization_utf16_api UTF-16 Tokenization API
+/// @{
+/// Tokenize text and return indices as UTF-16 code unit offsets.
+/// Use these from language bindings where strings are UTF-16 encoded (C#, JavaScript).
+/// The original functions above return UTF-8 byte offsets which are correct for C/C++.
+
+/// @brief Tokenize a single line with decoded scopes, returning UTF-16 indices
+/// @param grammar Valid grammar handle (from textmate_registry_load_grammar())
+/// @param lineText The text to tokenize (UTF-8, null-terminated)
+/// @param prevState The state from the previous line (or initial state for first line)
+/// @return Pointer to tokenization result on success, NULL on error
+/// @note Token startIndex/endIndex are UTF-16 code unit offsets
+/// @note The returned result must be freed with textmate_free_tokenize_result()
+TML_API TextMateTokenizeResult* textmate_tokenize_line_utf16(
+    TextMateGrammar grammar,
+    const char* lineText,
+    TextMateStateStack prevState
+);
+
+/// @brief Tokenize a single line with encoded tokens, returning UTF-16 indices
+/// @param grammar Valid grammar handle (from textmate_registry_load_grammar())
+/// @param lineText The text to tokenize (UTF-8, null-terminated)
+/// @param prevState The state from the previous line (or initial state for first line)
+/// @return Pointer to tokenization result on success, NULL on error
+/// @note Start offsets in the encoded tokens are UTF-16 code unit offsets
+/// @note The returned result must be freed with textmate_free_tokenize_result2()
+TML_API TextMateTokenizeResult2* textmate_tokenize_line2_utf16(
+    TextMateGrammar grammar,
+    const char* lineText,
+    TextMateStateStack prevState
+);
+
+/// @brief Tokenize multiple lines in a single call, returning UTF-16 indices
+/// @param grammar Valid grammar handle
+/// @param lines Array of line strings (UTF-8, null-terminated, none should include newline)
+/// @param lineCount Number of lines in the array
+/// @param initialState The state to start with (typically INITIAL or from Session API)
+/// @return Pointer to batch result on success, NULL on error
+/// @note Token startIndex/endIndex are UTF-16 code unit offsets
+/// @note The returned result must be freed with textmate_free_tokenize_lines_result()
+TML_API TextMateTokenizeMultiLinesResult* textmate_tokenize_lines_utf16(
+    TextMateGrammar grammar,
+    const char** lines,
+    int32_t lineCount,
+    TextMateStateStack initialState
+);
+
+/// @}
+
 /// @brief Get the scope name (language identifier) of a grammar
 /// @param grammar Valid grammar handle (from textmate_registry_load_grammar())
 /// @return Scope name string (e.g., "source.javascript"), valid for lifetime of grammar

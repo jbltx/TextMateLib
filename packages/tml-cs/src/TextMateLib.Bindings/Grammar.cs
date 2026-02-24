@@ -12,8 +12,6 @@ namespace TextMateLib.Bindings
     {
         IntPtr m_Handle;
 
-        int[]? m_CodepointToCharIndex;
-
         bool m_Disposed;
 
         internal Grammar(IntPtr handle)
@@ -58,7 +56,9 @@ namespace TextMateLib.Bindings
             var utf8Bytes = new byte[utf8ByteCount + 1]; // +1 for null terminator
             Encoding.UTF8.GetBytes(text, 0, text.Length, utf8Bytes, 0);
 
-            var resultPtr = NativeMethods.textmate_tokenize_line(m_Handle, utf8Bytes, prevState);
+            // Call the _utf16 variant which returns indices as UTF-16 code unit offsets,
+            // matching C# string indexing directly.
+            var resultPtr = NativeMethods.textmate_tokenize_line_utf16(m_Handle, utf8Bytes, prevState);
 
             if (resultPtr == IntPtr.Zero)
                 throw new InvalidOperationException("Failed to tokenize line");
@@ -67,34 +67,6 @@ namespace TextMateLib.Bindings
             {
                 var result = Marshal.PtrToStructure<NativeMethods.TextMateTokenizeResult>(resultPtr);
                 var tokens = new List<Token>();
-
-                // The native library returns Unicode codepoint indices.
-                // C# strings use UTF-16 where codepoints above U+FFFF occupy 2 chars
-                // (surrogate pairs), so we need to adjust for those.
-                // For strings without astral plane characters, codepoint == char index.
-                int surrogatePairCount = 0;
-                for (int ci = 0; ci < text.Length; ci++)
-                {
-                    if (char.IsHighSurrogate(text[ci]))
-                        surrogatePairCount++;
-                }
-
-                // Only build the mapping if there are surrogate pairs
-                if (surrogatePairCount > 0)
-                {
-                    int cpCount = text.Length - surrogatePairCount;
-                    int requiredSize = cpCount + 1;
-                    if (m_CodepointToCharIndex == null || m_CodepointToCharIndex.Length < requiredSize)
-                        m_CodepointToCharIndex = new int[requiredSize];
-
-                    int cpIdx = 0;
-                    for (int ci = 0; ci < text.Length; cpIdx++)
-                    {
-                        m_CodepointToCharIndex[cpIdx] = ci;
-                        ci += char.IsHighSurrogate(text[ci]) ? 2 : 1;
-                    }
-                    m_CodepointToCharIndex[cpIdx] = text.Length; // end sentinel
-                }
 
                 // Convert native tokens to managed tokens
                 for (int i = 0; i < result.TokenCount; i++)
@@ -115,21 +87,7 @@ namespace TextMateLib.Bindings
                         }
                     }
 
-                    int startCharIndex, endCharIndex;
-                    if (surrogatePairCount > 0)
-                    {
-                        int maxIdx = text.Length - surrogatePairCount;
-                        startCharIndex = m_CodepointToCharIndex![Math.Min(nativeToken.StartIndex, maxIdx)];
-                        endCharIndex = m_CodepointToCharIndex[Math.Min(nativeToken.EndIndex, maxIdx)];
-                    }
-                    else
-                    {
-                        // No surrogate pairs: codepoint index == char index
-                        startCharIndex = nativeToken.StartIndex;
-                        endCharIndex = nativeToken.EndIndex;
-                    }
-
-                    tokens.Add(new Token(startCharIndex, endCharIndex, scopes));
+                    tokens.Add(new Token(nativeToken.StartIndex, nativeToken.EndIndex, scopes));
                 }
 
                 return new TokenizeResult(tokens, result.RuleStack, result.StoppedEarly != 0);

@@ -670,33 +670,6 @@ std::vector<Injection> Grammar::_collectInjections() {
     return result;
 }
 
-// Builds a lookup table mapping UTF-8 byte offsets to Unicode codepoint indices.
-// This allows all consumers (C#, JS, Python, etc.) to receive encoding-agnostic
-// codepoint offsets instead of raw byte offsets from Oniguruma.
-static std::vector<int> buildUtf8ByteToCodepointMap(const std::string& utf8Text) {
-    std::vector<int> map(utf8Text.size() + 1);
-    int cpIndex = 0;
-
-    for (size_t byteIdx = 0; byteIdx < utf8Text.size(); ) {
-        unsigned char c = static_cast<unsigned char>(utf8Text[byteIdx]);
-        int seqLen;
-        if (c < 0x80) seqLen = 1;
-        else if ((c >> 5) == 0x06) seqLen = 2;
-        else if ((c >> 4) == 0x0E) seqLen = 3;
-        else seqLen = 4;
-
-        for (int k = 0; k < seqLen && (byteIdx + k) < utf8Text.size(); k++)
-            map[byteIdx + k] = cpIndex;
-
-        byteIdx += seqLen;
-        cpIndex++;
-    }
-
-    // End sentinel: one-past-last byte maps to one-past-last codepoint
-    map[utf8Text.size()] = cpIndex;
-    return map;
-}
-
 ITokenizeLineResult Grammar::tokenizeLine(
     const std::string& lineText,
     StateStack* prevState,
@@ -709,15 +682,6 @@ ITokenizeLineResult Grammar::tokenizeLine(
     result.tokens = r.lineTokens->getResult(r.ruleStack, r.lineLength);
     result.ruleStack = r.ruleStack;
     result.stoppedEarly = r.stoppedEarly;
-
-    // Convert UTF-8 byte offsets to Unicode codepoint indices so that
-    // consumers using UTF-16 (C#, JS) or codepoint-based (Python) strings
-    // get correct indices without needing per-binding conversion logic.
-    auto byteToCodepoint = buildUtf8ByteToCodepointMap(lineText);
-    for (auto& token : result.tokens) {
-        token.startIndex = byteToCodepoint[std::min(static_cast<size_t>(token.startIndex), lineText.size())];
-        token.endIndex = byteToCodepoint[std::min(static_cast<size_t>(token.endIndex), lineText.size())];
-    }
 
     delete r.lineTokens;
     return result;
@@ -735,14 +699,6 @@ ITokenizeLineResult2 Grammar::tokenizeLine2(
     result.tokens = r.lineTokens->getBinaryResult(r.ruleStack, r.lineLength);
     result.ruleStack = r.ruleStack;
     result.stoppedEarly = r.stoppedEarly;
-
-    // Binary format: [startIndex, attributes, startIndex, attributes, ...]
-    // Every even index (0, 2, 4, ...) is a byte offset that needs conversion.
-    auto byteToCodepoint = buildUtf8ByteToCodepointMap(lineText);
-    for (size_t i = 0; i < result.tokens.size(); i += 2) {
-        result.tokens[i] = static_cast<uint32_t>(
-            byteToCodepoint[std::min(static_cast<size_t>(result.tokens[i]), lineText.size())]);
-    }
 
     delete r.lineTokens;
     return result;

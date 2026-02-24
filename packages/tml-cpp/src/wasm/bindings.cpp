@@ -7,6 +7,7 @@
 #include "parseRawTheme.h"
 #include "theme.h"
 #include "onigLib.h"
+#include "utf16_utils.h"
 #include <string>
 #include <vector>
 #include <memory>
@@ -105,6 +106,9 @@ public:
 
         ITokenizeLineResult result = grammar->tokenizeLine(lineText, ruleStack);
 
+        // Build byte-offset to UTF-16 index map (JS strings are UTF-16)
+        auto map = tml::buildByteToUtf16Map(lineText.c_str(), lineText.size());
+
         // Convert result to JavaScript object
         val jsResult = val::object();
 
@@ -113,8 +117,8 @@ public:
         for (size_t i = 0; i < result.tokens.size(); i++) {
             const auto& token = result.tokens[i];
             val jsToken = val::object();
-            jsToken.set("startIndex", token.startIndex);
-            jsToken.set("endIndex", token.endIndex);
+            jsToken.set("startIndex", map[token.startIndex]);
+            jsToken.set("endIndex", map[token.endIndex]);
 
             val jsScopes = val::array();
             for (size_t j = 0; j < token.scopes.size(); j++) {
@@ -143,12 +147,22 @@ public:
 
         ITokenizeLineResult2 result = grammar->tokenizeLine2(lineText, ruleStack);
 
+        // Build byte-offset to UTF-16 index map (JS strings are UTF-16)
+        auto map = tml::buildByteToUtf16Map(lineText.c_str(), lineText.size());
+
         val jsResult = val::object();
 
         // Convert tokens (Uint32Array-like)
+        // Encoded tokens are pairs: [startIndex, metadata, startIndex, metadata, ...]
         val jsTokens = val::array();
         for (size_t i = 0; i < result.tokens.size(); i++) {
-            jsTokens.set(i, result.tokens[i]);
+            if (i % 2 == 0) {
+                // Even indices are start offsets — convert to UTF-16
+                jsTokens.set(i, static_cast<uint32_t>(map[result.tokens[i]]));
+            } else {
+                // Odd indices are metadata — pass through
+                jsTokens.set(i, result.tokens[i]);
+            }
         }
         jsResult.set("tokens", jsTokens);
 

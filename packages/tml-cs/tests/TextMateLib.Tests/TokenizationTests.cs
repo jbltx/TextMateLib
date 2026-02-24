@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using TextMateLib.Bindings;
 
 namespace TextMateLib.Tests
@@ -204,48 +203,6 @@ namespace TextMateLib.Tests
         }
 
         [Fact]
-        public void TokenIndicesAlignForNonAsciiCharacters()
-        {
-            // Emoji (U+1F600) = 4 UTF-8 bytes, 2 UTF-16 chars (surrogate pair).
-            // If the native library returns UTF-8 byte offsets and they are used
-            // directly as char indices, tokens after the emoji will misalign.
-            var code = "\U0001F600 const x = 42;";
-
-            var result = m_JsGrammar.TokenizeLine(code, IntPtr.Zero);
-
-            Assert.NotNull(result);
-            Assert.NotEmpty(result.Tokens);
-
-            // Verify tokens can extract their values without throwing
-            // and that the full line is reconstructable from token values
-            var reconstructed = string.Concat(
-                result.Tokens.Select(t => t.GetValue(code)));
-
-            Assert.Equal(code, reconstructed);
-
-            // Verify the "const" keyword is found as a distinct token value
-            var foundConst = result.Tokens.Any(t => t.GetValue(code) == "const");
-            Assert.True(foundConst, "Expected to find 'const' token after emoji");
-        }
-
-        [Fact]
-        public void TokenIndicesAlignForAccentedCharacters()
-        {
-            // Accented chars like 'é' = 2 UTF-8 bytes, 1 UTF-16 char.
-            var code = "const café = 42;";
-
-            var result = m_JsGrammar.TokenizeLine(code, IntPtr.Zero);
-
-            Assert.NotNull(result);
-            Assert.NotEmpty(result.Tokens);
-
-            var reconstructed = string.Concat(
-                result.Tokens.Select(t => t.GetValue(code)));
-
-            Assert.Equal(code, reconstructed);
-        }
-
-        [Fact]
         public void StateStackMaintainedBetweenLines()
         {
             // Arrange - multi-line string in JavaScript
@@ -269,6 +226,86 @@ namespace TextMateLib.Tests
             {
                 Assert.NotEqual(IntPtr.Zero, results[i].StateStack);
             }
+        }
+
+        [Fact]
+        public void TokensAlignWithStringForAccentedCharacters()
+        {
+            // "café" — 'é' is 2 bytes in UTF-8 but 1 char in UTF-16
+            var code = "const x = \"café\";";
+
+            var result = m_JsGrammar.TokenizeLine(code, IntPtr.Zero);
+
+            Assert.NotNull(result);
+            Assert.NotEmpty(result.Tokens);
+
+            // Reconstruct the entire line from token ranges
+            var reconstructed = "";
+            foreach (var token in result.Tokens)
+            {
+                reconstructed += token.GetValue(code);
+            }
+            Assert.Equal(code, reconstructed);
+        }
+
+        [Fact]
+        public void TokensAlignWithStringForEllipsis()
+        {
+            // '…' (U+2026) is 3 bytes in UTF-8 but 1 char in UTF-16
+            var code = "const x = \"hello…world\";";
+
+            var result = m_JsGrammar.TokenizeLine(code, IntPtr.Zero);
+
+            Assert.NotNull(result);
+            Assert.NotEmpty(result.Tokens);
+
+            // Reconstruct the entire line from token ranges
+            var reconstructed = "";
+            foreach (var token in result.Tokens)
+            {
+                reconstructed += token.GetValue(code);
+            }
+            Assert.Equal(code, reconstructed);
+        }
+
+        [Fact]
+        public void TokensAlignWithStringForEmoji()
+        {
+            // '😀' (U+1F600) is 4 bytes in UTF-8 but 2 chars in UTF-16 (surrogate pair)
+            var code = "const x = \"\U0001F600\";";
+
+            var result = m_JsGrammar.TokenizeLine(code, IntPtr.Zero);
+
+            Assert.NotNull(result);
+            Assert.NotEmpty(result.Tokens);
+
+            // Reconstruct the entire line from token ranges
+            var reconstructed = "";
+            foreach (var token in result.Tokens)
+            {
+                reconstructed += token.GetValue(code);
+            }
+            Assert.Equal(code, reconstructed);
+        }
+
+        [Fact]
+        public void TokensAlignWithStringForMixedNonAscii()
+        {
+            // Mix of 2-byte (é), 3-byte (…), and 4-byte (😀) UTF-8 sequences
+            var code = "const café = \"\U0001F600…\";";
+
+            var result = m_JsGrammar.TokenizeLine(code, IntPtr.Zero);
+
+            Assert.NotNull(result);
+            Assert.NotEmpty(result.Tokens);
+
+            // Reconstruct the entire line from token ranges
+            var reconstructed = "";
+            foreach (var token in result.Tokens)
+            {
+                reconstructed += token.GetValue(code);
+            }
+            Assert.Equal(code, reconstructed);
         }
 
         public void Dispose()

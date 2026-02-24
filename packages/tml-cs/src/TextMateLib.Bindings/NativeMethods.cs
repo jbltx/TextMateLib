@@ -126,23 +126,48 @@ namespace TextMateLib.Bindings
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr textmate_get_initial_state();
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         internal static extern IntPtr textmate_tokenize_line(
+            IntPtr grammar,
+            string lineText,
+            IntPtr prevState);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        internal static extern IntPtr textmate_tokenize_line2(
+            IntPtr grammar,
+            string lineText,
+            IntPtr prevState);
+
+        // UTF-16 variants: accept byte[] (caller provides UTF-8 with null terminator)
+        // and return token indices as UTF-16 code unit offsets.
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr textmate_tokenize_line_utf16(
             IntPtr grammar,
             byte[] lineTextUtf8,
             IntPtr prevState);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern IntPtr textmate_tokenize_line2(
+        internal static extern IntPtr textmate_tokenize_line2_utf16(
             IntPtr grammar,
             byte[] lineTextUtf8,
             IntPtr prevState);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr textmate_tokenize_lines_utf16(
+            IntPtr grammar,
+            IntPtr lines,
+            int lineCount,
+            IntPtr initialState);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void textmate_free_tokenize_result(IntPtr result);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void textmate_free_tokenize_result2(IntPtr result);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void textmate_free_tokenize_lines_result(IntPtr result);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         internal static extern IntPtr textmate_grammar_get_scope_name(IntPtr grammar);

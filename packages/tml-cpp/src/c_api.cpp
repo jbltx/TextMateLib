@@ -3,6 +3,7 @@
 #include "parseRawGrammar.h"
 #include "parseRawTheme.h"
 #include "theme.h"
+#include "utf16_utils.h"
 #include <string>
 #include <cstring>
 #include <fstream>
@@ -782,6 +783,161 @@ void textmate_free_tokenize_lines_result(TextMateTokenizeMultiLinesResult* resul
         }
         delete[] result->lineResults;
         delete result;
+    }
+}
+
+// ============================================================================
+// UTF-16 Tokenization API
+// ============================================================================
+
+// Tokenize a line of text with UTF-16 code unit indices
+TextMateTokenizeResult* textmate_tokenize_line_utf16(
+    TextMateGrammar grammar,
+    const char* lineText,
+    TextMateStateStack prevState
+) {
+    if (!grammar || !lineText) {
+        return nullptr;
+    }
+
+    try {
+        Grammar* gram = static_cast<Grammar*>(grammar);
+        StateStack* state = static_cast<StateStack*>(prevState);
+
+        ITokenizeLineResult result = gram->tokenizeLine(lineText, state);
+
+        // Build byte-offset to UTF-16 index map
+        auto map = tml::buildByteToUtf16Map(lineText, std::strlen(lineText));
+
+        // Allocate result structure
+        TextMateTokenizeResult* cResult = new TextMateTokenizeResult();
+        cResult->tokenCount = result.tokens.size();
+        cResult->tokens = new TextMateToken[cResult->tokenCount];
+        cResult->ruleStack = static_cast<TextMateStateStack>(result.ruleStack);
+        cResult->stoppedEarly = result.stoppedEarly ? 1 : 0;
+
+        // Convert tokens with UTF-16 indices
+        for (int i = 0; i < cResult->tokenCount; i++) {
+            const IToken& token = result.tokens[i];
+            cResult->tokens[i].startIndex = map[token.startIndex];
+            cResult->tokens[i].endIndex = map[token.endIndex];
+            cResult->tokens[i].scopeDepth = token.scopes.size();
+
+            // Allocate scope strings
+            cResult->tokens[i].scopes = new char*[token.scopes.size()];
+            for (size_t j = 0; j < token.scopes.size(); j++) {
+                cResult->tokens[i].scopes[j] = stringToCString(token.scopes[j]);
+            }
+        }
+
+        return cResult;
+    } catch (...) {
+        return nullptr;
+    }
+}
+
+// Tokenize a line of text with encoded tokens and UTF-16 indices
+TextMateTokenizeResult2* textmate_tokenize_line2_utf16(
+    TextMateGrammar grammar,
+    const char* lineText,
+    TextMateStateStack prevState
+) {
+    if (!grammar || !lineText) {
+        return nullptr;
+    }
+
+    try {
+        Grammar* gram = static_cast<Grammar*>(grammar);
+        StateStack* state = static_cast<StateStack*>(prevState);
+
+        ITokenizeLineResult2 result = gram->tokenizeLine2(lineText, state);
+
+        // Build byte-offset to UTF-16 index map
+        auto map = tml::buildByteToUtf16Map(lineText, std::strlen(lineText));
+
+        // Allocate result structure
+        TextMateTokenizeResult2* cResult = new TextMateTokenizeResult2();
+        cResult->tokenCount = result.tokens.size();
+        cResult->tokens = new uint32_t[cResult->tokenCount];
+        cResult->ruleStack = static_cast<TextMateStateStack>(result.ruleStack);
+        cResult->stoppedEarly = result.stoppedEarly ? 1 : 0;
+
+        // Copy tokens, converting start offsets from UTF-8 byte to UTF-16
+        // Encoded tokens are pairs: [startIndex, metadata, startIndex, metadata, ...]
+        for (int i = 0; i < cResult->tokenCount; i++) {
+            if (i % 2 == 0) {
+                // Even indices are start offsets
+                cResult->tokens[i] = map[result.tokens[i]];
+            } else {
+                // Odd indices are metadata — pass through
+                cResult->tokens[i] = result.tokens[i];
+            }
+        }
+
+        return cResult;
+    } catch (...) {
+        return nullptr;
+    }
+}
+
+// Batch tokenize multiple lines with UTF-16 indices
+TextMateTokenizeMultiLinesResult* textmate_tokenize_lines_utf16(
+    TextMateGrammar grammar,
+    const char** lines,
+    int32_t lineCount,
+    TextMateStateStack initialState
+) {
+    if (!grammar || !lines || lineCount <= 0) {
+        return nullptr;
+    }
+
+    try {
+        Grammar* g = static_cast<Grammar*>(grammar);
+        StateStack* state = static_cast<StateStack*>(initialState);
+
+        // Allocate result structure
+        TextMateTokenizeMultiLinesResult* batchResult = new TextMateTokenizeMultiLinesResult();
+        batchResult->lineCount = lineCount;
+        batchResult->lineResults = new TextMateTokenizeResult*[lineCount];
+
+        // Tokenize each line, propagating state
+        for (int32_t i = 0; i < lineCount; i++) {
+            std::string lineText(lines[i]);
+            auto result = g->tokenizeLine(lineText, state);
+
+            // Update state for next line
+            state = result.ruleStack;
+
+            // Build byte-offset to UTF-16 index map for this line
+            auto map = tml::buildByteToUtf16Map(lineText.c_str(), lineText.size());
+
+            // Allocate result for this line
+            TextMateTokenizeResult* lineResult = new TextMateTokenizeResult();
+            lineResult->tokenCount = result.tokens.size();
+            lineResult->stoppedEarly = result.stoppedEarly ? 1 : 0;
+            lineResult->ruleStack = static_cast<TextMateStateStack>(result.ruleStack);
+
+            // Allocate and populate tokens with UTF-16 indices
+            lineResult->tokens = new TextMateToken[lineResult->tokenCount];
+            for (size_t j = 0; j < result.tokens.size(); j++) {
+                const auto& token = result.tokens[j];
+                lineResult->tokens[j].startIndex = map[token.startIndex];
+                lineResult->tokens[j].endIndex = map[token.endIndex];
+                lineResult->tokens[j].scopeDepth = token.scopes.size();
+
+                // Allocate scope array
+                lineResult->tokens[j].scopes = new char*[token.scopes.size()];
+                for (size_t k = 0; k < token.scopes.size(); k++) {
+                    lineResult->tokens[j].scopes[k] = stringToCString(token.scopes[k]);
+                }
+            }
+
+            batchResult->lineResults[i] = lineResult;
+        }
+
+        return batchResult;
+    } catch (...) {
+        return nullptr;
     }
 }
 
