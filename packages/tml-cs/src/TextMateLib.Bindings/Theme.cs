@@ -63,7 +63,7 @@ namespace TextMateLib.Bindings
             if (string.IsNullOrEmpty(jsonContent))
                 throw new ArgumentNullException(nameof(jsonContent));
 
-            var handle = NativeMethods.textmate_theme_load_from_json(jsonContent);
+            var handle = NativeMethods.textmate_theme_load_from_json(NativeMethods.ToUtf8NullTerminated(jsonContent));
             if (handle == IntPtr.Zero)
                 throw new InvalidOperationException("Failed to load theme from JSON");
 
