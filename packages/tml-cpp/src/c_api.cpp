@@ -817,10 +817,12 @@ TextMateTokenizeResult* textmate_tokenize_line_utf16(
         cResult->stoppedEarly = result.stoppedEarly ? 1 : 0;
 
         // Convert tokens with UTF-16 indices
+        // Note: the tokenizer may internally append '\n', so token indices
+        // can exceed strlen(lineText). Use mapByteToUtf16 for safe lookup.
         for (int i = 0; i < cResult->tokenCount; i++) {
             const IToken& token = result.tokens[i];
-            cResult->tokens[i].startIndex = map[token.startIndex];
-            cResult->tokens[i].endIndex = map[token.endIndex];
+            cResult->tokens[i].startIndex = tml::mapByteToUtf16(map, token.startIndex);
+            cResult->tokens[i].endIndex = tml::mapByteToUtf16(map, token.endIndex);
             cResult->tokens[i].scopeDepth = token.scopes.size();
 
             // Allocate scope strings
@@ -867,7 +869,7 @@ TextMateTokenizeResult2* textmate_tokenize_line2_utf16(
         for (int i = 0; i < cResult->tokenCount; i++) {
             if (i % 2 == 0) {
                 // Even indices are start offsets
-                cResult->tokens[i] = map[result.tokens[i]];
+                cResult->tokens[i] = tml::mapByteToUtf16(map, result.tokens[i]);
             } else {
                 // Odd indices are metadata — pass through
                 cResult->tokens[i] = result.tokens[i];
@@ -921,8 +923,8 @@ TextMateTokenizeMultiLinesResult* textmate_tokenize_lines_utf16(
             lineResult->tokens = new TextMateToken[lineResult->tokenCount];
             for (size_t j = 0; j < result.tokens.size(); j++) {
                 const auto& token = result.tokens[j];
-                lineResult->tokens[j].startIndex = map[token.startIndex];
-                lineResult->tokens[j].endIndex = map[token.endIndex];
+                lineResult->tokens[j].startIndex = tml::mapByteToUtf16(map, token.startIndex);
+                lineResult->tokens[j].endIndex = tml::mapByteToUtf16(map, token.endIndex);
                 lineResult->tokens[j].scopeDepth = token.scopes.size();
 
                 // Allocate scope array

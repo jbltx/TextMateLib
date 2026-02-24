@@ -117,8 +117,8 @@ public:
         for (size_t i = 0; i < result.tokens.size(); i++) {
             const auto& token = result.tokens[i];
             val jsToken = val::object();
-            jsToken.set("startIndex", map[token.startIndex]);
-            jsToken.set("endIndex", map[token.endIndex]);
+            jsToken.set("startIndex", tml::mapByteToUtf16(map, token.startIndex));
+            jsToken.set("endIndex", tml::mapByteToUtf16(map, token.endIndex));
 
             val jsScopes = val::array();
             for (size_t j = 0; j < token.scopes.size(); j++) {
@@ -158,7 +158,7 @@ public:
         for (size_t i = 0; i < result.tokens.size(); i++) {
             if (i % 2 == 0) {
                 // Even indices are start offsets — convert to UTF-16
-                jsTokens.set(i, static_cast<uint32_t>(map[result.tokens[i]]));
+                jsTokens.set(i, static_cast<uint32_t>(tml::mapByteToUtf16(map, static_cast<int32_t>(result.tokens[i]))));
             } else {
                 // Odd indices are metadata — pass through
                 jsTokens.set(i, result.tokens[i]);

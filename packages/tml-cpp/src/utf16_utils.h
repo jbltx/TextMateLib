@@ -62,6 +62,17 @@ inline std::vector<int32_t> buildByteToUtf16Map(const char* utf8, size_t byteLen
     return map;
 }
 
+/// Safe lookup: clamps the byte offset to [0, map.size()-1].
+/// The C++ tokenizer may internally append '\n', producing token indices
+/// up to byteLen+1 which would be out of range. Clamping to byteLen
+/// (the sentinel entry) returns the correct UTF-16 length in that case.
+inline int32_t mapByteToUtf16(const std::vector<int32_t>& map, int32_t byteOffset) {
+    if (byteOffset < 0) return 0;
+    size_t idx = static_cast<size_t>(byteOffset);
+    if (idx >= map.size()) idx = map.size() - 1;
+    return map[idx];
+}
+
 } // namespace tml
 
 #endif // TEXTMATELIB_UTF16_UTILS_H
