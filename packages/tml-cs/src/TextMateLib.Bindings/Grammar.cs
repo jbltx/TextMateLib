@@ -12,6 +12,8 @@ namespace TextMateLib.Bindings
     {
         IntPtr m_Handle;
 
+        int[]? m_CodepointToCharIndex;
+
         bool m_Disposed;
 
         internal Grammar(IntPtr handle)
@@ -78,18 +80,20 @@ namespace TextMateLib.Bindings
                 }
 
                 // Only build the mapping if there are surrogate pairs
-                int[]? codepointToCharIndex = null;
                 if (surrogatePairCount > 0)
                 {
                     int cpCount = text.Length - surrogatePairCount;
-                    codepointToCharIndex = new int[cpCount + 1];
+                    int requiredSize = cpCount + 1;
+                    if (m_CodepointToCharIndex == null || m_CodepointToCharIndex.Length < requiredSize)
+                        m_CodepointToCharIndex = new int[requiredSize];
+
                     int cpIdx = 0;
                     for (int ci = 0; ci < text.Length; cpIdx++)
                     {
-                        codepointToCharIndex[cpIdx] = ci;
+                        m_CodepointToCharIndex[cpIdx] = ci;
                         ci += char.IsHighSurrogate(text[ci]) ? 2 : 1;
                     }
-                    codepointToCharIndex[cpIdx] = text.Length; // end sentinel
+                    m_CodepointToCharIndex[cpIdx] = text.Length; // end sentinel
                 }
 
                 // Convert native tokens to managed tokens
@@ -112,10 +116,11 @@ namespace TextMateLib.Bindings
                     }
 
                     int startCharIndex, endCharIndex;
-                    if (codepointToCharIndex != null)
+                    if (surrogatePairCount > 0)
                     {
-                        startCharIndex = codepointToCharIndex[Math.Min(nativeToken.StartIndex, codepointToCharIndex.Length - 1)];
-                        endCharIndex = codepointToCharIndex[Math.Min(nativeToken.EndIndex, codepointToCharIndex.Length - 1)];
+                        int maxIdx = text.Length - surrogatePairCount;
+                        startCharIndex = m_CodepointToCharIndex![Math.Min(nativeToken.StartIndex, maxIdx)];
+                        endCharIndex = m_CodepointToCharIndex[Math.Min(nativeToken.EndIndex, maxIdx)];
                     }
                     else
                     {
