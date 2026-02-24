@@ -195,6 +195,17 @@ if(NOT USE_WASM_BUILD)
         list(APPEND ONIG_CMAKE_ARGS -DCMAKE_SYSTEM_NAME=iOS)
     endif()
 
+    # For Android cross-compilation, propagate toolchain and ABI settings
+    if(CMAKE_TOOLCHAIN_FILE)
+        list(APPEND ONIG_CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE})
+    endif()
+    if(ANDROID_ABI)
+        list(APPEND ONIG_CMAKE_ARGS -DANDROID_ABI=${ANDROID_ABI})
+    endif()
+    if(ANDROID_PLATFORM)
+        list(APPEND ONIG_CMAKE_ARGS -DANDROID_PLATFORM=${ANDROID_PLATFORM})
+    endif()
+
     ExternalProject_Add(
         oniguruma
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/oniguruma
