@@ -16,6 +16,9 @@ describe('UTF-16 token index alignment', () => {
       throw new Error('Failed to load grammar');
     }
     grammar = loadedGrammar;
+
+    // Warmup: first tokenization compiles all Oniguruma regex patterns
+    grammar.tokenizeLine('const x = 0;');
   });
 
   /**
