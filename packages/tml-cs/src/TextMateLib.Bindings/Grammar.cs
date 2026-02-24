@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace TextMateLib.Bindings
 {
@@ -46,7 +47,18 @@ namespace TextMateLib.Bindings
                 prevState = NativeMethods.textmate_get_initial_state();
             }
 
-            var resultPtr = NativeMethods.textmate_tokenize_line(m_Handle, lineText ?? string.Empty, prevState);
+            var text = lineText ?? string.Empty;
+
+            // Manually encode to UTF-8 with null terminator.
+            // This avoids CharSet.Ansi which uses the system ANSI code page on Windows,
+            // corrupting non-ASCII characters.
+            var utf8ByteCount = Encoding.UTF8.GetByteCount(text);
+            var utf8Bytes = new byte[utf8ByteCount + 1]; // +1 for null terminator
+            Encoding.UTF8.GetBytes(text, 0, text.Length, utf8Bytes, 0);
+
+            // Call the _utf16 variant which returns indices as UTF-16 code unit offsets,
+            // matching C# string indexing directly.
+            var resultPtr = NativeMethods.textmate_tokenize_line_utf16(m_Handle, utf8Bytes, prevState);
 
             if (resultPtr == IntPtr.Zero)
                 throw new InvalidOperationException("Failed to tokenize line");

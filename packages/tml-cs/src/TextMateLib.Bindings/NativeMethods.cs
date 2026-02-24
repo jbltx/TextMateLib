@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace TextMateLib.Bindings
 {
@@ -64,9 +65,9 @@ namespace TextMateLib.Bindings
         internal static extern IntPtr textmate_theme_load_from_file(
             string themePath);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr textmate_theme_load_from_json(
-            string jsonContent);
+            byte[] jsonContentUtf8);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         internal static extern uint textmate_theme_get_foreground(
@@ -113,10 +114,10 @@ namespace TextMateLib.Bindings
             IntPtr registry,
             string grammarPath);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern int textmate_registry_add_grammar_from_json(
             IntPtr registry,
-            string jsonContent);
+            byte[] jsonContentUtf8);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         internal static extern IntPtr textmate_registry_load_grammar(
@@ -138,16 +139,54 @@ namespace TextMateLib.Bindings
             string lineText,
             IntPtr prevState);
 
+        // UTF-16 variants: accept byte[] (caller provides UTF-8 with null terminator)
+        // and return token indices as UTF-16 code unit offsets.
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr textmate_tokenize_line_utf16(
+            IntPtr grammar,
+            byte[] lineTextUtf8,
+            IntPtr prevState);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr textmate_tokenize_line2_utf16(
+            IntPtr grammar,
+            byte[] lineTextUtf8,
+            IntPtr prevState);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern IntPtr textmate_tokenize_lines_utf16(
+            IntPtr grammar,
+            IntPtr lines,
+            int lineCount,
+            IntPtr initialState);
+
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void textmate_free_tokenize_result(IntPtr result);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void textmate_free_tokenize_result2(IntPtr result);
 
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void textmate_free_tokenize_lines_result(IntPtr result);
+
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         internal static extern IntPtr textmate_grammar_get_scope_name(IntPtr grammar);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void textmate_oniglib_dispose(IntPtr onigLib);
+
+        // ============================================================================
+        // Helpers
+        // ============================================================================
+
+        internal static byte[] ToUtf8NullTerminated(string text)
+        {
+            text ??= string.Empty;
+            var byteCount = Encoding.UTF8.GetByteCount(text);
+            var bytes = new byte[byteCount + 1];
+            Encoding.UTF8.GetBytes(text, 0, text.Length, bytes, 0);
+            return bytes;
+        }
     }
 }

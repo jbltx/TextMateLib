@@ -64,7 +64,7 @@ namespace TextMateLib.Bindings
             if (string.IsNullOrEmpty(jsonContent))
                 throw new ArgumentNullException(nameof(jsonContent));
 
-            int result = NativeMethods.textmate_registry_add_grammar_from_json(m_Handle, jsonContent);
+            int result = NativeMethods.textmate_registry_add_grammar_from_json(m_Handle, NativeMethods.ToUtf8NullTerminated(jsonContent));
             if (result == 0)
                 throw new InvalidOperationException("Failed to add grammar from JSON");
         }
