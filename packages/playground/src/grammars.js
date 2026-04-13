@@ -1,7 +1,7 @@
 // List of available grammars from textmate-grammars-themes
 // This is a curated list of popular languages
 
-const BASE_PATH = '/tm-grammars';
+const BASE_PATH = `${import.meta.env.BASE_URL}tm-grammars`;
 
 export async function getAvailableGrammars() {
     return [
