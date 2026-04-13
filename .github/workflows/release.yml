@@ -152,15 +152,20 @@ jobs:
     needs: [build-wasm]
     runs-on: ubuntu-latest
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
           registry-url: 'https://registry.npmjs.org'
 
       - name: Download WASM artifacts
@@ -170,7 +175,6 @@ jobs:
           path: packages/tml-js/wasm/
 
       - name: Install dependencies
-        working-directory: packages/tml-js
         run: npm ci
 
       - name: Build package
@@ -179,9 +183,7 @@ jobs:
 
       - name: Publish to NPM
         working-directory: packages/tml-js
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
 
   # Publish NuGet package
   publish-nuget:
