@@ -7,7 +7,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>TextMateLib</PackageId>
-    <Version>0.0.1</Version>
+    <Version>0.1.0</Version>
     <Authors>Mickael Bonfill</Authors>
     <Description>TextMate syntax highlighting library for .NET - provides TextMate grammar parsing and tokenization with native performance</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
