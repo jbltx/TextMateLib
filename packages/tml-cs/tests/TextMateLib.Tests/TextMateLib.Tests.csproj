@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="fixtures\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TextMateLib.Bindings\TextMateLib.Bindings.csproj" />
+  </ItemGroup>
+
+  <Target Name="CopyNativeLibraries" AfterTargets="Build">
+    <!-- Linux -->
+    <Copy SourceFiles="../../../tml-cpp/build-shared/libtml.so" DestinationFolder="$(OutputPath)" Condition="Exists('../../../tml-cpp/build-shared/libtml.so')" />
+    <!-- macOS -->
+    <Copy SourceFiles="../../../tml-cpp/build-shared/libtml.dylib" DestinationFolder="$(OutputPath)" Condition="Exists('../../../tml-cpp/build-shared/libtml.dylib')" />
+    <!-- Windows - Try configuration-specific directories first (Visual Studio generator) -->
+    <Copy SourceFiles="../../../tml-cpp/build-shared/Release/tml.dll" DestinationFolder="$(OutputPath)" Condition="Exists('../../../tml-cpp/build-shared/Release/tml.dll')" />
+    <Copy SourceFiles="../../../tml-cpp/build-shared/Debug/tml.dll" DestinationFolder="$(OutputPath)" Condition="Exists('../../../tml-cpp/build-shared/Debug/tml.dll')" />
+    <!-- Windows - Fallback to root directory (other generators) -->
+    <Copy SourceFiles="../../../tml-cpp/build-shared/tml.dll" DestinationFolder="$(OutputPath)" Condition="Exists('../../../tml-cpp/build-shared/tml.dll')" />
+  </Target>
+
+</Project>

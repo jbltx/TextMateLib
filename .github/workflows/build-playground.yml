@@ -1,0 +1,54 @@
+name: Build Playground
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+      - main
+  pull_request_target:
+    branches:
+      - develop
+      - main
+
+concurrency:
+  group: build-playground-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: packages/playground/package-lock.json
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: '4.0.9'
+          actions-cache-folder: 'emsdk-cache'
+
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
+      - name: Install playground dependencies
+        working-directory: packages/playground
+        run: npm ci
+
+      - name: Build playground
+        working-directory: packages/playground
+        run: npm run build

@@ -1,0 +1,9 @@
+node_modules/
+dist/
+
+# Playground WASM artifacts
+public/wasm/*.js
+public/wasm/*.wasm
+
+# Generated documentation (built by postinstall)
+public/docs/

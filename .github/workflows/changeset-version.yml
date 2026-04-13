@@ -1,0 +1,73 @@
+name: Changeset Version
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  version:
+    # Skip if this is a Version Packages merge (prevents infinite loop)
+    if: "!contains(github.event.head_commit.message, 'Version Packages')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changesets
+        id: check
+        run: |
+          if [ -d ".changeset" ] && [ "$(ls -A .changeset/*.md 2>/dev/null | grep -v README.md)" ]; then
+            echo "has_changesets=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changesets=false" >> $GITHUB_OUTPUT
+            echo "No changesets found, skipping version bump"
+          fi
+
+      - name: Parse changesets and bump versions
+        if: steps.check.outputs.has_changesets == 'true'
+        id: version
+        uses: ./.github/actions/bump-versions
+        with:
+          github-token: ${{ github.token }}
+
+      - name: Commit and create PR
+        if: steps.check.outputs.has_changesets == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          BASE_BRANCH="${{ github.ref_name }}"
+          RELEASE_BRANCH="changeset-release/${BASE_BRANCH}"
+
+          # Create or checkout release branch
+          git checkout -B "$RELEASE_BRANCH"
+
+          # Stage and commit
+          git add -A
+          git commit -m "Version Packages"
+
+          # Force push
+          git push --force origin "$RELEASE_BRANCH"
+
+          # Create or update PR
+          existing_pr=$(gh pr list --head "$RELEASE_BRANCH" --base "$BASE_BRANCH" --json number -q '.[0].number' || echo "")
+          if [ -n "$existing_pr" ]; then
+            gh pr edit "$existing_pr" --body-file /tmp/pr-body.md
+            echo "Updated existing PR #$existing_pr"
+          else
+            gh pr create \
+              --title "Version Packages" \
+              --body-file /tmp/pr-body.md \
+              --base "$BASE_BRANCH" \
+              --head "$RELEASE_BRANCH"
+          fi

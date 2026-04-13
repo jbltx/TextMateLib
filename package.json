@@ -1,0 +1,15 @@
+{
+  "name": "textmatelib-monorepo",
+  "private": true,
+  "workspaces": ["packages/tml-js", "packages/playground"],
+  "scripts": {
+    "build:wasm": "cd packages/tml-cpp && ./scripts/build-wasm-standard.sh",
+    "build:wasm:all": "cd packages/tml-cpp && ./scripts/build-wasm-all.sh",
+    "build:native": "cd packages/tml-cpp && ./scripts/build.sh",
+    "build:js": "npm run build -w packages/tml-js",
+    "build:playground": "npm run build -w packages/playground",
+    "test:js": "npm test -w packages/tml-js",
+    "dev:playground": "npm run dev -w packages/playground"
+  },
+  "engines": { "node": ">=20" }
+}

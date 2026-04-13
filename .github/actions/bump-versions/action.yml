@@ -1,0 +1,222 @@
+name: Bump Versions
+description: Parse changesets, bump versions, and generate changelog
+
+inputs:
+  github-token:
+    description: GitHub token for API access
+    required: true
+
+outputs:
+  new_version:
+    description: The new version number
+    value: ${{ steps.bump.outputs.new_version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Parse changesets and bump versions
+      id: bump
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        REPO_OWNER: ${{ github.repository_owner }}
+        REPO_NAME: ${{ github.event.repository.name }}
+      run: |
+        set -e
+
+        echo "Repository: $REPO_URL"
+
+        # Initialize variables
+        BUMP_TYPE="patch"
+        CHANGELOG_ENTRIES=()
+        COMMIT_SHAS=()
+
+        echo "=== Processing changesets ==="
+
+        # Process each changeset file
+        for changeset in .changeset/*.md; do
+          [ "$changeset" = ".changeset/README.md" ] && continue
+          [ ! -f "$changeset" ] && continue
+
+          filename=$(basename "$changeset")
+          echo "Processing: $filename"
+
+          # Extract frontmatter (between first two ---)
+          frontmatter=$(awk '/^---$/{n++; next} n==1' "$changeset")
+
+          # Extract bump type from frontmatter (e.g., "textmatelib": "minor")
+          bump=$(echo "$frontmatter" | grep -oP "textmatelib[\"']?\s*:\s*[\"']?\K(major|minor|patch)" || echo "")
+
+          # Extract description (after second ---)
+          description=$(awk '/^---$/{n++; next} n>=2' "$changeset" | sed '/^$/d')
+
+          echo "  Bump type: '$bump'"
+          echo "  Description: '$description'"
+
+          # Determine highest priority bump type
+          if [ "$bump" = "major" ]; then
+            BUMP_TYPE="major"
+          elif [ "$bump" = "minor" ] && [ "$BUMP_TYPE" != "major" ]; then
+            BUMP_TYPE="minor"
+          fi
+
+          # Get Git metadata for this changeset
+          commit_info=$(git log --diff-filter=A --format="%H|%an|%ae" -- "$changeset" | head -1)
+
+          if [ -n "$commit_info" ]; then
+            IFS='|' read -r commit_sha author author_email <<< "$commit_info"
+            short_sha="${commit_sha:0:7}"
+
+            # Store commit SHA for later GitHub API lookup
+            COMMIT_SHAS+=("$commit_sha")
+
+            # Get PR number from commit message
+            commit_msg=$(git log --format=%s -n 1 "$commit_sha")
+            pr_number=$(echo "$commit_msg" | grep -oP '#\K\d+' || echo "")
+
+            echo "  Commit: $short_sha, PR: $pr_number"
+
+            # Store metadata for later processing
+            echo "${commit_sha}|${pr_number}|${description}" >> /tmp/changeset-data.txt
+          fi
+        done
+
+        echo ""
+        echo "=== Version Bump ==="
+
+        # Get current version from package.json
+        CURRENT_VERSION=$(jq -r '.version' packages/tml-js/package.json)
+        IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
+
+        # Calculate new version
+        case "$BUMP_TYPE" in
+          major)
+            NEW_VERSION="$((major + 1)).0.0"
+            ;;
+          minor)
+            NEW_VERSION="${major}.$((minor + 1)).0"
+            ;;
+          patch)
+            NEW_VERSION="${major}.${minor}.$((patch + 1))"
+            ;;
+        esac
+
+        echo "Bumping: $CURRENT_VERSION -> $NEW_VERSION ($BUMP_TYPE)"
+
+        # Update CMakeLists.txt
+        sed -i.bak -E "s/project\(tml VERSION [0-9.]+/project(tml VERSION $NEW_VERSION/" packages/tml-cpp/CMakeLists.txt && rm packages/tml-cpp/CMakeLists.txt.bak
+
+        # Update conanfile.py
+        sed -i.bak -E "s/version = \"[0-9.]+\"/version = \"$NEW_VERSION\"/" packages/tml-cpp/conanfile.py && rm packages/tml-cpp/conanfile.py.bak
+
+        # Update packages/tml-js/package.json
+        jq ".version = \"$NEW_VERSION\"" packages/tml-js/package.json > packages/tml-js/package.json.tmp && mv packages/tml-js/package.json.tmp packages/tml-js/package.json
+
+        # Update C# csproj
+        sed -i.bak -E "s|<Version>[0-9.]+</Version>|<Version>$NEW_VERSION</Version>|" packages/tml-cs/src/TextMateLib.Bindings/TextMateLib.Bindings.csproj && rm packages/tml-cs/src/TextMateLib.Bindings/TextMateLib.Bindings.csproj.bak
+
+        # Update packages/playground/package.json
+        jq ".version = \"$NEW_VERSION\"" packages/playground/package.json > packages/playground/package.json.tmp && mv packages/playground/package.json.tmp packages/playground/package.json
+
+        # Delete consumed changesets
+        for changeset in .changeset/*.md; do
+          [ "$changeset" != ".changeset/README.md" ] && rm -f "$changeset"
+        done
+
+        # Set output
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+    - name: Fetch GitHub metadata and generate changelog
+      uses: actions/github-script@v7
+      env:
+        NEW_VERSION: ${{ steps.bump.outputs.new_version }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const fs = require('fs');
+
+          // Read changeset data
+          let changesetData = [];
+          if (fs.existsSync('/tmp/changeset-data.txt')) {
+            const content = fs.readFileSync('/tmp/changeset-data.txt', 'utf8');
+            changesetData = content.trim().split('\n').map(line => {
+              const [commitSha, prNumber, description] = line.split('|');
+              return { commitSha, prNumber, description };
+            });
+          }
+
+          const repoUrl = context.payload.repository.html_url;
+          const changelogEntries = [];
+
+          // Fetch metadata for each commit
+          for (const item of changesetData) {
+            const { commitSha, prNumber, description } = item;
+            const shortSha = commitSha.substring(0, 7);
+
+            let entry = '';
+
+            // Try to get commit author from GitHub API
+            try {
+              const { data: commit } = await github.rest.repos.getCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: commitSha
+              });
+
+              const githubUsername = commit.author?.login || null;
+
+              // Build entry with PR or commit link
+              if (prNumber) {
+                entry = `[#${prNumber}](${repoUrl}/pull/${prNumber})`;
+              } else {
+                entry = `[${shortSha}](${repoUrl}/commit/${commitSha})`;
+              }
+
+              // Add author attribution
+              if (githubUsername) {
+                entry += ` by [@${githubUsername}](https://github.com/${githubUsername})`;
+              } else if (commit.commit?.author?.name) {
+                entry += ` by ${commit.commit.author.name}`;
+              }
+
+            } catch (error) {
+              console.log(`Warning: Could not fetch commit ${shortSha}: ${error.message}`);
+              entry = prNumber
+                ? `[#${prNumber}](${repoUrl}/pull/${prNumber})`
+                : `[${shortSha}](${repoUrl}/commit/${commitSha})`;
+            }
+
+            // Add description
+            if (description) {
+              entry += ` - ${description}`;
+            }
+
+            changelogEntries.push(entry);
+          }
+
+          // Generate PR body
+          const newVersion = process.env.NEW_VERSION;
+          const changelogText = changelogEntries.map(e => `- ${e}`).join('\n');
+
+          const prBody = `## Version ${newVersion}
+
+          This PR was automatically generated by the changeset workflow.
+
+          ### Changes
+
+          ${changelogText}
+
+          ### Updated Files
+          - packages/tml-cpp/CMakeLists.txt
+          - packages/tml-cpp/conanfile.py
+          - packages/tml-js/package.json
+          - packages/tml-cs/src/TextMateLib.Bindings/TextMateLib.Bindings.csproj
+          - packages/playground/package.json
+          `;
+
+          fs.writeFileSync('/tmp/pr-body.md', prBody);
+
+          console.log('=== Generated PR body ===');
+          console.log(prBody);
+          console.log('=== End PR body ===');

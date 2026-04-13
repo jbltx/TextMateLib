@@ -1,0 +1,148 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+      - main
+  pull_request_target:
+    branches:
+      - develop
+      - main
+
+concurrency:
+  group: build-and-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        build_type: [Release]
+        c_compiler: [gcc, clang, cl]
+        include:
+          - os: windows-latest
+            c_compiler: cl
+            cpp_compiler: cl
+            lib_name: tml.dll
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+            lib_name: libtml.so
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+            lib_name: libtml.so
+        exclude:
+          - os: windows-latest
+            c_compiler: gcc
+          - os: windows-latest
+            c_compiler: clang
+          - os: ubuntu-latest
+            c_compiler: cl
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-dir=${{ github.workspace }}/packages/tml-cpp/build" >> "$GITHUB_OUTPUT"
+          echo "build-shared-dir=${{ github.workspace }}/packages/tml-cpp/build-shared" >> "$GITHUB_OUTPUT"
+          echo "onig-source-dir=${{ github.workspace }}/thirdparty/oniguruma" >> "$GITHUB_OUTPUT"
+          echo "onig-build-dir=${{ github.workspace }}/thirdparty/oniguruma/build" >> "$GITHUB_OUTPUT"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Configure CMake
+        run: >
+          cmake
+          -S ${{ github.workspace }}/packages/tml-cpp
+          -B ${{ steps.strings.outputs.build-dir }}
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+          -DBUILD_SHARED_LIBS=OFF
+
+      - name: Configure CMake [Shared]
+        run: >
+          cmake
+          -S ${{ github.workspace }}/packages/tml-cpp
+          -B ${{ steps.strings.outputs.build-shared-dir }}
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+          -DBUILD_SHARED_LIBS=ON
+
+      - name: Build Native Library
+        run: |
+          cmake --build ${{ steps.strings.outputs.build-dir }} --config ${{ matrix.build_type }}
+          cmake --build ${{ steps.strings.outputs.build-shared-dir }} --config ${{ matrix.build_type }}
+
+      - name: Test Native Library
+        working-directory: ${{ steps.strings.outputs.build-dir }}
+        run: ctest --build-config ${{ matrix.build_type }} -V
+
+      - name: Build C# Bindings
+        run: dotnet build packages/tml-cs/src/TextMateLib.Bindings/TextMateLib.Bindings.csproj --configuration Release
+
+      - name: Build C# Tests
+        run: dotnet build packages/tml-cs/tests/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release
+
+      - name: Run C# Tests
+        run: dotnet test packages/tml-cs/tests/TextMateLib.Tests/TextMateLib.Tests.csproj --configuration Release --verbosity normal
+
+  js-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: '3.1.51'
+
+      - name: Build WASM
+        working-directory: packages/tml-cpp
+        run: ./scripts/build-wasm-standard.sh
+
+      - name: Copy WASM to packages/tml-js/wasm
+        run: |
+          mkdir -p packages/tml-js/wasm
+          cp packages/tml-cpp/build/wasm-standard/browser/tml-standard.js packages/tml-js/wasm/
+          cp packages/tml-cpp/build/wasm-standard/browser/tml-standard.wasm packages/tml-js/wasm/
+
+      - name: Install JS package dependencies
+        working-directory: packages/tml-js
+        run: npm install
+
+      - name: Build JS package
+        working-directory: packages/tml-js
+        run: npm run build
+
+      - name: Run JS tests
+        working-directory: packages/tml-js
+        run: npm test
