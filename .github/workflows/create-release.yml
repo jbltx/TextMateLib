@@ -1,9 +1,6 @@
 name: Create Release
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch: 
 
 permissions:
@@ -11,8 +8,6 @@ permissions:
 
 jobs:
   create-release:
-    # Only run if this is a version packages merge
-    if: contains(github.event.head_commit.message, 'Version Packages')
     runs-on: ubuntu-latest
 
     steps:
