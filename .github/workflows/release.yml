@@ -152,6 +152,9 @@ jobs:
     needs: [build-wasm]
     runs-on: ubuntu-latest
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -180,9 +183,7 @@ jobs:
 
       - name: Publish to NPM
         working-directory: packages/tml-js
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
 
   # Publish NuGet package
   publish-nuget:
