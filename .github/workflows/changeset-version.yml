@@ -43,7 +43,7 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: packages/playground/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Rebuild lockfile
         run: npm install
