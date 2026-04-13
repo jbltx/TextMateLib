@@ -80,9 +80,22 @@ class TextMateLibConan(ConanFile):
         copy(self, "LICENSE", src=self.source_folder, dst=os.path.join(self.package_folder, "licenses"))
         cmake = CMake(self)
         cmake.install()
+        # Oniguruma is built via ExternalProject_Add and is not part of cmake --install.
+        # Copy the static library and public headers so that consumers can link all symbols
+        # (libtml.a has undefined references to onig_* that the consumer's linker must resolve)
+        # and so that installed headers like onigLib.h (which include "oniguruma.h") still compile.
+        onig_install = os.path.join(self.build_folder, "oniguruma")
+        copy(self, "*.a", src=os.path.join(onig_install, "lib"),
+             dst=os.path.join(self.package_folder, "lib"), keep_path=False)
+        copy(self, "*.lib", src=os.path.join(onig_install, "lib"),
+             dst=os.path.join(self.package_folder, "lib"), keep_path=False)
+        copy(self, "*.h", src=os.path.join(onig_install, "include"),
+             dst=os.path.join(self.package_folder, "include"), keep_path=False)
 
     def package_info(self):
-        self.cpp_info.libs = ["tml"]
+        # tml depends on onig at link time; list both so consumers get all symbols resolved.
+        # Order matters for static linking: tml first (it references onig), then onig.
+        self.cpp_info.libs = ["tml", "onig"]
         self.cpp_info.set_property("cmake_file_name", "TextMateLib")
         self.cpp_info.set_property("cmake_target_name", "TextMateLib::tml")
 
