@@ -3,6 +3,12 @@ project(tml VERSION 0.1.0 LANGUAGES CXX)
 
 include(GenerateExportHeader)
 
+# Allow callers (e.g. Conan) to override the thirdparty directory.
+# Defaults to the monorepo layout where thirdparty/ sits two levels above this file.
+if(NOT DEFINED THIRDPARTY_DIR)
+    set(THIRDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty")
+endif()
+
 # Set C++17 standard for modern features
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -91,7 +97,7 @@ endif()
 # Include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/rapidjson/include
+    ${THIRDPARTY_DIR}/rapidjson/include
 )
 
 # Source files
@@ -208,7 +214,7 @@ if(NOT USE_WASM_BUILD)
 
     ExternalProject_Add(
         oniguruma
-        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/oniguruma
+        SOURCE_DIR ${THIRDPARTY_DIR}/oniguruma
         BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/thirdparty/oniguruma/build
         CMAKE_ARGS ${ONIG_CMAKE_ARGS}
         BUILD_COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}
@@ -225,7 +231,7 @@ else()
 
     ExternalProject_Add(
         oniguruma_wasm
-        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdparty/oniguruma
+        SOURCE_DIR ${THIRDPARTY_DIR}/oniguruma
         BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/thirdparty/oniguruma/build_wasm
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=Release
@@ -382,6 +388,10 @@ install(TARGETS tml
 )
 
 install(FILES ${TEXTMATE_HEADERS}
+    DESTINATION include/tml
+)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tml_export.h
     DESTINATION include/tml
 )
 

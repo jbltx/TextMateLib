@@ -147,3 +147,27 @@ jobs:
       - name: Run JS tests
         working-directory: packages/tml-js
         run: npm test
+
+  conan-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Conan
+        run: |
+          pip install conan
+          conan profile detect
+
+      - name: Create and test Conan package
+        run: conan create packages/tml-cpp --build=missing

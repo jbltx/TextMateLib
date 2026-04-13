@@ -12,6 +12,7 @@ class TextMateLibConan(ConanFile):
     url = "https://github.com/jbltx/TextMateLib"
     description = "TextMate syntax highlighting library - a C++ implementation of TextMate grammar parsing and tokenization"
     topics = ("textmate", "syntax", "highlighting", "grammar", "tokenizer", "parsing")
+    package_type = "library"
     settings = "os", "compiler", "build_type", "arch"
     options = {
         "shared": [True, False],
@@ -21,11 +22,11 @@ class TextMateLibConan(ConanFile):
         "shared": False,
         "fPIC": True
     }
+    # Only include sources within this package directory; thirdparty deps are
+    # handled by export_sources() to avoid Conan 2's restriction on ".." patterns.
     exports_sources = (
         "CMakeLists.txt",
         "src/*",
-        "../../thirdparty/rapidjson/*",
-        "../../thirdparty/oniguruma/*"
     )
 
     def config_options(self):
@@ -39,12 +40,35 @@ class TextMateLibConan(ConanFile):
     def layout(self):
         cmake_layout(self)
 
+    def export_sources(self):
+        # Copy vendored thirdparty dependencies (git submodules) from the monorepo
+        # root into the Conan export-sources folder so that `conan create` works
+        # without requiring ".." patterns in exports_sources (which Conan 2 rejects).
+        thirdparty_root = os.path.normpath(
+            os.path.join(self.recipe_folder, "..", "..", "thirdparty")
+        )
+        export_thirdparty = os.path.join(self.export_sources_folder, "thirdparty")
+        copy(self, "rapidjson/*", src=thirdparty_root, dst=export_thirdparty)
+        copy(self, "oniguruma/*", src=thirdparty_root, dst=export_thirdparty)
+
     def generate(self):
         deps = CMakeDeps(self)
         deps.generate()
         tc = CMakeToolchain(self)
         tc.variables["BUILD_SHARED_LIBS"] = self.options.shared
         tc.variables["USE_WASM_BUILD"] = False
+        # Determine the thirdparty directory.  Two cases:
+        # 1. conan create  – thirdparty was exported into source_folder/thirdparty
+        # 2. conan install (local/monorepo) – thirdparty lives at ../../thirdparty
+        #    relative to the package folder (packages/tml-cpp).
+        thirdparty_in_source = os.path.join(self.source_folder, "thirdparty")
+        if os.path.isdir(thirdparty_in_source):
+            thirdparty_dir = thirdparty_in_source
+        else:
+            thirdparty_dir = os.path.normpath(
+                os.path.join(self.source_folder, "..", "..", "thirdparty")
+            )
+        tc.variables["THIRDPARTY_DIR"] = thirdparty_dir.replace("\\", "/")
         tc.generate()
 
     def build(self):
@@ -56,9 +80,22 @@ class TextMateLibConan(ConanFile):
         copy(self, "LICENSE", src=self.source_folder, dst=os.path.join(self.package_folder, "licenses"))
         cmake = CMake(self)
         cmake.install()
+        # Oniguruma is built via ExternalProject_Add and is not part of cmake --install.
+        # Copy the static library and public headers so that consumers can link all symbols
+        # (libtml.a has undefined references to onig_* that the consumer's linker must resolve)
+        # and so that installed headers like onigLib.h (which include "oniguruma.h") still compile.
+        onig_install = os.path.join(self.build_folder, "oniguruma")
+        copy(self, "*.a", src=os.path.join(onig_install, "lib"),
+             dst=os.path.join(self.package_folder, "lib"), keep_path=False)
+        copy(self, "*.lib", src=os.path.join(onig_install, "lib"),
+             dst=os.path.join(self.package_folder, "lib"), keep_path=False)
+        copy(self, "*.h", src=os.path.join(onig_install, "include"),
+             dst=os.path.join(self.package_folder, "include"), keep_path=False)
 
     def package_info(self):
-        self.cpp_info.libs = ["tml"]
+        # tml depends on onig at link time; list both so consumers get all symbols resolved.
+        # Order matters for static linking: tml first (it references onig), then onig.
+        self.cpp_info.libs = ["tml", "onig"]
         self.cpp_info.set_property("cmake_file_name", "TextMateLib")
         self.cpp_info.set_property("cmake_target_name", "TextMateLib::tml")
 
