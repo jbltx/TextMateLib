@@ -37,9 +37,9 @@ function serveGrammarsThemes() {
 }
 
 export default defineConfig({
-  // Set base path for GitHub Pages deployment
-  // Use '/' for local dev, '/TextMateLib/' for GitHub Pages
-  base: process.env.GITHUB_ACTIONS ? '/TextMateLib/' : '/',
+  // Base path for deployment
+  // Custom domain (tml.jbltx.com) serves from '/', so always use '/'
+  base: '/',
 
   server: {
     // Allow serving files from parent directory
