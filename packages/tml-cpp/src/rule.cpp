@@ -609,10 +609,12 @@ std::vector<CaptureRule*> RuleFactory::_compileCaptures(IRawCaptures* captures,
         return result;
     }
 
-    // Find maximum capture id
+    // Find maximum capture id (skip non-numeric keys from malformed grammars)
     int maximumCaptureId = 0;
     for (const auto& pair : captures->captures) {
-        int numericCaptureId = std::stoi(pair.first);
+        int numericCaptureId;
+        try { numericCaptureId = std::stoi(pair.first); }
+        catch (...) { continue; }
         if (numericCaptureId > maximumCaptureId) {
             maximumCaptureId = numericCaptureId;
         }
@@ -623,7 +625,9 @@ std::vector<CaptureRule*> RuleFactory::_compileCaptures(IRawCaptures* captures,
 
     // Fill out result
     for (const auto& pair : captures->captures) {
-        int numericCaptureId = std::stoi(pair.first);
+        int numericCaptureId;
+        try { numericCaptureId = std::stoi(pair.first); }
+        catch (...) { continue; }
         RuleId retokenizeCapturedWithRuleId = ruleIdFromNumber(0);
 
         if (pair.second->patterns) {
