@@ -258,17 +258,19 @@ jobs:
           pip install conan
           conan profile detect
 
-      - name: Test Conan package locally
-        working-directory: packages/tml-cpp
-        run: |
-          conan create . --build=missing
+      - name: Create and test Conan package
+        run: conan create packages/tml-cpp --build=missing
 
       - name: Prepare Conan Center submission
         run: |
-          echo "Conan package built and tested successfully."
+          VERSION=$(python3 -c "
+          import re, pathlib
+          text = pathlib.Path('packages/tml-cpp/conanfile.py').read_text()
+          m = re.search(r'version\s*=\s*[\"\']([0-9.]+)[\"\']', text)
+          print(m.group(1) if m else 'unknown')
+          ")
+          echo "Conan package textmatelib/${VERSION} built and tested successfully."
           echo "To submit to Conan Center:"
           echo "1. Fork https://github.com/conan-io/conan-center-index"
-          echo "2. Add recipe to recipes/textmatelib/"
-          echo "3. Create PR to conan-center-index"
-          echo ""
-          echo "Package version: $(grep 'version =' packages/tml-cpp/conanfile.py | head -1)"
+          echo "2. Add recipe under recipes/textmatelib/${VERSION}/"
+          echo "3. Create a PR to conan-center-index"

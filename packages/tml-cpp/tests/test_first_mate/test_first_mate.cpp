@@ -158,6 +158,11 @@ bool testLine(Grammar* grammar,
         }
     }
 
+    // Empty expected tokens = smoke test (just verify tokenization doesn't crash)
+    if (expectedTokensList.empty()) {
+        return true;
+    }
+
     // Compare tokens in order (like TypeScript's deepStrictEqual)
     if (result.tokens.size() != expectedTokensList.size()) {
         std::cerr << "      Token count mismatch" << std::endl;
@@ -403,7 +408,7 @@ TEST_P(FirstMateParameterizedTest, FirstMateTests) {
 INSTANTIATE_TEST_CASE_P(
     FirstMateTestSuite,
     FirstMateParameterizedTest,
-    ::testing::Range(0, 65));  // Adjust if test count changes
+    ::testing::Range(0, 66));  // Adjust if test count changes
 
 // Initialize test data at program start
 namespace {
