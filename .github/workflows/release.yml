@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -84,22 +84,23 @@ jobs:
         if: matrix.os != 'windows-latest'
         shell: bash
         run: |
-          cp ${{ steps.strings.outputs.build-dir }}/*.a artifacts/static/ || true
-          cp ${{ steps.strings.outputs.build-shared-dir }}/${{ matrix.lib_name }} artifacts/shared/ || true
+          cp "${{ steps.strings.outputs.build-dir }}"/*.a artifacts/static/ || true
+          cp "${{ steps.strings.outputs.build-shared-dir }}"/${{ matrix.lib_name }} artifacts/shared/ || true
 
       - name: Copy artifacts (Windows)
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
-          cp ${{ steps.strings.outputs.build-dir }}/${{ env.BUILD_TYPE }}/*.lib artifacts/static/ || true
-          cp ${{ steps.strings.outputs.build-shared-dir }}/${{ env.BUILD_TYPE }}/*.dll artifacts/shared/ || true
-          cp ${{ steps.strings.outputs.build-shared-dir }}/${{ env.BUILD_TYPE }}/*.lib artifacts/shared/ || true
+          cp "${{ steps.strings.outputs.build-dir }}/${{ env.BUILD_TYPE }}"/*.lib artifacts/static/ || true
+          cp "${{ steps.strings.outputs.build-shared-dir }}/${{ env.BUILD_TYPE }}"/*.dll artifacts/shared/ || true
+          cp "${{ steps.strings.outputs.build-shared-dir }}/${{ env.BUILD_TYPE }}"/*.lib artifacts/shared/ || true
 
       - name: Upload native artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: native-${{ matrix.artifact }}
           path: artifacts/
+          if-no-files-found: error
 
   # Build WASM variants
   build-wasm:
@@ -107,7 +108,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -142,7 +143,7 @@ jobs:
           cp ${{ steps.strings.outputs.build-dir }}/browser/*.wasm artifacts/wasm/ || true
 
       - name: Upload WASM artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wasm
           path: artifacts/wasm/
@@ -151,14 +152,14 @@ jobs:
   publish-npm:
     needs: [build-wasm]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    if: success() && (github.event_name == 'release' || github.event_name == 'workflow_dispatch')
     permissions:
       contents: read
       id-token: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -169,7 +170,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Download WASM artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: wasm
           path: packages/tml-js/wasm/
@@ -183,37 +184,44 @@ jobs:
 
       - name: Publish to NPM
         working-directory: packages/tml-js
-        run: npm publish --access public --provenance
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version 2>/dev/null; then
+            echo "Version ${PACKAGE_VERSION} already published, skipping."
+          else
+            npm publish --access public --provenance
+          fi
 
   # Publish NuGet package
   publish-nuget:
     needs: [build-native]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    if: success() && (github.event_name == 'release' || github.event_name == 'workflow_dispatch')
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '9.0.x'
 
       - name: Download Linux artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: native-linux-x64
           path: native-linux-x64/
 
       - name: Download Windows artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: native-win-x64
           path: native-win-x64/
 
       - name: Download macOS artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: native-osx-universal
           path: native-osx-universal/
@@ -240,11 +248,11 @@ jobs:
   publish-conan:
     needs: [build-native]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    if: success() && (github.event_name == 'release' || github.event_name == 'workflow_dispatch')
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 

@@ -45,7 +45,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -94,22 +94,23 @@ jobs:
         if: matrix.os != 'windows-latest'
         shell: bash
         run: |
-          cp ${{ steps.strings.outputs.build-dir }}/*.a artifacts/static/ || true
-          cp ${{ steps.strings.outputs.build-shared-dir }}/${{ matrix.lib_name }} artifacts/shared/ || true
+          cp "${{ steps.strings.outputs.build-dir }}"/*.a artifacts/static/ || true
+          cp "${{ steps.strings.outputs.build-shared-dir }}"/${{ matrix.lib_name }} artifacts/shared/ || true
 
       - name: Copy artifacts (Windows)
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
-          cp ${{ steps.strings.outputs.build-dir }}/${{ env.BUILD_TYPE }}/*.lib artifacts/static/ || true
-          cp ${{ steps.strings.outputs.build-shared-dir }}/${{ env.BUILD_TYPE }}/*.dll artifacts/shared/ || true
-          cp ${{ steps.strings.outputs.build-shared-dir }}/${{ env.BUILD_TYPE }}/*.lib artifacts/shared/ || true
+          cp "${{ steps.strings.outputs.build-dir }}/${{ env.BUILD_TYPE }}"/*.lib artifacts/static/ || true
+          cp "${{ steps.strings.outputs.build-shared-dir }}/${{ env.BUILD_TYPE }}"/*.dll artifacts/shared/ || true
+          cp "${{ steps.strings.outputs.build-shared-dir }}/${{ env.BUILD_TYPE }}"/*.lib artifacts/shared/ || true
 
       - name: Upload native artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: native-${{ matrix.artifact }}
           path: artifacts/
+          if-no-files-found: error
 
   # Build WASM with standard variant
   build-wasm:
@@ -119,7 +120,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -154,7 +155,7 @@ jobs:
           cp ${{ steps.strings.outputs.build-dir }}/browser/*.wasm artifacts/wasm/ || true
 
       - name: Upload WASM artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wasm
           path: artifacts/wasm/
@@ -162,12 +163,12 @@ jobs:
   # Package NPM (build only, no publish)
   package-npm:
     needs: [check-draft, build-wasm]
-    if: needs.check-draft.outputs.is_draft == 'true'
+    if: success() && needs.check-draft.outputs.is_draft == 'true'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -177,7 +178,7 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Download WASM artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: wasm
           path: packages/tml-js/wasm/
@@ -194,7 +195,7 @@ jobs:
         run: npm pack
 
       - name: Upload NPM package artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: npm-package
           path: packages/tml-js/*.tgz
@@ -202,32 +203,32 @@ jobs:
   # Package NuGet (build only, no publish)
   package-nuget:
     needs: [check-draft, build-native]
-    if: needs.check-draft.outputs.is_draft == 'true'
+    if: success() && needs.check-draft.outputs.is_draft == 'true'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '9.0.x'
 
       - name: Download Linux artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: native-linux-x64
           path: native-linux-x64/
 
       - name: Download Windows artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: native-win-x64
           path: native-win-x64/
 
       - name: Download macOS artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: native-osx-universal
           path: native-osx-universal/
@@ -248,7 +249,7 @@ jobs:
         run: dotnet pack packages/tml-cs/src/TextMateLib.Bindings/TextMateLib.Bindings.csproj --configuration Release --output ./nupkg
 
       - name: Upload NuGet package artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nuget-package
           path: ./nupkg/
@@ -256,44 +257,44 @@ jobs:
   # Attach all packages to the draft GitHub Release
   attach-to-release:
     needs: [check-draft, build-native, build-wasm, package-npm, package-nuget]
-    if: needs.check-draft.outputs.is_draft == 'true'
+    if: success() && needs.check-draft.outputs.is_draft == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
       - name: Download Linux artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: native-linux-x64
           path: native-linux-x64/
 
       - name: Download Windows artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: native-win-x64
           path: native-win-x64/
 
       - name: Download macOS artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: native-osx-universal
           path: native-osx-universal/
 
       - name: Download WASM artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: wasm
           path: wasm/
 
       - name: Download NPM package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: npm-package
           path: npm-package/
 
       - name: Download NuGet package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: nuget-package
           path: nuget-package/
