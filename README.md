@@ -1,5 +1,7 @@
 # TextMateLib (tml)
 
+[![Build and Test](https://github.com/jbltx/TextMateLib/actions/workflows/build-and-test.yml/badge.svg?branch=develop)](https://github.com/jbltx/TextMateLib/actions/workflows/build-and-test.yml)
+
 A modern C++ implementation of the TextMate syntax highlighting engine. TextMateLib tokenizes source code using TextMate-format grammars, applies color schemes (themes), and provides native C/C++, C FFI, and WebAssembly APIs for high-performance syntax highlighting.
 
 ## Try the Playground!
