@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>BenchCs</AssemblyName>
+    <RootNamespace>BenchCs</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../packages/tml-cs/src/TextMateLib.Bindings/TextMateLib.Bindings.csproj" />
+  </ItemGroup>
+
+  <!-- Copy the native shared library next to the benchmark so P/Invoke ("tml") resolves it. -->
+  <Target Name="CopyNativeLibraries" AfterTargets="Build">
+    <Copy SourceFiles="../../packages/tml-cpp/build-shared/libtml.so" DestinationFolder="$(OutputPath)" Condition="Exists('../../packages/tml-cpp/build-shared/libtml.so')" />
+    <Copy SourceFiles="../../packages/tml-cpp/build-shared/libtml.dylib" DestinationFolder="$(OutputPath)" Condition="Exists('../../packages/tml-cpp/build-shared/libtml.dylib')" />
+    <Copy SourceFiles="../../packages/tml-cpp/build-shared/Release/tml.dll" DestinationFolder="$(OutputPath)" Condition="Exists('../../packages/tml-cpp/build-shared/Release/tml.dll')" />
+    <Copy SourceFiles="../../packages/tml-cpp/build-shared/tml.dll" DestinationFolder="$(OutputPath)" Condition="Exists('../../packages/tml-cpp/build-shared/tml.dll')" />
+  </Target>
+
+</Project>

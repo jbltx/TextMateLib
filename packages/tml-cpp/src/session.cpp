@@ -124,6 +124,11 @@ void SessionImpl::retokenizeLines(int32_t startIndex, int32_t endIndex) {
         state = lines[startIndex - 1].state;
     }
 
+    // Record every node created during this retokenize so the unreachable ones can be
+    // reclaimed below. Save/restore the previous active arena to stay re-entrant.
+    StackNodeArena* prevArena = tmlGetActiveArena();
+    tmlSetActiveArena(&stateArena);
+
     // Retokenize with early stopping when state stabilizes
     for (int32_t i = startIndex; i <= endIndex; i++) {
         ITokenizeLineResult result = grammar->tokenizeLine(lines[i].content, state);
@@ -144,6 +149,20 @@ void SessionImpl::retokenizeLines(int32_t startIndex, int32_t endIndex) {
 
         state = result.ruleStack;
     }
+
+    tmlSetActiveArena(prevArena);
+
+    // Free everything no longer reachable from a currently-cached line state. The cached
+    // states are the only roots the editor can still observe; intra-line garbage and states
+    // orphaned by this edit are not among them and get reclaimed.
+    std::vector<StateStackImpl*> roots;
+    roots.reserve(lines.size());
+    for (const auto& line : lines) {
+        if (line.cached && line.state) {
+            roots.push_back(reinterpret_cast<StateStackImpl*>(line.state));
+        }
+    }
+    stateArena.sweepKeeping(roots);
 }
 
 int32_t SessionImpl::edit(
@@ -329,6 +348,8 @@ void SessionImpl::clearCache() {
             line.state = nullptr;
         }
     }
+    // Every cached state was just dropped, so the entire node graph is now unreachable.
+    stateArena.clear();
     nextVersion++;
 }
 
