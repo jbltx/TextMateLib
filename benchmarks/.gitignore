@@ -3,3 +3,5 @@ fixtures/
 results.md
 bench-native
 *.o
+csharp/bin/
+csharp/obj/

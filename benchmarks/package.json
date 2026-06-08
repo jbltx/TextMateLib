@@ -7,7 +7,8 @@
     "fixtures": "node prepare-fixtures.mjs",
     "bench": "node bench-js.mjs",
     "bench:native": "node run-native.mjs",
-    "bench:all": "node bench-js.mjs && node run-native.mjs"
+    "bench:cs": "node run-cs.mjs",
+    "bench:all": "node bench-js.mjs && node run-native.mjs && node run-cs.mjs"
   },
   "dependencies": {
     "textmatelib": "*"

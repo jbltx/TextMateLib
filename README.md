@@ -41,17 +41,19 @@ what an editor or highlighter actually consumes). For `tml-js` we show two call 
 **per-line** (looping `tokenizeLine`, carrying the rule stack in JS — the right API for live
 editing) and **batch** (`tokenizeLines`/`tokenizeLines2`, which tokenizes a whole document in
 one call with the rule stack carried inside WASM — the right API for highlighting static text).
-Numbers below were measured on an **Apple M4 Max**, **Node v24.4.0**, macOS arm64,
+We also include the **.NET binding** (`tml-cs`), which P/Invokes the same native engine through
+a shared library; it is scope-only, since the managed binding exposes no themed path.
+Numbers below were measured on an **Apple M4 Max**, **Node v24.4.0**, **.NET 9.0.303**, macOS arm64,
 against `vscode-textmate@9.3.2` and `shiki@1.29.2`.
 
 ### Scope tokenization
 
-| File | Size | tml-js (per-line) | tml-js (batch) | vscode-textmate | native C++ ¹ |
-|------|------|-------------------|----------------|-----------------|--------------|
-| TypeScript (`vscode.d.ts`) | 0.71 MB | 2.2 MB/s | 2.7 MB/s | 3.7 MB/s | 4.0 MB/s |
-| JavaScript (jQuery) | 0.27 MB | 0.6 MB/s | 0.6 MB/s | 0.8 MB/s | 0.9 MB/s |
-| CSS (Bootstrap) | 0.27 MB | 0.8 MB/s | 0.9 MB/s | 1.3 MB/s | 1.3 MB/s |
-| Python (`typing.py`) | 0.13 MB | 1.3 MB/s | 1.4 MB/s | 1.7 MB/s | 2.0 MB/s |
+| File | Size | tml-js (per-line) | tml-js (batch) | tml-cs (P/Invoke) ¹ | vscode-textmate | native C++ ² |
+|------|------|-------------------|----------------|---------------------|-----------------|--------------|
+| TypeScript (`vscode.d.ts`) | 0.71 MB | 2.2 MB/s | 2.7 MB/s | 3.6 MB/s | 3.7 MB/s | 4.0 MB/s |
+| JavaScript (jQuery) | 0.27 MB | 0.6 MB/s | 0.6 MB/s | 0.9 MB/s | 0.8 MB/s | 0.9 MB/s |
+| CSS (Bootstrap) | 0.27 MB | 0.8 MB/s | 0.9 MB/s | 1.2 MB/s | 1.3 MB/s | 1.3 MB/s |
+| Python (`typing.py`) | 0.13 MB | 1.3 MB/s | 1.4 MB/s | 1.9 MB/s | 1.7 MB/s | 2.0 MB/s |
 
 ### Themed tokenization
 
@@ -78,7 +80,10 @@ shares. TextMateLib's **native C++ engine matches or slightly beats `vscode-text
 2. **The WASM engine itself.** Even with marshalling flattened, `tml-js` (2.7 MB/s batch on
    TypeScript scope) trails `vscode-textmate`'s pure-JS engine (3.7) and the native C++ build
    (4.0). This residual is WASM-vs-JIT execution, not the binding — and it is the next thing to
-   optimize.
+   optimize. The **.NET binding (`tml-cs`) confirms this**: it crosses a P/Invoke boundary with
+   the same per-token scope marshalling as the JS path, yet runs the engine natively and lands at
+   3.6 MB/s on TypeScript scope — right at the native ceiling and well above `tml-js`. Same engine,
+   different execution model.
 
 The remaining **per-line vs batch** difference (2.2 → 2.7 on TypeScript scope) is just the
 JS↔WASM call overhead: batch makes one crossing for the whole document, per-line makes one per
@@ -90,7 +95,11 @@ themed token objects. For highlighting static text,
 prefer the batch API (`tokenizeLines` / `tokenizeLines2`); for live editing where individual
 lines change, use the per-line API (`tokenizeLine` / `tokenizeLine2`).
 
-¹ *Native C++ is a raw-engine reference, **not** an apples-to-apples comparison: it runs
+¹ *`tml-cs` is the managed .NET binding ([`tml-cs`](packages/tml-cs/)) calling the native engine
+through P/Invoke. It is a real binding number (includes per-token marshalling), shown here to
+contrast the native execution model with the WASM one.*
+
+² *Native C++ is a raw-engine reference, **not** an apples-to-apples comparison: it runs
 in-process with no JS↔WASM marshalling. It is included to show the engine's ceiling.*
 
 ### Reproduce
@@ -98,11 +107,13 @@ in-process with no JS↔WASM marshalling. It is included to show the engine's ce
 ```bash
 npm install                 # installs the benchmarks workspace
 npm run bench:fixtures      # download the real-world sample files
-npm run bench               # JS comparison + native C++ reference
+npm run bench               # JS + native C++ + .NET P/Invoke
 ```
 
 The harness lives in [`benchmarks/`](benchmarks/) and writes a Markdown summary to
-`benchmarks/results.md`. Fixtures download from upstream (jQuery, Bootstrap, VS Code, CPython)
+`benchmarks/results.md`. The C# row needs the .NET SDK and builds the native shared library
+on first run (`scripts/build-shared.sh`); it is skipped gracefully when `dotnet` is absent.
+Fixtures download from upstream (jQuery, Bootstrap, VS Code, CPython)
 and fall back to synthesized files when offline.
 
 ## Monorepo Structure
