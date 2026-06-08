@@ -31,6 +31,37 @@ export interface TokenizeResult2 {
 }
 
 /**
+ * Result of tokenizing a whole document with binary format in a single call.
+ *
+ * Tokens for every line are packed contiguously into `tokens` as [startIndex, metadata]
+ * pairs. `lineTokenCounts[i]` is the number of uint32 entries (2 per token) belonging to
+ * line `i`, so the per-line slices can be reconstructed by walking `lineTokenCounts`.
+ */
+export interface TokenizeLinesResult2 {
+  /** Flat binary token data for all lines, concatenated in line order */
+  tokens: Uint32Array;
+  /** Number of uint32 entries in `tokens` produced for each line */
+  lineTokenCounts: Uint32Array;
+}
+
+/**
+ * Result of the flat scope batch path.
+ *
+ * `tokens` is a single flat buffer; per token it holds
+ * `[startIndex, endIndex, scopeCount, scopeId0, scopeId1, ...]`. `lineTokenCounts[i]` is the
+ * number of tokens on line `i`, and `scopeNames[id]` resolves a scope id back to its string.
+ * This avoids building a JS object per token across the WASM boundary.
+ */
+export interface TokenizeLinesScopeFlatResult {
+  /** Flat token buffer: per token [startIndex, endIndex, scopeCount, ...scopeIds] */
+  tokens: Uint32Array;
+  /** Number of tokens produced for each line */
+  lineTokenCounts: Uint32Array;
+  /** Scope-name dictionary; index with the scope ids stored in `tokens` */
+  scopeNames: string[];
+}
+
+/**
  * Opaque rule stack type (pointer)
  */
 export type RuleStack = number | null;
@@ -66,6 +97,17 @@ export interface NativeRegistry {
  */
 export interface NativeGrammar {
   tokenizeLine(line: string, ruleStack: RuleStack): TokenizeResult;
+  tokenizeLineScopeFlat(
+    line: string,
+    ruleStack: RuleStack
+  ): { tokens: Uint32Array; scopeNames: string[]; ruleStack: RuleStack };
   tokenizeLine2(line: string, ruleStack: RuleStack): TokenizeResult2;
+  tokenizeLines(lines: string[]): Token[][];
+  tokenizeLines2(lines: string[]): { tokens: Uint32Array; lineTokenCounts: Uint32Array };
+  tokenizeLinesScopeFlat(lines: string[]): {
+    tokens: Uint32Array;
+    lineTokenCounts: Uint32Array;
+    scopeNames: string[];
+  };
   getScopeName(): string;
 }

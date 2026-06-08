@@ -217,6 +217,40 @@ public:
     std::string toString() const;
 };
 
+// StackNodeArena: opt-in reclaimer for the structurally-shared StateStackImpl /
+// AttributedScopeStack node graph.
+//
+// These nodes are immutable, persistent, and share parent prefixes across lines; they are
+// allocated with raw `new` and have no reference counting, so left to themselves they leak.
+// Direct C++/C-API callers keep that leak-free-of-overhead behavior: when no arena is active
+// (the default), construction registers nothing and nothing is ever auto-freed, so existing
+// callers and tests are completely unaffected.
+//
+// A caller that owns a bounded tokenization episode (e.g. the WASM bindings) can install an
+// arena for the duration of that episode. Every node constructed while the arena is active is
+// recorded. At the episode boundary the owner either frees everything (clear(), for batch
+// paths where no node escapes) or mark-sweeps from the surviving roots (sweepKeeping(), for
+// per-line paths where the returned rule stack must outlive the call). Sweeping is safe only
+// after results have been fully consumed/copied, because survivors' parent chains are walked.
+class StackNodeArena {
+public:
+    std::vector<StateStackImpl*> stacks;
+    std::vector<AttributedScopeStack*> scopes;
+
+    // Free every node recorded in this arena. Use when nothing escapes the episode.
+    void clear();
+
+    // Free every recorded node except those reachable (via parent chains) from `roots`,
+    // then compact the arena down to the survivors. Use when some rule stacks must live on.
+    void sweepKeeping(const std::vector<StateStackImpl*>& roots);
+};
+
+// Active-arena hooks. When set, StateStackImpl / AttributedScopeStack constructors register
+// themselves with the arena. nullptr (the default) means "record nothing" — identical to the
+// historical behavior. Not thread-safe; intended for single-threaded WASM use.
+StackNodeArena* tmlGetActiveArena();
+void tmlSetActiveArena(StackNodeArena* arena);
+
 // LineTokens class
 class LineTokens {
 private:

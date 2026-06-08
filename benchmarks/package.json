@@ -1,0 +1,20 @@
+{
+  "name": "tml-benchmarks",
+  "private": true,
+  "type": "module",
+  "description": "Performance benchmarks comparing TextMateLib against vscode-textmate and shiki",
+  "scripts": {
+    "fixtures": "node prepare-fixtures.mjs",
+    "bench": "node bench-js.mjs",
+    "bench:native": "node run-native.mjs",
+    "bench:all": "node bench-js.mjs && node run-native.mjs"
+  },
+  "dependencies": {
+    "textmatelib": "*"
+  },
+  "devDependencies": {
+    "shiki": "^1.29.2",
+    "vscode-oniguruma": "^2.0.1",
+    "vscode-textmate": "^9.2.0"
+  }
+}

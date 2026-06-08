@@ -1,0 +1,5 @@
+node_modules/
+fixtures/
+results.md
+bench-native
+*.o
