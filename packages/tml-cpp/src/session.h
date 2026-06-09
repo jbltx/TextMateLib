@@ -56,6 +56,13 @@ private:
     uint64_t lastAccessMs;                  // Last access time for expiry
     uint64_t nextVersion;                   // Version counter for cache invalidation
 
+    // Reclaims the StateStack / AttributedScopeStack node graph backing this session's
+    // cached per-line states. Retokenization installs this arena, then sweeps it down to
+    // the nodes still reachable from the currently-cached line states — freeing intra-line
+    // scan garbage and states superseded by edits. Without it these nodes leak, since the
+    // cache only ever overwrites the `state` pointer (see SessionLine::~SessionLine).
+    StackNodeArena stateArena;
+
     // Incremental tokenization helpers
     bool isStateEqual(StateStack* state1, StateStack* state2) const;
     void invalidateFrom(int32_t startIndex);

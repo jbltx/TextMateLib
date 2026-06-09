@@ -70,6 +70,22 @@ namespace TextMateLib.Bindings
         }
 
         /// <summary>
+        /// Sets the color theme on the registry from a JSON string.
+        /// Must be called before using TokenizeLine2 for themed output.
+        /// </summary>
+        public void SetThemeFromJson(string jsonContent)
+        {
+            ThrowIfDisposed();
+
+            if (string.IsNullOrEmpty(jsonContent))
+                throw new ArgumentNullException(nameof(jsonContent));
+
+            int result = NativeMethods.textmate_registry_set_theme(m_Handle, NativeMethods.ToUtf8NullTerminated(jsonContent));
+            if (result == 0)
+                throw new InvalidOperationException("Failed to set theme from JSON");
+        }
+
+        /// <summary>
         /// Loads a grammar by scope name
         /// </summary>
         /// <param name="scopeName">The scope name (e.g., "source.js")</param>

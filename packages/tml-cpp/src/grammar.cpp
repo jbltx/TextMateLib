@@ -4,11 +4,62 @@
 #include "matcher.h"
 #include <algorithm>
 #include <iostream>
+#include <unordered_set>
 
 namespace tml {
 
 // Static member initialization
 StateStackImpl* StateStackImpl::NULL_STATE = nullptr;
+
+// Active-arena state (see StackNodeArena in grammar.h). Single-threaded by design.
+static StackNodeArena* g_activeArena = nullptr;
+
+StackNodeArena* tmlGetActiveArena() { return g_activeArena; }
+void tmlSetActiveArena(StackNodeArena* arena) { g_activeArena = arena; }
+
+void StackNodeArena::clear() {
+    for (StateStackImpl* s : stacks) delete s;
+    for (AttributedScopeStack* a : scopes) delete a;
+    stacks.clear();
+    scopes.clear();
+}
+
+void StackNodeArena::sweepKeeping(const std::vector<StateStackImpl*>& roots) {
+    // Mark every node reachable from the surviving roots by walking parent chains. Node
+    // destructors never dereference parent/scope pointers, so freeing unmarked nodes in
+    // arena order cannot cause double-free or use-after-free regardless of ordering.
+    std::unordered_set<const StateStackImpl*> liveStacks;
+    std::unordered_set<const AttributedScopeStack*> liveScopes;
+
+    auto markScopes = [&](AttributedScopeStack* a) {
+        while (a && liveScopes.insert(a).second) a = a->parent;
+    };
+
+    for (StateStackImpl* root : roots) {
+        StateStackImpl* s = root;
+        while (s && liveStacks.insert(s).second) {
+            markScopes(s->nameScopesList);
+            markScopes(s->contentNameScopesList);
+            s = s->parent;
+        }
+    }
+
+    std::vector<StateStackImpl*> keptStacks;
+    keptStacks.reserve(liveStacks.size());
+    for (StateStackImpl* s : stacks) {
+        if (liveStacks.count(s)) keptStacks.push_back(s);
+        else delete s;
+    }
+    stacks.swap(keptStacks);
+
+    std::vector<AttributedScopeStack*> keptScopes;
+    keptScopes.reserve(liveScopes.size());
+    for (AttributedScopeStack* a : scopes) {
+        if (liveScopes.count(a)) keptScopes.push_back(a);
+        else delete a;
+    }
+    scopes.swap(keptScopes);
+}
 
 // BalancedBracketSelectors implementation
 
@@ -46,6 +97,7 @@ AttributedScopeStack::AttributedScopeStack(
     const ScopeName& scopeName_,
     EncodedTokenAttributes tokenAttributes_)
     : parent(parent_), scopeName(scopeName_), tokenAttributes(tokenAttributes_) {
+    if (g_activeArena) g_activeArena->scopes.push_back(this);
 }
 
 AttributedScopeStack::~AttributedScopeStack() {
@@ -213,6 +265,7 @@ StateStackImpl::StateStackImpl(
       contentNameScopesList(contentNameScopesList_) {
 
     depth = parent ? parent->depth + 1 : 1;
+    if (g_activeArena) g_activeArena->stacks.push_back(this);
 }
 
 StateStackImpl::~StateStackImpl() {

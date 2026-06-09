@@ -588,6 +588,26 @@ void textmate_registry_set_injections(
     }
 }
 
+// Set the color theme on the registry (enables themed tokenizeLine2 output)
+int textmate_registry_set_theme(
+    TextMateRegistry registry,
+    const char* themeJsonContent
+) {
+    if (!registry || !themeJsonContent) {
+        return 0;
+    }
+
+    try {
+        ManagedRegistry* managed = static_cast<ManagedRegistry*>(registry);
+        IRawTheme* rawTheme = parseRawTheme(themeJsonContent);
+        if (!rawTheme) return 0;
+        managed->registry->setTheme(rawTheme);
+        return 1;
+    } catch (...) {
+        return 0;
+    }
+}
+
 // Load grammar by scope name (after grammars have been added to registry)
 TextMateGrammar textmate_registry_load_grammar(
     TextMateRegistry registry,
