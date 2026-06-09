@@ -42,7 +42,7 @@ what an editor or highlighter actually consumes). For `tml-js` we show two call 
 editing) and **batch** (`tokenizeLines`/`tokenizeLines2`, which tokenizes a whole document in
 one call with the rule stack carried inside WASM — the right API for highlighting static text).
 We also include the **.NET binding** (`tml-cs`), which P/Invokes the same native engine through
-a shared library; it is scope-only, since the managed binding exposes no themed path.
+a shared library.
 Numbers below were measured on an **Apple M4 Max**, **Node v24.4.0**, **.NET 9.0.303**, macOS arm64,
 against `vscode-textmate@9.3.2` and `shiki@1.29.2`.
 
@@ -57,12 +57,12 @@ against `vscode-textmate@9.3.2` and `shiki@1.29.2`.
 
 ### Themed tokenization
 
-| File | Size | tml-js (per-line) | tml-js (batch) | vscode-textmate | shiki |
-|------|------|-------------------|----------------|-----------------|-------|
-| TypeScript (`vscode.d.ts`) | 0.71 MB | 3.2 MB/s | 3.6 MB/s | 3.7 MB/s | 1.9 MB/s |
-| JavaScript (jQuery) | 0.27 MB | 0.8 MB/s | 0.8 MB/s | 0.8 MB/s | 0.4 MB/s |
-| CSS (Bootstrap) | 0.27 MB | 1.0 MB/s | 1.0 MB/s | 1.3 MB/s | 0.7 MB/s |
-| Python (`typing.py`) | 0.13 MB | 1.5 MB/s | 1.6 MB/s | 1.7 MB/s | 0.8 MB/s |
+| File | Size | tml-js (per-line) | tml-js (batch) | tml-cs (P/Invoke) ¹ | vscode-textmate | shiki | native C++ ² |
+|------|------|-------------------|----------------|---------------------|-----------------|-------|--------------|
+| TypeScript (`vscode.d.ts`) | 0.71 MB | 3.2 MB/s | 3.6 MB/s | 4.7 MB/s | 3.7 MB/s | 1.9 MB/s | 4.9 MB/s |
+| JavaScript (jQuery) | 0.27 MB | 0.8 MB/s | 0.8 MB/s | 1.1 MB/s | 0.8 MB/s | 0.4 MB/s | 1.1 MB/s |
+| CSS (Bootstrap) | 0.27 MB | 1.0 MB/s | 1.0 MB/s | 1.4 MB/s | 1.3 MB/s | 0.7 MB/s | 1.4 MB/s |
+| Python (`typing.py`) | 0.13 MB | 1.5 MB/s | 1.6 MB/s | 2.1 MB/s | 1.7 MB/s | 0.8 MB/s | 2.3 MB/s |
 
 **What this shows.** Throughput is dominated by Oniguruma regex matching, which every engine
 shares. TextMateLib's **native C++ engine matches or slightly beats `vscode-textmate`**. The
@@ -91,13 +91,17 @@ line. Marshalling no longer separates them.
 
 In **themed** tokenization `tml-js` lands within a few percent of `vscode-textmate` on most
 files (CSS is the widest gap) and is **roughly 2× faster than `shiki`**, which builds richer
-themed token objects. For highlighting static text,
+themed token objects. The **native C++ and .NET** paths are **faster in themed mode than in scope
+mode** — themed tokenization returns a flat binary buffer (uint32 pairs) with no per-token
+scope-string construction, so the marshalling cost that dominates the scope path vanishes.
+For highlighting static text,
 prefer the batch API (`tokenizeLines` / `tokenizeLines2`); for live editing where individual
 lines change, use the per-line API (`tokenizeLine` / `tokenizeLine2`).
 
 ¹ *`tml-cs` is the managed .NET binding ([`tml-cs`](packages/tml-cs/)) calling the native engine
-through P/Invoke. It is a real binding number (includes per-token marshalling), shown here to
-contrast the native execution model with the WASM one.*
+through P/Invoke. It is a real binding number (includes per-token scope marshalling on the scope
+path), shown here to contrast the native execution model with the WASM one. The themed path
+returns a flat binary buffer, so marshalling cost is negligible.*
 
 ² *Native C++ is a raw-engine reference, **not** an apples-to-apples comparison: it runs
 in-process with no JS↔WASM marshalling. It is included to show the engine's ceiling.*

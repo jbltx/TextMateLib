@@ -89,4 +89,32 @@ namespace TextMateLib.Bindings
             StoppedEarly = stoppedEarly;
         }
     }
+
+    /// <summary>
+    /// Represents the result of themed tokenization (binary/encoded tokens)
+    /// </summary>
+    public class TokenizeResult2
+    {
+        /// <summary>
+        /// Gets the number of tokens
+        /// </summary>
+        public int TokenCount { get; }
+
+        /// <summary>
+        /// Gets the state stack at the end of the line
+        /// </summary>
+        public IntPtr StateStack { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether tokenization stopped early
+        /// </summary>
+        public bool StoppedEarly { get; }
+
+        internal TokenizeResult2(int tokenCount, IntPtr stateStack, bool stoppedEarly)
+        {
+            TokenCount = tokenCount;
+            StateStack = stateStack;
+            StoppedEarly = stoppedEarly;
+        }
+    }
 }

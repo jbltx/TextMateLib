@@ -125,6 +125,11 @@ namespace TextMateLib.Bindings
             string scopeName);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int textmate_registry_set_theme(
+            IntPtr registry,
+            byte[] themeJsonContentUtf8);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr textmate_get_initial_state();
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]

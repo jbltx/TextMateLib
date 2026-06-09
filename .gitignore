@@ -61,3 +61,6 @@ node_modules/
 /release/
 /build/
 /build*/
+
+# Playground (built separately, not shipped with the library)
+/playground/

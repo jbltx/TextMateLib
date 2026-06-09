@@ -35,8 +35,12 @@ export function readGrammar(name) {
   return readFileSync(grammarPath(name), 'utf-8');
 }
 
+export function themePath(name = THEME_NAME) {
+  return resolve(tmThemesDir, `${name}.json`);
+}
+
 export function readTheme(name = THEME_NAME) {
-  return readFileSync(resolve(tmThemesDir, `${name}.json`), 'utf-8');
+  return readFileSync(themePath(name), 'utf-8');
 }
 
 export function readFixture(name) {
