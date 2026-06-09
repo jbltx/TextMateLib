@@ -9,10 +9,6 @@ on:
     branches:
       - develop
       - main
-  pull_request_target:
-    branches:
-      - develop
-      - main
 
 concurrency:
   group: build-and-test-${{ github.ref }}
