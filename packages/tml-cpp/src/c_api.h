@@ -252,6 +252,17 @@ TML_API void textmate_registry_set_injections(
     int32_t injectionCount
 );
 
+/// @brief Set the color theme on the registry
+/// @param registry Valid registry handle
+/// @param themeJsonContent Theme JSON content as a null-terminated string (TextMate theme format)
+/// @return Non-zero on success, 0 on error (invalid JSON, etc.)
+/// @note Must be called before tokenizeLine2 to get meaningful themed tokens
+/// @see textmate_tokenize_line2(), textmate_tokenize_line2_utf16()
+TML_API int textmate_registry_set_theme(
+    TextMateRegistry registry,
+    const char* themeJsonContent
+);
+
 /// @brief Load a grammar by scope name
 /// @param registry Valid registry handle
 /// @param scopeName Scope name of the grammar to load (e.g., "source.javascript", "text.html.markdown")

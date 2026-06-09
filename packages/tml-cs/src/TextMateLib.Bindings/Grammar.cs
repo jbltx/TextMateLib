@@ -99,6 +99,38 @@ namespace TextMateLib.Bindings
         }
 
         /// <summary>
+        /// Tokenizes a line of text with binary/themed output (encoded tokens).
+        /// Requires a theme to be set on the registry via SetThemeFromJson.
+        /// </summary>
+        public TokenizeResult2 TokenizeLine2(string lineText, IntPtr prevState)
+        {
+            ThrowIfDisposed();
+
+            if (prevState == IntPtr.Zero)
+                prevState = NativeMethods.textmate_get_initial_state();
+
+            var text = lineText ?? string.Empty;
+            var utf8ByteCount = Encoding.UTF8.GetByteCount(text);
+            var utf8Bytes = new byte[utf8ByteCount + 1];
+            Encoding.UTF8.GetBytes(text, 0, text.Length, utf8Bytes, 0);
+
+            var resultPtr = NativeMethods.textmate_tokenize_line2_utf16(m_Handle, utf8Bytes, prevState);
+
+            if (resultPtr == IntPtr.Zero)
+                throw new InvalidOperationException("Failed to tokenize line (themed)");
+
+            try
+            {
+                var result = Marshal.PtrToStructure<NativeMethods.TextMateTokenizeResult2>(resultPtr);
+                return new TokenizeResult2(result.TokenCount / 2, result.RuleStack, result.StoppedEarly != 0);
+            }
+            finally
+            {
+                NativeMethods.textmate_free_tokenize_result2(resultPtr);
+            }
+        }
+
+        /// <summary>
         /// Tokenizes multiple lines sequentially
         /// </summary>
         /// <param name="lines">Array of lines to tokenize</param>

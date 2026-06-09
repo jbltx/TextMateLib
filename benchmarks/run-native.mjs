@@ -3,7 +3,7 @@ import { execFileSync, execSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { WORKLOADS, fixturePath, grammarPath } from './lib/workloads.mjs';
+import { WORKLOADS, fixturePath, grammarPath, themePath } from './lib/workloads.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
@@ -68,7 +68,7 @@ try {
   compile();
 }
 
-const args = [];
+const args = ['--theme', themePath()];
 for (const w of WORKLOADS) {
   if (!existsSync(fixturePath(w.fixture))) {
     console.error(`Fixture missing: ${w.fixture}. Run \`npm run fixtures\` first.`);
