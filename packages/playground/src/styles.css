@@ -39,6 +39,32 @@ header h1 {
     opacity: 0.9;
 }
 
+.header-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.header-links a {
+    color: white;
+    opacity: 0.9;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.header-links a:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.header-sep {
+    opacity: 0.5;
+}
+
 .controls {
     display: flex;
     gap: 20px;
