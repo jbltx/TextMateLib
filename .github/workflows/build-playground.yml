@@ -48,6 +48,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # npm ci does not run workspace postinstall scripts, so the WASM module
+      # and Doxygen docs must be built explicitly before bundling.
+      - name: Build WASM module and docs
+        run: npm run postinstall -w packages/playground
+
       - name: Build playground
         working-directory: packages/playground
         run: npm run build
+
+      - name: Verify WASM was bundled
+        run: test -f packages/playground/dist/wasm/tml-standard.wasm
