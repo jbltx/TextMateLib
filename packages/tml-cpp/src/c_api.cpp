@@ -608,6 +608,30 @@ int textmate_registry_set_theme(
     }
 }
 
+// Get the color map from the registry (maps color IDs to hex strings)
+TextMateColorMap* textmate_registry_get_color_map(TextMateRegistry registry) {
+    if (!registry) {
+        return nullptr;
+    }
+
+    try {
+        ManagedRegistry* managed = static_cast<ManagedRegistry*>(registry);
+        std::vector<std::string> colors = managed->registry->getColorMap();
+
+        TextMateColorMap* result = new TextMateColorMap();
+        result->colorCount = colors.size();
+        result->colors = new char*[result->colorCount];
+
+        for (int32_t i = 0; i < result->colorCount; i++) {
+            result->colors[i] = stringToCString(colors[i]);
+        }
+
+        return result;
+    } catch (...) {
+        return nullptr;
+    }
+}
+
 // Load grammar by scope name (after grammars have been added to registry)
 TextMateGrammar textmate_registry_load_grammar(
     TextMateRegistry registry,
@@ -806,6 +830,74 @@ void textmate_free_tokenize_lines_result(TextMateTokenizeMultiLinesResult* resul
     }
 }
 
+// Batch tokenize multiple lines with encoded tokens
+TextMateTokenizeMultiLinesResult2* textmate_tokenize_lines2(
+    TextMateGrammar grammar,
+    const char** lines,
+    int32_t lineCount,
+    TextMateStateStack initialState
+) {
+    if (!grammar || !lines || lineCount <= 0) {
+        return nullptr;
+    }
+
+    try {
+        Grammar* g = static_cast<Grammar*>(grammar);
+        StateStack* state = static_cast<StateStack*>(initialState);
+
+        TextMateTokenizeMultiLinesResult2* batchResult = new TextMateTokenizeMultiLinesResult2();
+        batchResult->lineCount = lineCount;
+        batchResult->lineResults = new TextMateTokenizeResult2*[lineCount];
+
+        for (int32_t i = 0; i < lineCount; i++) {
+            std::string lineText(lines[i]);
+            auto result = g->tokenizeLine2(lineText, state);
+
+            state = result.ruleStack;
+
+            TextMateTokenizeResult2* lineResult = new TextMateTokenizeResult2();
+            lineResult->tokenCount = result.tokens.size();
+            lineResult->stoppedEarly = result.stoppedEarly ? 1 : 0;
+            lineResult->ruleStack = static_cast<TextMateStateStack>(result.ruleStack);
+
+            lineResult->tokens = new uint32_t[lineResult->tokenCount];
+            for (int j = 0; j < lineResult->tokenCount; j++) {
+                lineResult->tokens[j] = result.tokens[j];
+            }
+
+            batchResult->lineResults[i] = lineResult;
+        }
+
+        return batchResult;
+    } catch (...) {
+        return nullptr;
+    }
+}
+
+// Free batch encoded tokenize result
+void textmate_free_tokenize_lines_result2(TextMateTokenizeMultiLinesResult2* result) {
+    if (result) {
+        for (int32_t i = 0; i < result->lineCount; i++) {
+            textmate_free_tokenize_result2(result->lineResults[i]);
+        }
+        delete[] result->lineResults;
+        delete result;
+    }
+}
+
+// Free color map
+void textmate_free_color_map(TextMateColorMap* colorMap) {
+    if (colorMap) {
+        if (colorMap->colors) {
+            for (int32_t i = 0; i < colorMap->colorCount; i++) {
+                delete[] colorMap->colors[i];
+            }
+            delete[] colorMap->colors;
+        }
+        delete colorMap;
+    }
+}
+
 // ============================================================================
 // UTF-16 Tokenization API
 // ============================================================================
@@ -951,6 +1043,56 @@ TextMateTokenizeMultiLinesResult* textmate_tokenize_lines_utf16(
                 lineResult->tokens[j].scopes = new char*[token.scopes.size()];
                 for (size_t k = 0; k < token.scopes.size(); k++) {
                     lineResult->tokens[j].scopes[k] = stringToCString(token.scopes[k]);
+                }
+            }
+
+            batchResult->lineResults[i] = lineResult;
+        }
+
+        return batchResult;
+    } catch (...) {
+        return nullptr;
+    }
+}
+
+// Batch tokenize multiple lines with encoded tokens and UTF-16 indices
+TextMateTokenizeMultiLinesResult2* textmate_tokenize_lines2_utf16(
+    TextMateGrammar grammar,
+    const char** lines,
+    int32_t lineCount,
+    TextMateStateStack initialState
+) {
+    if (!grammar || !lines || lineCount <= 0) {
+        return nullptr;
+    }
+
+    try {
+        Grammar* g = static_cast<Grammar*>(grammar);
+        StateStack* state = static_cast<StateStack*>(initialState);
+
+        TextMateTokenizeMultiLinesResult2* batchResult = new TextMateTokenizeMultiLinesResult2();
+        batchResult->lineCount = lineCount;
+        batchResult->lineResults = new TextMateTokenizeResult2*[lineCount];
+
+        for (int32_t i = 0; i < lineCount; i++) {
+            std::string lineText(lines[i]);
+            auto result = g->tokenizeLine2(lineText, state);
+
+            state = result.ruleStack;
+
+            auto map = tml::buildByteToUtf16Map(lineText.c_str(), lineText.size());
+
+            TextMateTokenizeResult2* lineResult = new TextMateTokenizeResult2();
+            lineResult->tokenCount = result.tokens.size();
+            lineResult->stoppedEarly = result.stoppedEarly ? 1 : 0;
+            lineResult->ruleStack = static_cast<TextMateStateStack>(result.ruleStack);
+
+            lineResult->tokens = new uint32_t[lineResult->tokenCount];
+            for (int j = 0; j < lineResult->tokenCount; j++) {
+                if (j % 2 == 0) {
+                    lineResult->tokens[j] = tml::mapByteToUtf16(map, result.tokens[j]);
+                } else {
+                    lineResult->tokens[j] = result.tokens[j];
                 }
             }
 

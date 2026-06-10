@@ -122,12 +122,100 @@ namespace TextMateLib.Bindings
             try
             {
                 var result = Marshal.PtrToStructure<NativeMethods.TextMateTokenizeResult2>(resultPtr);
-                return new TokenizeResult2(result.TokenCount / 2, result.RuleStack, result.StoppedEarly != 0);
+                var tokens = MarshalEncodedTokens(result.Tokens, result.TokenCount);
+                return new TokenizeResult2(tokens, result.RuleStack, result.StoppedEarly != 0);
             }
             finally
             {
                 NativeMethods.textmate_free_tokenize_result2(resultPtr);
             }
+        }
+
+        /// <summary>
+        /// Tokenizes multiple lines with encoded/themed output in a single batch call.
+        /// Requires a theme to be set on the registry via SetThemeFromJson.
+        /// </summary>
+        public TokenizeResult2[] TokenizeLines2(string[] lines)
+        {
+            ThrowIfDisposed();
+
+            if (lines == null || lines.Length == 0)
+                return Array.Empty<TokenizeResult2>();
+
+            var utf8Lines = new byte[lines.Length][];
+            for (int i = 0; i < lines.Length; i++)
+            {
+                utf8Lines[i] = NativeMethods.ToUtf8NullTerminated(lines[i]);
+            }
+
+            var pinnedHandles = new GCHandle[lines.Length];
+            var linePointers = new IntPtr[lines.Length];
+            try
+            {
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    pinnedHandles[i] = GCHandle.Alloc(utf8Lines[i], GCHandleType.Pinned);
+                    linePointers[i] = pinnedHandles[i].AddrOfPinnedObject();
+                }
+
+                var pinnedArray = GCHandle.Alloc(linePointers, GCHandleType.Pinned);
+                try
+                {
+                    var batchPtr = NativeMethods.textmate_tokenize_lines2_utf16(
+                        m_Handle, pinnedArray.AddrOfPinnedObject(),
+                        lines.Length, NativeMethods.textmate_get_initial_state());
+
+                    if (batchPtr == IntPtr.Zero)
+                        throw new InvalidOperationException("Failed to batch tokenize lines (themed)");
+
+                    try
+                    {
+                        var batch = Marshal.PtrToStructure<NativeMethods.TextMateTokenizeMultiLinesResult2>(batchPtr);
+                        var results = new TokenizeResult2[batch.LineCount];
+
+                        for (int i = 0; i < batch.LineCount; i++)
+                        {
+                            var lineResultPtr = Marshal.ReadIntPtr(batch.LineResults, i * IntPtr.Size);
+                            var lineResult = Marshal.PtrToStructure<NativeMethods.TextMateTokenizeResult2>(lineResultPtr);
+                            var tokens = MarshalEncodedTokens(lineResult.Tokens, lineResult.TokenCount);
+                            results[i] = new TokenizeResult2(tokens, lineResult.RuleStack, lineResult.StoppedEarly != 0);
+                        }
+
+                        return results;
+                    }
+                    finally
+                    {
+                        NativeMethods.textmate_free_tokenize_lines_result2(batchPtr);
+                    }
+                }
+                finally
+                {
+                    pinnedArray.Free();
+                }
+            }
+            finally
+            {
+                for (int i = 0; i < pinnedHandles.Length; i++)
+                {
+                    if (pinnedHandles[i].IsAllocated)
+                        pinnedHandles[i].Free();
+                }
+            }
+        }
+
+        static EncodedToken[] MarshalEncodedTokens(IntPtr tokensPtr, int rawCount)
+        {
+            int tokenCount = rawCount / 2;
+            var tokens = new EncodedToken[tokenCount];
+            var raw = new int[rawCount];
+            Marshal.Copy(tokensPtr, raw, 0, rawCount);
+
+            for (int i = 0; i < tokenCount; i++)
+            {
+                tokens[i] = new EncodedToken(raw[i * 2], unchecked((uint)raw[i * 2 + 1]));
+            }
+
+            return tokens;
         }
 
         /// <summary>

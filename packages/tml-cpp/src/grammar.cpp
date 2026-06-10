@@ -116,15 +116,21 @@ AttributedScopeStack* AttributedScopeStack::createRootAndLookUpScopeName(
     Grammar* grammar) {
 
     BasicScopeAttributes rawMetadata = grammar->getMetadataForScope(scopeName);
+
+    ScopeStack scopeStack(nullptr, scopeName);
+    StyleAttributes* rootStyle = grammar->getThemeProvider()->themeMatch(&scopeStack);
+
     EncodedTokenAttributes scopeTokenAttributes = EncodedTokenAttributesHelper::set(
         tokenAttributes,
         rawMetadata.languageId,
         rawMetadata.tokenType,
         nullptr,
-        static_cast<int>(FontStyle::NotSet),
-        0,
-        0
+        rootStyle ? rootStyle->fontStyle : static_cast<int>(FontStyle::NotSet),
+        rootStyle ? rootStyle->foregroundId : 0,
+        rootStyle ? rootStyle->backgroundId : 0
     );
+
+    delete rootStyle;
 
     return new AttributedScopeStack(nullptr, scopeName, scopeTokenAttributes);
 }
@@ -138,15 +144,28 @@ AttributedScopeStack* AttributedScopeStack::push(
     }
 
     BasicScopeAttributes rawMetadata = grammar->getMetadataForScope(scopeName);
+
+    std::vector<ScopeName> names = this->getScopeNames();
+    names.push_back(scopeName);
+    ScopeStack* scopeStack = ScopeStack::from(names);
+    StyleAttributes* themeData = grammar->getThemeProvider()->themeMatch(scopeStack);
+
     EncodedTokenAttributes scopeTokenAttributes = EncodedTokenAttributesHelper::set(
         this->tokenAttributes,
         rawMetadata.languageId,
         rawMetadata.tokenType,
         nullptr,
-        static_cast<int>(FontStyle::NotSet),
-        0,
-        0
+        themeData ? themeData->fontStyle : static_cast<int>(FontStyle::NotSet),
+        themeData ? themeData->foregroundId : 0,
+        themeData ? themeData->backgroundId : 0
     );
+
+    delete themeData;
+    while (scopeStack) {
+        ScopeStack* p = scopeStack->parent;
+        delete scopeStack;
+        scopeStack = p;
+    }
 
     return new AttributedScopeStack(this, scopeName, scopeTokenAttributes);
 }
@@ -200,20 +219,27 @@ AttributedScopeStack* AttributedScopeStack::_pushAttributed(
 
     BasicScopeAttributes rawMetadata = grammar->getMetadataForScope(scopeName);
 
-    // Get theme match result
-    IThemeProvider* themeProvider = grammar->getThemeProvider();
-    StyleAttributes* defaultStyle = themeProvider->getDefaults();
+    std::vector<ScopeName> names = target->getScopeNames();
+    names.push_back(scopeName);
+    ScopeStack* scopeStack = ScopeStack::from(names);
+    StyleAttributes* themeData = grammar->getThemeProvider()->themeMatch(scopeStack);
 
-    // Merge attributes
     EncodedTokenAttributes metadata = EncodedTokenAttributesHelper::set(
         target->tokenAttributes,
         rawMetadata.languageId,
         rawMetadata.tokenType,
         nullptr,
-        defaultStyle->fontStyle,
-        defaultStyle->foregroundId,
-        defaultStyle->backgroundId
+        themeData ? themeData->fontStyle : static_cast<int>(FontStyle::NotSet),
+        themeData ? themeData->foregroundId : 0,
+        themeData ? themeData->backgroundId : 0
     );
+
+    delete themeData;
+    while (scopeStack) {
+        ScopeStack* p = scopeStack->parent;
+        delete scopeStack;
+        scopeStack = p;
+    }
 
     return new AttributedScopeStack(target, scopeName, metadata);
 }

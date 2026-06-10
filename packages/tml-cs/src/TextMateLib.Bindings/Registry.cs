@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace TextMateLib.Bindings
 {
@@ -83,6 +84,39 @@ namespace TextMateLib.Bindings
             int result = NativeMethods.textmate_registry_set_theme(m_Handle, NativeMethods.ToUtf8NullTerminated(jsonContent));
             if (result == 0)
                 throw new InvalidOperationException("Failed to set theme from JSON");
+        }
+
+        /// <summary>
+        /// Gets the color map from the registry after a theme has been set.
+        /// Color IDs in encoded tokens are indices into this array.
+        /// </summary>
+        public string[] GetColorMap()
+        {
+            ThrowIfDisposed();
+
+            var mapPtr = NativeMethods.textmate_registry_get_color_map(m_Handle);
+            if (mapPtr == IntPtr.Zero)
+                return Array.Empty<string>();
+
+            try
+            {
+                var map = Marshal.PtrToStructure<NativeMethods.TextMateColorMap>(mapPtr);
+                var colors = new string[map.ColorCount];
+
+                for (int i = 0; i < map.ColorCount; i++)
+                {
+                    var colorPtr = Marshal.ReadIntPtr(map.Colors, i * IntPtr.Size);
+                    colors[i] = colorPtr != IntPtr.Zero
+                        ? Marshal.PtrToStringAnsi(colorPtr) ?? string.Empty
+                        : string.Empty;
+                }
+
+                return colors;
+            }
+            finally
+            {
+                NativeMethods.textmate_free_color_map(mapPtr);
+            }
         }
 
         /// <summary>
