@@ -102,6 +102,30 @@ struct TextMateTokenizeMultiLinesResult {
     int32_t lineCount;                    ///< Number of lines tokenized
 };
 
+/// @brief Result from batch tokenizing multiple lines with encoded tokens
+///
+/// Returned by textmate_tokenize_lines2(). Combines batch tokenization with
+/// compact 32-bit token encoding for maximum performance in language bindings.
+///
+/// **Memory Ownership:**
+/// Caller must free this structure using textmate_free_tokenize_lines_result2().
+struct TextMateTokenizeMultiLinesResult2 {
+    TextMateTokenizeResult2** lineResults;  ///< Array of encoded results, one per line
+    int32_t lineCount;                     ///< Number of lines tokenized
+};
+
+/// @brief Theme color map returned by textmate_registry_get_color_map()
+///
+/// Contains the color palette used by encoded tokens. Foreground/background
+/// color IDs in encoded token metadata are indices into this map.
+///
+/// **Memory Ownership:**
+/// Caller must free this structure using textmate_free_color_map().
+struct TextMateColorMap {
+    char** colors;       ///< Array of hex color strings (e.g., "#RRGGBB" or "#RRGGBBAA")
+    int32_t colorCount;  ///< Number of colors in the array
+};
+
 /// @}
 
 /// @defgroup theme_api Theme API
@@ -263,6 +287,14 @@ TML_API int textmate_registry_set_theme(
     const char* themeJsonContent
 );
 
+/// @brief Get the color map from the registry after setting a theme
+/// @param registry Valid registry handle
+/// @return Pointer to color map on success, NULL if no theme is set
+/// @note The foreground/background IDs in encoded token metadata are indices into this map
+/// @note The returned result must be freed with textmate_free_color_map()
+/// @see textmate_registry_set_theme()
+TML_API TextMateColorMap* textmate_registry_get_color_map(TextMateRegistry registry);
+
 /// @brief Load a grammar by scope name
 /// @param registry Valid registry handle
 /// @param scopeName Scope name of the grammar to load (e.g., "source.javascript", "text.html.markdown")
@@ -333,6 +365,23 @@ TML_API TextMateTokenizeMultiLinesResult* textmate_tokenize_lines(
     TextMateStateStack initialState
 );
 
+/// @brief Tokenize multiple lines with encoded tokens in a single call
+/// @param grammar Valid grammar handle
+/// @param lines Array of line strings (none should include newline)
+/// @param lineCount Number of lines in the array
+/// @param initialState The state to start with (typically INITIAL or from Session API)
+/// @return Pointer to batch result on success, NULL on error
+/// @note The returned result must be freed with textmate_free_tokenize_lines_result2()
+/// @note Combines batch tokenization with compact encoding for maximum performance
+/// @note Requires a theme to be set on the registry for meaningful themed output
+/// @see textmate_registry_set_theme(), textmate_free_tokenize_lines_result2()
+TML_API TextMateTokenizeMultiLinesResult2* textmate_tokenize_lines2(
+    TextMateGrammar grammar,
+    const char** lines,
+    int32_t lineCount,
+    TextMateStateStack initialState
+);
+
 /// @brief Free a line tokenization result
 /// @param result Valid result pointer (from textmate_tokenize_line()), or NULL (no-op)
 /// @warning Do not use result after calling this function
@@ -350,6 +399,18 @@ TML_API void textmate_free_tokenize_result2(TextMateTokenizeResult2* result);
 /// @warning Do not use result after calling this function
 /// @note Safe to call with NULL
 TML_API void textmate_free_tokenize_lines_result(TextMateTokenizeMultiLinesResult* result);
+
+/// @brief Free a batch encoded tokenization result
+/// @param result Valid result pointer (from textmate_tokenize_lines2()), or NULL (no-op)
+/// @warning Do not use result after calling this function
+/// @note Safe to call with NULL
+TML_API void textmate_free_tokenize_lines_result2(TextMateTokenizeMultiLinesResult2* result);
+
+/// @brief Free a color map
+/// @param colorMap Valid color map pointer (from textmate_registry_get_color_map()), or NULL (no-op)
+/// @warning Do not use colorMap after calling this function
+/// @note Safe to call with NULL
+TML_API void textmate_free_color_map(TextMateColorMap* colorMap);
 
 /// @defgroup tokenization_utf16_api UTF-16 Tokenization API
 /// @{
@@ -392,6 +453,22 @@ TML_API TextMateTokenizeResult2* textmate_tokenize_line2_utf16(
 /// @note Token startIndex/endIndex are UTF-16 code unit offsets
 /// @note The returned result must be freed with textmate_free_tokenize_lines_result()
 TML_API TextMateTokenizeMultiLinesResult* textmate_tokenize_lines_utf16(
+    TextMateGrammar grammar,
+    const char** lines,
+    int32_t lineCount,
+    TextMateStateStack initialState
+);
+
+/// @brief Tokenize multiple lines with encoded tokens, returning UTF-16 indices
+/// @param grammar Valid grammar handle
+/// @param lines Array of line strings (UTF-8, null-terminated, none should include newline)
+/// @param lineCount Number of lines in the array
+/// @param initialState The state to start with (typically INITIAL or from Session API)
+/// @return Pointer to batch result on success, NULL on error
+/// @note Start offsets in encoded tokens are UTF-16 code unit offsets
+/// @note The returned result must be freed with textmate_free_tokenize_lines_result2()
+/// @see textmate_registry_set_theme(), textmate_free_tokenize_lines_result2()
+TML_API TextMateTokenizeMultiLinesResult2* textmate_tokenize_lines2_utf16(
     TextMateGrammar grammar,
     const char** lines,
     int32_t lineCount,
