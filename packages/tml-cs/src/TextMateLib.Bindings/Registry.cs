@@ -74,6 +74,7 @@ namespace TextMateLib.Bindings
         /// Sets the color theme on the registry from a JSON string.
         /// Must be called before using TokenizeLine2 for themed output.
         /// </summary>
+        /// <param name="jsonContent">The theme JSON content.</param>
         public void SetThemeFromJson(string jsonContent)
         {
             ThrowIfDisposed();
@@ -90,6 +91,7 @@ namespace TextMateLib.Bindings
         /// Gets the color map from the registry after a theme has been set.
         /// Color IDs in encoded tokens are indices into this array.
         /// </summary>
+        /// <returns>The theme color palette as hex strings, indexed by color ID.</returns>
         public string[] GetColorMap()
         {
             ThrowIfDisposed();

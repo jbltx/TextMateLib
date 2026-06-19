@@ -103,6 +103,9 @@ namespace TextMateLib.Bindings
         /// Tokenizes a line of text with binary/themed output (encoded tokens).
         /// Requires a theme to be set on the registry via SetThemeFromJson.
         /// </summary>
+        /// <param name="lineText">The line to tokenize.</param>
+        /// <param name="prevState">Previous state stack (use IntPtr.Zero for the initial state).</param>
+        /// <returns>The themed tokenization result with encoded tokens and end-of-line state.</returns>
         public TokenizeResult2 TokenizeLine2(string lineText, IntPtr prevState)
         {
             ThrowIfDisposed();
@@ -136,6 +139,8 @@ namespace TextMateLib.Bindings
         /// Tokenizes multiple lines with encoded/themed output in a single batch call.
         /// Requires a theme to be set on the registry via SetThemeFromJson.
         /// </summary>
+        /// <param name="lines">The lines to tokenize.</param>
+        /// <returns>An array of themed tokenization results, one per input line.</returns>
         public TokenizeResult2[] TokenizeLines2(string[] lines)
         {
             ThrowIfDisposed();
