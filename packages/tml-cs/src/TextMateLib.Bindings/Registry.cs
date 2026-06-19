@@ -101,6 +101,12 @@ namespace TextMateLib.Bindings
             try
             {
                 var map = Marshal.PtrToStructure<NativeMethods.TextMateColorMap>(mapPtr);
+
+                // Guard against a malformed native color map (ColorCount > 0 but a null
+                // pointer) to avoid a hard native crash when dereferencing map.Colors below.
+                if (map.ColorCount > 0 && map.Colors == IntPtr.Zero)
+                    return Array.Empty<string>();
+
                 var colors = new string[map.ColorCount];
 
                 for (int i = 0; i < map.ColorCount; i++)

@@ -6,6 +6,7 @@
 #include "utf16_utils.h"
 #include <string>
 #include <cstring>
+#include <memory>
 #include <fstream>
 #include <sstream>
 #include <cctype>
@@ -618,15 +619,20 @@ TextMateColorMap* textmate_registry_get_color_map(TextMateRegistry registry) {
         ManagedRegistry* managed = static_cast<ManagedRegistry*>(registry);
         std::vector<std::string> colors = managed->registry->getColorMap();
 
-        TextMateColorMap* result = new TextMateColorMap();
-        result->colorCount = colors.size();
-        result->colors = new char*[result->colorCount];
+        // Own the struct via RAII so a mid-construction throw (e.g. std::bad_alloc) frees
+        // what was already allocated instead of leaking it. textmate_free_color_map is a
+        // valid deleter for a partial struct: it null-checks the array, and the array is
+        // value-initialized so any not-yet-filled entries are null.
+        std::unique_ptr<TextMateColorMap, decltype(&textmate_free_color_map)> result(
+            new TextMateColorMap(), &textmate_free_color_map);
+        result->colorCount = static_cast<int32_t>(colors.size());
+        result->colors = new char*[colors.size()]();  // value-initialized to nullptr
 
-        for (int32_t i = 0; i < result->colorCount; i++) {
+        for (size_t i = 0; i < colors.size(); i++) {
             result->colors[i] = stringToCString(colors[i]);
         }
 
-        return result;
+        return result.release();
     } catch (...) {
         return nullptr;
     }
@@ -671,28 +677,32 @@ TextMateTokenizeResult* textmate_tokenize_line(
 
         ITokenizeLineResult result = gram->tokenizeLine(lineText, state);
 
-        // Allocate result structure
-        TextMateTokenizeResult* cResult = new TextMateTokenizeResult();
-        cResult->tokenCount = result.tokens.size();
-        cResult->tokens = new TextMateToken[cResult->tokenCount];
+        // Own the struct via RAII so a mid-construction throw frees the partial
+        // allocation instead of leaking it. textmate_free_tokenize_result is a valid
+        // deleter for a partial struct: the tokens array and each scopes array are
+        // value-initialized, so not-yet-filled slots are null (a no-op to free).
+        std::unique_ptr<TextMateTokenizeResult, decltype(&textmate_free_tokenize_result)> cResult(
+            new TextMateTokenizeResult(), &textmate_free_tokenize_result);
+        cResult->tokenCount = static_cast<int32_t>(result.tokens.size());
+        cResult->tokens = new TextMateToken[result.tokens.size()]();  // value-initialized
         cResult->ruleStack = static_cast<TextMateStateStack>(result.ruleStack);
         cResult->stoppedEarly = result.stoppedEarly ? 1 : 0;
 
         // Convert tokens
-        for (int i = 0; i < cResult->tokenCount; i++) {
+        for (size_t i = 0; i < result.tokens.size(); i++) {
             const IToken& token = result.tokens[i];
             cResult->tokens[i].startIndex = token.startIndex;
             cResult->tokens[i].endIndex = token.endIndex;
-            cResult->tokens[i].scopeDepth = token.scopes.size();
+            cResult->tokens[i].scopeDepth = static_cast<int32_t>(token.scopes.size());
 
-            // Allocate scope strings
-            cResult->tokens[i].scopes = new char*[token.scopes.size()];
+            // Allocate scope strings (value-initialized so a throw mid-fill stays freeable)
+            cResult->tokens[i].scopes = new char*[token.scopes.size()]();
             for (size_t j = 0; j < token.scopes.size(); j++) {
                 cResult->tokens[i].scopes[j] = stringToCString(token.scopes[j]);
             }
         }
 
-        return cResult;
+        return cResult.release();
     } catch (...) {
         return nullptr;
     }
@@ -714,19 +724,21 @@ TextMateTokenizeResult2* textmate_tokenize_line2(
 
         ITokenizeLineResult2 result = gram->tokenizeLine2(lineText, state);
 
-        // Allocate result structure
-        TextMateTokenizeResult2* cResult = new TextMateTokenizeResult2();
-        cResult->tokenCount = result.tokens.size();
-        cResult->tokens = new uint32_t[cResult->tokenCount];
+        // Own the struct via RAII so a mid-construction throw frees the partial
+        // allocation instead of leaking it (textmate_free_tokenize_result2 is null-safe).
+        std::unique_ptr<TextMateTokenizeResult2, decltype(&textmate_free_tokenize_result2)> cResult(
+            new TextMateTokenizeResult2(), &textmate_free_tokenize_result2);
+        cResult->tokenCount = static_cast<int32_t>(result.tokens.size());
+        cResult->tokens = new uint32_t[result.tokens.size()];
         cResult->ruleStack = static_cast<TextMateStateStack>(result.ruleStack);
         cResult->stoppedEarly = result.stoppedEarly ? 1 : 0;
 
         // Copy tokens
-        for (int i = 0; i < cResult->tokenCount; i++) {
+        for (size_t i = 0; i < result.tokens.size(); i++) {
             cResult->tokens[i] = result.tokens[i];
         }
 
-        return cResult;
+        return cResult.release();
     } catch (...) {
         return nullptr;
     }
@@ -775,10 +787,14 @@ TextMateTokenizeMultiLinesResult* textmate_tokenize_lines(
         Grammar* g = static_cast<Grammar*>(grammar);
         StateStack* state = static_cast<StateStack*>(initialState);
 
-        // Allocate result structure
-        TextMateTokenizeMultiLinesResult* batchResult = new TextMateTokenizeMultiLinesResult();
+        // Own the batch via RAII so a mid-construction throw frees every partial
+        // allocation. textmate_free_tokenize_lines_result is a valid deleter for a
+        // partial batch: it null-checks lineResults, and the array is value-initialized
+        // so not-yet-filled slots are null (a no-op to free).
+        std::unique_ptr<TextMateTokenizeMultiLinesResult, decltype(&textmate_free_tokenize_lines_result)>
+            batchResult(new TextMateTokenizeMultiLinesResult(), &textmate_free_tokenize_lines_result);
         batchResult->lineCount = lineCount;
-        batchResult->lineResults = new TextMateTokenizeResult*[lineCount];
+        batchResult->lineResults = new TextMateTokenizeResult*[lineCount]();  // value-initialized to nullptr
 
         // Tokenize each line, propagating state
         for (int32_t i = 0; i < lineCount; i++) {
@@ -789,30 +805,31 @@ TextMateTokenizeMultiLinesResult* textmate_tokenize_lines(
             state = result.ruleStack;
 
             // Allocate result for this line
-            TextMateTokenizeResult* lineResult = new TextMateTokenizeResult();
-            lineResult->tokenCount = result.tokens.size();
+            std::unique_ptr<TextMateTokenizeResult, decltype(&textmate_free_tokenize_result)> lineResult(
+                new TextMateTokenizeResult(), &textmate_free_tokenize_result);
+            lineResult->tokenCount = static_cast<int32_t>(result.tokens.size());
             lineResult->stoppedEarly = result.stoppedEarly ? 1 : 0;
             lineResult->ruleStack = static_cast<TextMateStateStack>(result.ruleStack);
 
-            // Allocate and populate tokens
-            lineResult->tokens = new TextMateToken[lineResult->tokenCount];
+            // Allocate and populate tokens (value-initialized so a throw mid-fill stays freeable)
+            lineResult->tokens = new TextMateToken[result.tokens.size()]();
             for (size_t j = 0; j < result.tokens.size(); j++) {
                 const auto& token = result.tokens[j];
                 lineResult->tokens[j].startIndex = token.startIndex;
                 lineResult->tokens[j].endIndex = token.endIndex;
-                lineResult->tokens[j].scopeDepth = token.scopes.size();
+                lineResult->tokens[j].scopeDepth = static_cast<int32_t>(token.scopes.size());
 
-                // Allocate scope array
-                lineResult->tokens[j].scopes = new char*[token.scopes.size()];
+                // Allocate scope array (value-initialized so a throw mid-fill stays freeable)
+                lineResult->tokens[j].scopes = new char*[token.scopes.size()]();
                 for (size_t k = 0; k < token.scopes.size(); k++) {
                     lineResult->tokens[j].scopes[k] = stringToCString(token.scopes[k]);
                 }
             }
 
-            batchResult->lineResults[i] = lineResult;
+            batchResult->lineResults[i] = lineResult.release();
         }
 
-        return batchResult;
+        return batchResult.release();
     } catch (...) {
         return nullptr;
     }
@@ -821,11 +838,13 @@ TextMateTokenizeMultiLinesResult* textmate_tokenize_lines(
 // Free batch tokenize result
 void textmate_free_tokenize_lines_result(TextMateTokenizeMultiLinesResult* result) {
     if (result) {
-        // Free each line result
-        for (int32_t i = 0; i < result->lineCount; i++) {
-            textmate_free_tokenize_result(result->lineResults[i]);
+        if (result->lineResults) {
+            // Free each line result
+            for (int32_t i = 0; i < result->lineCount; i++) {
+                textmate_free_tokenize_result(result->lineResults[i]);
+            }
+            delete[] result->lineResults;
         }
-        delete[] result->lineResults;
         delete result;
     }
 }
@@ -845,9 +864,14 @@ TextMateTokenizeMultiLinesResult2* textmate_tokenize_lines2(
         Grammar* g = static_cast<Grammar*>(grammar);
         StateStack* state = static_cast<StateStack*>(initialState);
 
-        TextMateTokenizeMultiLinesResult2* batchResult = new TextMateTokenizeMultiLinesResult2();
+        // Own the batch via RAII so a mid-construction throw frees every partial
+        // allocation. textmate_free_tokenize_lines_result2 is a valid deleter for a
+        // partial batch: it null-checks lineResults, and the array is value-initialized
+        // so not-yet-filled slots are null (a no-op to free).
+        std::unique_ptr<TextMateTokenizeMultiLinesResult2, decltype(&textmate_free_tokenize_lines_result2)>
+            batchResult(new TextMateTokenizeMultiLinesResult2(), &textmate_free_tokenize_lines_result2);
         batchResult->lineCount = lineCount;
-        batchResult->lineResults = new TextMateTokenizeResult2*[lineCount];
+        batchResult->lineResults = new TextMateTokenizeResult2*[lineCount]();  // value-initialized to nullptr
 
         for (int32_t i = 0; i < lineCount; i++) {
             std::string lineText(lines[i]);
@@ -855,20 +879,21 @@ TextMateTokenizeMultiLinesResult2* textmate_tokenize_lines2(
 
             state = result.ruleStack;
 
-            TextMateTokenizeResult2* lineResult = new TextMateTokenizeResult2();
-            lineResult->tokenCount = result.tokens.size();
+            std::unique_ptr<TextMateTokenizeResult2, decltype(&textmate_free_tokenize_result2)> lineResult(
+                new TextMateTokenizeResult2(), &textmate_free_tokenize_result2);
+            lineResult->tokenCount = static_cast<int32_t>(result.tokens.size());
             lineResult->stoppedEarly = result.stoppedEarly ? 1 : 0;
             lineResult->ruleStack = static_cast<TextMateStateStack>(result.ruleStack);
 
-            lineResult->tokens = new uint32_t[lineResult->tokenCount];
-            for (int j = 0; j < lineResult->tokenCount; j++) {
+            lineResult->tokens = new uint32_t[result.tokens.size()];
+            for (size_t j = 0; j < result.tokens.size(); j++) {
                 lineResult->tokens[j] = result.tokens[j];
             }
 
-            batchResult->lineResults[i] = lineResult;
+            batchResult->lineResults[i] = lineResult.release();
         }
 
-        return batchResult;
+        return batchResult.release();
     } catch (...) {
         return nullptr;
     }
@@ -877,10 +902,12 @@ TextMateTokenizeMultiLinesResult2* textmate_tokenize_lines2(
 // Free batch encoded tokenize result
 void textmate_free_tokenize_lines_result2(TextMateTokenizeMultiLinesResult2* result) {
     if (result) {
-        for (int32_t i = 0; i < result->lineCount; i++) {
-            textmate_free_tokenize_result2(result->lineResults[i]);
+        if (result->lineResults) {
+            for (int32_t i = 0; i < result->lineCount; i++) {
+                textmate_free_tokenize_result2(result->lineResults[i]);
+            }
+            delete[] result->lineResults;
         }
-        delete[] result->lineResults;
         delete result;
     }
 }
@@ -921,30 +948,34 @@ TextMateTokenizeResult* textmate_tokenize_line_utf16(
         // Build byte-offset to UTF-16 index map
         auto map = tml::buildByteToUtf16Map(lineText, std::strlen(lineText));
 
-        // Allocate result structure
-        TextMateTokenizeResult* cResult = new TextMateTokenizeResult();
-        cResult->tokenCount = result.tokens.size();
-        cResult->tokens = new TextMateToken[cResult->tokenCount];
+        // Own the struct via RAII so a mid-construction throw frees the partial
+        // allocation instead of leaking it. textmate_free_tokenize_result is a valid
+        // deleter for a partial struct: the tokens array and each scopes array are
+        // value-initialized, so not-yet-filled slots are null (a no-op to free).
+        std::unique_ptr<TextMateTokenizeResult, decltype(&textmate_free_tokenize_result)> cResult(
+            new TextMateTokenizeResult(), &textmate_free_tokenize_result);
+        cResult->tokenCount = static_cast<int32_t>(result.tokens.size());
+        cResult->tokens = new TextMateToken[result.tokens.size()]();  // value-initialized
         cResult->ruleStack = static_cast<TextMateStateStack>(result.ruleStack);
         cResult->stoppedEarly = result.stoppedEarly ? 1 : 0;
 
         // Convert tokens with UTF-16 indices
         // Note: the tokenizer may internally append '\n', so token indices
         // can exceed strlen(lineText). Use mapByteToUtf16 for safe lookup.
-        for (int i = 0; i < cResult->tokenCount; i++) {
+        for (size_t i = 0; i < result.tokens.size(); i++) {
             const IToken& token = result.tokens[i];
             cResult->tokens[i].startIndex = tml::mapByteToUtf16(map, token.startIndex);
             cResult->tokens[i].endIndex = tml::mapByteToUtf16(map, token.endIndex);
-            cResult->tokens[i].scopeDepth = token.scopes.size();
+            cResult->tokens[i].scopeDepth = static_cast<int32_t>(token.scopes.size());
 
-            // Allocate scope strings
-            cResult->tokens[i].scopes = new char*[token.scopes.size()];
+            // Allocate scope strings (value-initialized so a throw mid-fill stays freeable)
+            cResult->tokens[i].scopes = new char*[token.scopes.size()]();
             for (size_t j = 0; j < token.scopes.size(); j++) {
                 cResult->tokens[i].scopes[j] = stringToCString(token.scopes[j]);
             }
         }
 
-        return cResult;
+        return cResult.release();
     } catch (...) {
         return nullptr;
     }
@@ -969,16 +1000,18 @@ TextMateTokenizeResult2* textmate_tokenize_line2_utf16(
         // Build byte-offset to UTF-16 index map
         auto map = tml::buildByteToUtf16Map(lineText, std::strlen(lineText));
 
-        // Allocate result structure
-        TextMateTokenizeResult2* cResult = new TextMateTokenizeResult2();
-        cResult->tokenCount = result.tokens.size();
-        cResult->tokens = new uint32_t[cResult->tokenCount];
+        // Own the struct via RAII so a mid-construction throw frees the partial
+        // allocation instead of leaking it (textmate_free_tokenize_result2 is null-safe).
+        std::unique_ptr<TextMateTokenizeResult2, decltype(&textmate_free_tokenize_result2)> cResult(
+            new TextMateTokenizeResult2(), &textmate_free_tokenize_result2);
+        cResult->tokenCount = static_cast<int32_t>(result.tokens.size());
+        cResult->tokens = new uint32_t[result.tokens.size()];
         cResult->ruleStack = static_cast<TextMateStateStack>(result.ruleStack);
         cResult->stoppedEarly = result.stoppedEarly ? 1 : 0;
 
         // Copy tokens, converting start offsets from UTF-8 byte to UTF-16
         // Encoded tokens are pairs: [startIndex, metadata, startIndex, metadata, ...]
-        for (int i = 0; i < cResult->tokenCount; i++) {
+        for (size_t i = 0; i < result.tokens.size(); i++) {
             if (i % 2 == 0) {
                 // Even indices are start offsets
                 cResult->tokens[i] = tml::mapByteToUtf16(map, result.tokens[i]);
@@ -988,7 +1021,7 @@ TextMateTokenizeResult2* textmate_tokenize_line2_utf16(
             }
         }
 
-        return cResult;
+        return cResult.release();
     } catch (...) {
         return nullptr;
     }
@@ -1009,10 +1042,14 @@ TextMateTokenizeMultiLinesResult* textmate_tokenize_lines_utf16(
         Grammar* g = static_cast<Grammar*>(grammar);
         StateStack* state = static_cast<StateStack*>(initialState);
 
-        // Allocate result structure
-        TextMateTokenizeMultiLinesResult* batchResult = new TextMateTokenizeMultiLinesResult();
+        // Own the batch via RAII so a mid-construction throw frees every partial
+        // allocation. textmate_free_tokenize_lines_result is a valid deleter for a
+        // partial batch: it null-checks lineResults, and the array is value-initialized
+        // so not-yet-filled slots are null (a no-op to free).
+        std::unique_ptr<TextMateTokenizeMultiLinesResult, decltype(&textmate_free_tokenize_lines_result)>
+            batchResult(new TextMateTokenizeMultiLinesResult(), &textmate_free_tokenize_lines_result);
         batchResult->lineCount = lineCount;
-        batchResult->lineResults = new TextMateTokenizeResult*[lineCount];
+        batchResult->lineResults = new TextMateTokenizeResult*[lineCount]();  // value-initialized to nullptr
 
         // Tokenize each line, propagating state
         for (int32_t i = 0; i < lineCount; i++) {
@@ -1026,30 +1063,31 @@ TextMateTokenizeMultiLinesResult* textmate_tokenize_lines_utf16(
             auto map = tml::buildByteToUtf16Map(lineText.c_str(), lineText.size());
 
             // Allocate result for this line
-            TextMateTokenizeResult* lineResult = new TextMateTokenizeResult();
-            lineResult->tokenCount = result.tokens.size();
+            std::unique_ptr<TextMateTokenizeResult, decltype(&textmate_free_tokenize_result)> lineResult(
+                new TextMateTokenizeResult(), &textmate_free_tokenize_result);
+            lineResult->tokenCount = static_cast<int32_t>(result.tokens.size());
             lineResult->stoppedEarly = result.stoppedEarly ? 1 : 0;
             lineResult->ruleStack = static_cast<TextMateStateStack>(result.ruleStack);
 
-            // Allocate and populate tokens with UTF-16 indices
-            lineResult->tokens = new TextMateToken[lineResult->tokenCount];
+            // Allocate and populate tokens with UTF-16 indices (value-initialized so a throw mid-fill stays freeable)
+            lineResult->tokens = new TextMateToken[result.tokens.size()]();
             for (size_t j = 0; j < result.tokens.size(); j++) {
                 const auto& token = result.tokens[j];
                 lineResult->tokens[j].startIndex = tml::mapByteToUtf16(map, token.startIndex);
                 lineResult->tokens[j].endIndex = tml::mapByteToUtf16(map, token.endIndex);
-                lineResult->tokens[j].scopeDepth = token.scopes.size();
+                lineResult->tokens[j].scopeDepth = static_cast<int32_t>(token.scopes.size());
 
-                // Allocate scope array
-                lineResult->tokens[j].scopes = new char*[token.scopes.size()];
+                // Allocate scope array (value-initialized so a throw mid-fill stays freeable)
+                lineResult->tokens[j].scopes = new char*[token.scopes.size()]();
                 for (size_t k = 0; k < token.scopes.size(); k++) {
                     lineResult->tokens[j].scopes[k] = stringToCString(token.scopes[k]);
                 }
             }
 
-            batchResult->lineResults[i] = lineResult;
+            batchResult->lineResults[i] = lineResult.release();
         }
 
-        return batchResult;
+        return batchResult.release();
     } catch (...) {
         return nullptr;
     }
@@ -1070,9 +1108,14 @@ TextMateTokenizeMultiLinesResult2* textmate_tokenize_lines2_utf16(
         Grammar* g = static_cast<Grammar*>(grammar);
         StateStack* state = static_cast<StateStack*>(initialState);
 
-        TextMateTokenizeMultiLinesResult2* batchResult = new TextMateTokenizeMultiLinesResult2();
+        // Own the batch via RAII so a mid-construction throw frees every partial
+        // allocation. textmate_free_tokenize_lines_result2 is a valid deleter for a
+        // partial batch: it null-checks lineResults, and the array is value-initialized
+        // so not-yet-filled slots are null (a no-op to free).
+        std::unique_ptr<TextMateTokenizeMultiLinesResult2, decltype(&textmate_free_tokenize_lines_result2)>
+            batchResult(new TextMateTokenizeMultiLinesResult2(), &textmate_free_tokenize_lines_result2);
         batchResult->lineCount = lineCount;
-        batchResult->lineResults = new TextMateTokenizeResult2*[lineCount];
+        batchResult->lineResults = new TextMateTokenizeResult2*[lineCount]();  // value-initialized to nullptr
 
         for (int32_t i = 0; i < lineCount; i++) {
             std::string lineText(lines[i]);
@@ -1082,13 +1125,14 @@ TextMateTokenizeMultiLinesResult2* textmate_tokenize_lines2_utf16(
 
             auto map = tml::buildByteToUtf16Map(lineText.c_str(), lineText.size());
 
-            TextMateTokenizeResult2* lineResult = new TextMateTokenizeResult2();
-            lineResult->tokenCount = result.tokens.size();
+            std::unique_ptr<TextMateTokenizeResult2, decltype(&textmate_free_tokenize_result2)> lineResult(
+                new TextMateTokenizeResult2(), &textmate_free_tokenize_result2);
+            lineResult->tokenCount = static_cast<int32_t>(result.tokens.size());
             lineResult->stoppedEarly = result.stoppedEarly ? 1 : 0;
             lineResult->ruleStack = static_cast<TextMateStateStack>(result.ruleStack);
 
-            lineResult->tokens = new uint32_t[lineResult->tokenCount];
-            for (int j = 0; j < lineResult->tokenCount; j++) {
+            lineResult->tokens = new uint32_t[result.tokens.size()];
+            for (size_t j = 0; j < result.tokens.size(); j++) {
                 if (j % 2 == 0) {
                     lineResult->tokens[j] = tml::mapByteToUtf16(map, result.tokens[j]);
                 } else {
@@ -1096,10 +1140,10 @@ TextMateTokenizeMultiLinesResult2* textmate_tokenize_lines2_utf16(
                 }
             }
 
-            batchResult->lineResults[i] = lineResult;
+            batchResult->lineResults[i] = lineResult.release();
         }
 
-        return batchResult;
+        return batchResult.release();
     } catch (...) {
         return nullptr;
     }
