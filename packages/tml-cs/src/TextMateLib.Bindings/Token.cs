@@ -106,18 +106,24 @@ namespace TextMateLib.Bindings
         /// <summary>
         /// Gets the font style flags from encoded metadata
         /// </summary>
+        /// <param name="metadata">The bit-packed token metadata.</param>
+        /// <returns>The font style flag bits.</returns>
         public static int GetFontStyle(uint metadata) =>
             (int)((metadata & FontStyleMask) >> FontStyleOffset);
 
         /// <summary>
         /// Gets the foreground color ID (index into the color map)
         /// </summary>
+        /// <param name="metadata">The bit-packed token metadata.</param>
+        /// <returns>The foreground color ID (index into the color map).</returns>
         public static int GetForeground(uint metadata) =>
             (int)((metadata & ForegroundMask) >> ForegroundOffset);
 
         /// <summary>
         /// Gets the background color ID (index into the color map)
         /// </summary>
+        /// <param name="metadata">The bit-packed token metadata.</param>
+        /// <returns>The background color ID (index into the color map).</returns>
         public static int GetBackground(uint metadata) =>
             (int)((metadata & BackgroundMask) >> BackgroundOffset);
     }

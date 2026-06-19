@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -102,6 +103,9 @@ namespace TextMateLib.Bindings
         /// Tokenizes a line of text with binary/themed output (encoded tokens).
         /// Requires a theme to be set on the registry via SetThemeFromJson.
         /// </summary>
+        /// <param name="lineText">The line to tokenize.</param>
+        /// <param name="prevState">Previous state stack (use IntPtr.Zero for the initial state).</param>
+        /// <returns>The themed tokenization result with encoded tokens and end-of-line state.</returns>
         public TokenizeResult2 TokenizeLine2(string lineText, IntPtr prevState)
         {
             ThrowIfDisposed();
@@ -135,6 +139,8 @@ namespace TextMateLib.Bindings
         /// Tokenizes multiple lines with encoded/themed output in a single batch call.
         /// Requires a theme to be set on the registry via SetThemeFromJson.
         /// </summary>
+        /// <param name="lines">The lines to tokenize.</param>
+        /// <returns>An array of themed tokenization results, one per input line.</returns>
         public TokenizeResult2[] TokenizeLines2(string[] lines)
         {
             ThrowIfDisposed();
@@ -171,6 +177,13 @@ namespace TextMateLib.Bindings
                     try
                     {
                         var batch = Marshal.PtrToStructure<NativeMethods.TextMateTokenizeMultiLinesResult2>(batchPtr);
+
+                        // Guard against a malformed native batch (LineCount > 0 but a null
+                        // results pointer) so we surface a managed exception instead of a hard
+                        // native crash when dereferencing batch.LineResults below.
+                        if (batch.LineCount > 0 && batch.LineResults == IntPtr.Zero)
+                            throw new InvalidOperationException("Batch tokenization returned a null line results pointer");
+
                         var results = new TokenizeResult2[batch.LineCount];
 
                         for (int i = 0; i < batch.LineCount; i++)
@@ -205,14 +218,27 @@ namespace TextMateLib.Bindings
 
         static EncodedToken[] MarshalEncodedTokens(IntPtr tokensPtr, int rawCount)
         {
+            if (rawCount <= 0 || tokensPtr == IntPtr.Zero)
+                return Array.Empty<EncodedToken>();
+
             int tokenCount = rawCount / 2;
             var tokens = new EncodedToken[tokenCount];
-            var raw = new int[rawCount];
-            Marshal.Copy(tokensPtr, raw, 0, rawCount);
 
-            for (int i = 0; i < tokenCount; i++)
+            // Rent the temporary copy buffer from the shared pool to avoid a per-line
+            // managed allocation (and the GC pressure it creates on large files).
+            var raw = ArrayPool<int>.Shared.Rent(rawCount);
+            try
             {
-                tokens[i] = new EncodedToken(raw[i * 2], unchecked((uint)raw[i * 2 + 1]));
+                Marshal.Copy(tokensPtr, raw, 0, rawCount);
+
+                for (int i = 0; i < tokenCount; i++)
+                {
+                    tokens[i] = new EncodedToken(raw[i * 2], unchecked((uint)raw[i * 2 + 1]));
+                }
+            }
+            finally
+            {
+                ArrayPool<int>.Shared.Return(raw);
             }
 
             return tokens;
