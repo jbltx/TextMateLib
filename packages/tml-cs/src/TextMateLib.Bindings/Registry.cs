@@ -44,10 +44,11 @@ namespace TextMateLib.Bindings
         {
             ThrowIfDisposed();
 
-            if (string.IsNullOrEmpty(grammarPath))
-                throw new ArgumentNullException(nameof(grammarPath));
+            // Resolve and check the file in managed code first — a path that does not exist, or
+            // that cannot be resolved, must not be forwarded across the native boundary.
+            var resolvedPath = TextMateJson.ResolveReadAndValidate(grammarPath, nameof(grammarPath), "grammar");
 
-            int result = NativeMethods.textmate_registry_add_grammar_from_file(m_Handle, grammarPath);
+            int result = NativeMethods.textmate_registry_add_grammar_from_file(m_Handle, resolvedPath);
             if (result == 0)
                 throw new InvalidOperationException($"Failed to add grammar from file: {grammarPath}");
         }
@@ -62,8 +63,7 @@ namespace TextMateLib.Bindings
         {
             ThrowIfDisposed();
 
-            if (string.IsNullOrEmpty(jsonContent))
-                throw new ArgumentNullException(nameof(jsonContent));
+            TextMateJson.Validate(jsonContent, nameof(jsonContent), "grammar");
 
             int result = NativeMethods.textmate_registry_add_grammar_from_json(m_Handle, NativeMethods.ToUtf8NullTerminated(jsonContent));
             if (result == 0)
@@ -75,12 +75,13 @@ namespace TextMateLib.Bindings
         /// Must be called before using TokenizeLine2 for themed output.
         /// </summary>
         /// <param name="jsonContent">The theme JSON content.</param>
+        /// <exception cref="ArgumentNullException">Thrown when jsonContent is null or empty</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the theme fails to load</exception>
         public void SetThemeFromJson(string jsonContent)
         {
             ThrowIfDisposed();
 
-            if (string.IsNullOrEmpty(jsonContent))
-                throw new ArgumentNullException(nameof(jsonContent));
+            TextMateJson.Validate(jsonContent, nameof(jsonContent), "theme");
 
             int result = NativeMethods.textmate_registry_set_theme(m_Handle, NativeMethods.ToUtf8NullTerminated(jsonContent));
             if (result == 0)

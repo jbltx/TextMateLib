@@ -41,10 +41,9 @@ namespace TextMateLib.Bindings
         /// <exception cref="InvalidOperationException">Thrown when the theme fails to load</exception>
         public static Theme LoadFromFile(string themePath)
         {
-            if (string.IsNullOrEmpty(themePath))
-                throw new ArgumentNullException(nameof(themePath));
+            var resolvedPath = TextMateJson.ResolveReadAndValidate(themePath, nameof(themePath), "theme");
 
-            var handle = NativeMethods.textmate_theme_load_from_file(themePath);
+            var handle = NativeMethods.textmate_theme_load_from_file(resolvedPath);
             if (handle == IntPtr.Zero)
                 throw new InvalidOperationException($"Failed to load theme from file: {themePath}");
 
@@ -60,8 +59,7 @@ namespace TextMateLib.Bindings
         /// <exception cref="InvalidOperationException">Thrown when the theme fails to load</exception>
         public static Theme LoadFromJson(string jsonContent)
         {
-            if (string.IsNullOrEmpty(jsonContent))
-                throw new ArgumentNullException(nameof(jsonContent));
+            TextMateJson.Validate(jsonContent, nameof(jsonContent), "theme");
 
             var handle = NativeMethods.textmate_theme_load_from_json(NativeMethods.ToUtf8NullTerminated(jsonContent));
             if (handle == IntPtr.Zero)
