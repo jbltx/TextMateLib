@@ -1,6 +1,6 @@
 {
   "name": "textmatelib",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "TextMate syntax highlighting library for JavaScript/WASM",
   "type": "module",
   "main": "dist/index.cjs",
