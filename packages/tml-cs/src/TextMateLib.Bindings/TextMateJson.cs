@@ -67,19 +67,26 @@ namespace TextMateLib.Bindings
         /// failure as the load exception this API documents.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// <see cref="File.Exists"/> only reports that a name resolves to a file, not that it can be
         /// opened: a locked file, or one on a volume the process cannot read, still throws from the
         /// read itself. Those are load failures like any other, so they are reported as
         /// <see cref="InvalidOperationException"/> rather than making callers add filesystem-specific
         /// handlers that this API never previously required.
+        /// </para>
+        /// <para>
+        /// The content is returned so the caller can hand the validated bytes to the native loader.
+        /// Passing the path instead would have the native side re-read the file, and anything that
+        /// changed it between the two reads would reach the parser unvalidated.
+        /// </para>
         /// </remarks>
         /// <param name="path">The path supplied by the caller.</param>
         /// <param name="paramName">The name of the caller's parameter, for the exception message.</param>
         /// <param name="what">Describes the payload, for the exception message.</param>
-        /// <returns>The resolved absolute path.</returns>
+        /// <returns>The validated file content.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the path is null or empty.</exception>
         /// <exception cref="InvalidOperationException">Thrown when the file cannot be resolved, read, or parsed.</exception>
-        public static string ResolveReadAndValidate(string? path, string paramName, string what)
+        public static string ReadAndValidate(string? path, string paramName, string what)
         {
             var resolvedPath = ResolveExistingFile(path, paramName, what);
 
@@ -95,7 +102,7 @@ namespace TextMateLib.Bindings
             }
 
             Validate(content, paramName, what);
-            return resolvedPath;
+            return content;
         }
 
         /// <summary>

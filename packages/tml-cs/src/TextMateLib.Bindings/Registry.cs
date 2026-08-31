@@ -44,11 +44,17 @@ namespace TextMateLib.Bindings
         {
             ThrowIfDisposed();
 
-            // Resolve and check the file in managed code first — a path that does not exist, or
-            // that cannot be resolved, must not be forwarded across the native boundary.
-            var resolvedPath = TextMateJson.ResolveReadAndValidate(grammarPath, nameof(grammarPath), "grammar");
+            // Read and validate in managed code, then hand the validated content to the native
+            // loader. Passing the path instead would have the native side re-read the file, so
+            // anything that changed it in between would reach the parser unvalidated.
+            var content = TextMateJson.ReadAndValidate(grammarPath, nameof(grammarPath), "grammar");
 
-            int result = NativeMethods.textmate_registry_add_grammar_from_file(m_Handle, resolvedPath);
+            // The native file loader parses only files named '*.json' (or with no extension at
+            // all); preserved here so routing through the JSON entry point does not quietly start
+            // accepting grammars this API used to reject.
+            RequireJsonExtension(grammarPath, "grammar");
+
+            int result = NativeMethods.textmate_registry_add_grammar_from_json(m_Handle, NativeMethods.ToUtf8NullTerminated(content));
             if (result == 0)
                 throw new InvalidOperationException($"Failed to add grammar from file: {grammarPath}");
         }
@@ -156,6 +162,14 @@ namespace TextMateLib.Bindings
 
             m_LoadedGrammars.Add(grammar);
             return grammar;
+        }
+
+        static void RequireJsonExtension(string path, string what)
+        {
+            var dot = path.LastIndexOf('.');
+            if (dot >= 0 && !path.Substring(dot).Equals(".json", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException(
+                    $"Failed to load {what} from file: only the JSON format is supported, but '{path}' does not end in '.json'.");
         }
 
         void ThrowIfDisposed()

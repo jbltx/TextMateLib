@@ -70,14 +70,50 @@ namespace TextMateLib.Tests
         }
 
         [Fact]
-        public void ResolveReadAndValidate_MalformedFile_ThrowsTheDocumentedLoadException()
+        public void ReadAndValidate_MalformedFile_ThrowsTheDocumentedLoadException()
         {
             var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".json");
             File.WriteAllText(path, "{ this is not valid json }");
             try
             {
                 Assert.Throws<InvalidOperationException>(
-                    () => TextMateJson.ResolveReadAndValidate(path, "p", "grammar"));
+                    () => TextMateJson.ReadAndValidate(path, "p", "grammar"));
+            }
+            finally
+            {
+                File.Delete(path);
+            }
+        }
+
+        [Fact]
+        public void ReadAndValidate_ReturnsTheContentItValidated()
+        {
+            // The content is returned so the caller can pass the validated bytes to the native
+            // loader rather than a path the native side would re-read — the window in which the
+            // file could change between the two reads is what this closes.
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".json");
+            File.WriteAllText(path, "{\"scopeName\":\"source.x\"}");
+            try
+            {
+                Assert.Equal("{\"scopeName\":\"source.x\"}", TextMateJson.ReadAndValidate(path, "p", "grammar"));
+            }
+            finally
+            {
+                File.Delete(path);
+            }
+        }
+
+        [Fact]
+        public void AddGrammarFromFile_NonJsonExtension_ThrowsInvalidOperationException()
+        {
+            // The native file loader only ever parsed '*.json'; routing through the JSON entry
+            // point must not quietly widen what this API accepts.
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".tmLanguage");
+            File.WriteAllText(path, "{\"scopeName\":\"source.x\"}");
+            try
+            {
+                using var registry = new Registry();
+                Assert.Throws<InvalidOperationException>(() => registry.AddGrammarFromFile(path));
             }
             finally
             {

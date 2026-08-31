@@ -41,9 +41,12 @@ namespace TextMateLib.Bindings
         /// <exception cref="InvalidOperationException">Thrown when the theme fails to load</exception>
         public static Theme LoadFromFile(string themePath)
         {
-            var resolvedPath = TextMateJson.ResolveReadAndValidate(themePath, nameof(themePath), "theme");
+            // Read and validate in managed code, then hand the validated content to the native
+            // loader. Passing the path instead would have the native side re-read the file, so
+            // anything that changed it in between would reach the parser unvalidated.
+            var content = TextMateJson.ReadAndValidate(themePath, nameof(themePath), "theme");
 
-            var handle = NativeMethods.textmate_theme_load_from_file(resolvedPath);
+            var handle = NativeMethods.textmate_theme_load_from_json(NativeMethods.ToUtf8NullTerminated(content));
             if (handle == IntPtr.Zero)
                 throw new InvalidOperationException($"Failed to load theme from file: {themePath}");
 
