@@ -108,7 +108,7 @@ runs:
         sed -i.bak -E "s/project\(tml VERSION [0-9.]+/project(tml VERSION $NEW_VERSION/" packages/tml-cpp/CMakeLists.txt && rm packages/tml-cpp/CMakeLists.txt.bak
 
         # Update conanfile.py
-        sed -i.bak -E "s/version = \"[0-9.]+\"/version = \"$NEW_VERSION\"/" packages/tml-cpp/conanfile.py && rm packages/tml-cpp/conanfile.py.bak
+        sed -i.bak -E "s/version = \"[0-9.]+\"/version = \"$NEW_VERSION\"/" conanfile.py && rm conanfile.py.bak
 
         # Update packages/tml-js/package.json
         jq ".version = \"$NEW_VERSION\"" packages/tml-js/package.json > packages/tml-js/package.json.tmp && mv packages/tml-js/package.json.tmp packages/tml-js/package.json
@@ -209,7 +209,7 @@ runs:
 
           ### Updated Files
           - packages/tml-cpp/CMakeLists.txt
-          - packages/tml-cpp/conanfile.py
+          - conanfile.py
           - packages/tml-js/package.json
           - packages/tml-cs/src/TextMateLib.Bindings/TextMateLib.Bindings.csproj
           - packages/playground/package.json

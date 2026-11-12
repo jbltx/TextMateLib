@@ -135,8 +135,7 @@ TextMateLib/
 │   │   ├── tests/             # C++ tests
 │   │   ├── scripts/           # Build scripts
 │   │   ├── docs/              # Documentation (Doxygen)
-│   │   ├── CMakeLists.txt
-│   │   └── conanfile.py
+│   │   └── CMakeLists.txt
 │   │
 │   ├── tml-cs/                # C# bindings
 │   │   ├── src/TextMateLib.Bindings/
@@ -153,6 +152,8 @@ TextMateLib/
 │       └── package.json
 │
 ├── thirdparty/                # Shared dependencies
+├── conanfile.py               # Conan recipe (C++ library)
+├── test_package/              # Conan recipe test
 ├── .github/                   # CI/CD workflows
 ├── .changeset/                # Changesets for versioning
 ├── package.json               # Monorepo root
@@ -193,6 +194,26 @@ cd packages/tml-cpp && ./scripts/build.sh
 **Output:**
 - Library: `packages/tml-cpp/build/lib/libtm.so` (Linux/macOS) or `.dll` (Windows)
 - Headers: `packages/tml-cpp/build/include/tml/`
+
+### Use with Conan
+
+The package is not on Conan Center. Build it into your local Conan cache from a clone:
+
+```bash
+git clone --recursive https://github.com/jbltx/TextMateLib.git
+cd TextMateLib
+conan create . --build=missing
+```
+
+The recipe needs the `oniguruma` and `rapidjson` submodules. In an existing clone, run
+`git submodule update --init thirdparty/oniguruma thirdparty/rapidjson`.
+
+Then require `textmatelib/<version>` in your project (the version is in [`conanfile.py`](conanfile.py)) and link it from CMake:
+
+```cmake
+find_package(TextMateLib REQUIRED CONFIG)
+target_link_libraries(your_target PRIVATE TextMateLib::tml)
+```
 
 ### WebAssembly Build
 
