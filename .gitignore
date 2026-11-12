@@ -61,6 +61,7 @@ node_modules/
 /release/
 /build/
 /build*/
+/test_package/build/
 
 # Playground (built separately, not shipped with the library)
 /playground/

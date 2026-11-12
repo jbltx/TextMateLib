@@ -33,18 +33,18 @@ Your change description here
 
 ## How It Works
 
-The [bump-versions action](.github/actions/bump-versions/action.yml) processes changesets automatically:
+The [bump-versions action](../.github/actions/bump-versions/action.yml) processes changesets automatically:
 
 1. **Parses all changesets** in this folder (except `README.md`)
 2. **Determines bump type** - uses the highest priority (major > minor > patch)
 3. **Extracts metadata** - finds commit SHA, PR number, and author from git history
 4. **Calculates new version** - bumps from current version based on bump type
 5. **Updates version files**:
-   - [CMakeLists.txt](CMakeLists.txt)
-   - [conanfile.py](conanfile.py)
-   - [src/js/package.json](src/js/package.json)
-   - [src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj](src/csharp/TextMateLib.Bindings/TextMateLib.Bindings.csproj)
-   - [playground/package.json](playground/package.json)
+   - [packages/tml-cpp/CMakeLists.txt](../packages/tml-cpp/CMakeLists.txt)
+   - [conanfile.py](../conanfile.py)
+   - [packages/tml-js/package.json](../packages/tml-js/package.json)
+   - [packages/tml-cs/src/TextMateLib.Bindings/TextMateLib.Bindings.csproj](../packages/tml-cs/src/TextMateLib.Bindings/TextMateLib.Bindings.csproj)
+   - [packages/playground/package.json](../packages/playground/package.json)
 6. **Generates changelog** - creates formatted entries with links and attribution
 7. **Deletes consumed changesets** - removes processed files after use
 

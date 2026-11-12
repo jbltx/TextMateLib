@@ -1,4 +1,5 @@
 from conan import ConanFile
+from conan.errors import ConanException
 from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
 from conan.tools.files import copy
 import os
@@ -22,12 +23,32 @@ class TextMateLibConan(ConanFile):
         "shared": False,
         "fPIC": True
     }
-    # Only include sources within this package directory; thirdparty deps are
-    # handled by export_sources() to avoid Conan 2's restriction on ".." patterns.
+    # The monorepo layout is kept in the Conan cache, so the CMake default
+    # THIRDPARTY_DIR (../../thirdparty from packages/tml-cpp) resolves as is.
     exports_sources = (
-        "CMakeLists.txt",
-        "src/*",
+        "LICENSE",
+        "packages/tml-cpp/CMakeLists.txt",
+        "packages/tml-cpp/src/*",
+        "thirdparty/oniguruma/*",
+        "thirdparty/rapidjson/include/*",
     )
+
+    # Files that only exist once the git submodules are checked out.
+    _submodule_sentinels = (
+        "thirdparty/oniguruma/CMakeLists.txt",
+        "thirdparty/rapidjson/include/rapidjson/rapidjson.h",
+    )
+
+    def export_sources(self):
+        # Only checks the submodules are there; exports_sources does the copy.
+        # Without this, empty thirdparty/ dirs fail late inside CMake.
+        missing = [p for p in self._submodule_sentinels
+                   if not os.path.isfile(os.path.join(self.recipe_folder, p))]
+        if missing:
+            raise ConanException(
+                "Missing git submodules ({}). Run: git submodule update --init "
+                "thirdparty/oniguruma thirdparty/rapidjson".format(", ".join(missing))
+            )
 
     def config_options(self):
         if self.settings.os == "Windows":
@@ -38,18 +59,7 @@ class TextMateLibConan(ConanFile):
             self.options.rm_safe("fPIC")
 
     def layout(self):
-        cmake_layout(self)
-
-    def export_sources(self):
-        # Copy vendored thirdparty dependencies (git submodules) from the monorepo
-        # root into the Conan export-sources folder so that `conan create` works
-        # without requiring ".." patterns in exports_sources (which Conan 2 rejects).
-        thirdparty_root = os.path.normpath(
-            os.path.join(self.recipe_folder, "..", "..", "thirdparty")
-        )
-        export_thirdparty = os.path.join(self.export_sources_folder, "thirdparty")
-        copy(self, "rapidjson/*", src=thirdparty_root, dst=export_thirdparty)
-        copy(self, "oniguruma/*", src=thirdparty_root, dst=export_thirdparty)
+        cmake_layout(self, src_folder="packages/tml-cpp")
 
     def generate(self):
         deps = CMakeDeps(self)
@@ -57,18 +67,6 @@ class TextMateLibConan(ConanFile):
         tc = CMakeToolchain(self)
         tc.variables["BUILD_SHARED_LIBS"] = self.options.shared
         tc.variables["USE_WASM_BUILD"] = False
-        # Determine the thirdparty directory.  Two cases:
-        # 1. conan create  – thirdparty was exported into source_folder/thirdparty
-        # 2. conan install (local/monorepo) – thirdparty lives at ../../thirdparty
-        #    relative to the package folder (packages/tml-cpp).
-        thirdparty_in_source = os.path.join(self.source_folder, "thirdparty")
-        if os.path.isdir(thirdparty_in_source):
-            thirdparty_dir = thirdparty_in_source
-        else:
-            thirdparty_dir = os.path.normpath(
-                os.path.join(self.source_folder, "..", "..", "thirdparty")
-            )
-        tc.variables["THIRDPARTY_DIR"] = thirdparty_dir.replace("\\", "/")
         tc.generate()
 
     def build(self):
@@ -77,7 +75,7 @@ class TextMateLibConan(ConanFile):
         cmake.build()
 
     def package(self):
-        copy(self, "LICENSE", src=self.source_folder, dst=os.path.join(self.package_folder, "licenses"))
+        copy(self, "LICENSE", src=self.export_sources_folder, dst=os.path.join(self.package_folder, "licenses"))
         cmake = CMake(self)
         cmake.install()
         # Oniguruma is built via ExternalProject_Add and is not part of cmake --install.
