@@ -167,4 +167,4 @@ jobs:
           conan profile detect
 
       - name: Create and test Conan package
-        run: conan create packages/tml-cpp --build=missing
+        run: conan create . --build=missing
