@@ -1,6 +1,6 @@
 # TextMateLib (tml)
 
-[![Build and Test](https://github.com/jbltx/TextMateLib/actions/workflows/build-and-test.yml/badge.svg?branch=develop)](https://github.com/jbltx/TextMateLib/actions/workflows/build-and-test.yml)
+[![Build and Test](https://github.com/jbltx/TextMateLib/actions/workflows/build-and-test.yml/badge.svg?branch=main)](https://github.com/jbltx/TextMateLib/actions/workflows/build-and-test.yml)
 
 A modern C++ implementation of the TextMate syntax highlighting engine. TextMateLib tokenizes source code using TextMate-format grammars, applies color schemes (themes), and provides native C/C++, C FFI, and WebAssembly APIs for high-performance syntax highlighting.
 
@@ -365,13 +365,7 @@ All dependencies are included as Git submodules and built automatically by CMake
 
 ## Git Workflow
 
-**Current branch**: `develop`
-**Main branch**: `main`
-
-All feature work should:
-1. Branch from `develop`
-2. Merge back to `develop` for testing
-3. Then merge to `main` for release
+All work branches from `main` and merges back to `main` through a pull request. Add a changeset for any package change; merging it opens a Version Packages PR that bumps the versions for release.
 
 ## Contributing
 
