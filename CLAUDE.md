@@ -192,10 +192,8 @@ Oniguruma (Regex) + RapidJSON (JSON)
 
 ## Git Workflow
 
-- **Main branch**: `main` (stable releases)
-- **Development branch**: `develop` (feature integration)
-- **Current branch**: `copilot/add-playground-mini-website-again`
-- Feature branches should be based on `develop`, then merged back to `develop` before `main`
+- `main` is the only long-lived branch. Branch from it and merge back to it through a pull request.
+- Merging changesets to `main` opens a Version Packages PR that bumps the versions for release.
 
 ## Key Files to Understand First
 
