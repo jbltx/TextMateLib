@@ -23,7 +23,7 @@ namespace TextMateLib.Bindings
         /// <returns><see langword="true"/> when the document parses.</returns>
         public static bool IsWellFormedObject(string? json)
         {
-            if (string.IsNullOrEmpty(json))
+            if (json == null || json.Length == 0)
                 return false;
 
             var i = 0;
@@ -116,7 +116,7 @@ namespace TextMateLib.Bindings
         /// <exception cref="InvalidOperationException">Thrown when the path cannot be resolved or no file exists there.</exception>
         public static string ResolveExistingFile(string? path, string paramName, string what)
         {
-            if (string.IsNullOrEmpty(path))
+            if (path == null || path.Length == 0)
                 throw new ArgumentNullException(paramName);
 
             string fullPath;
