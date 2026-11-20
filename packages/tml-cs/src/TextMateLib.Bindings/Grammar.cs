@@ -83,7 +83,7 @@ namespace TextMateLib.Bindings
                         if (scopePtr != IntPtr.Zero)
                         {
                             var scope = Marshal.PtrToStringAnsi(scopePtr);
-                            if (!string.IsNullOrEmpty(scope))
+                            if (scope != null && scope.Length > 0)
                                 scopes.Add(scope);
                         }
                     }
